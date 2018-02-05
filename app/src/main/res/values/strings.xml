@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">测试工具</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="appDescription">自动化测试工具</string>
+    <string name="author">凯哥出品</string>
+    <string name="update">刷新</string>
+    <string name="logAndReport">日志报告</string>
+    <string name="powerTest">功耗测试</string>
+    <string name="memeryTest">内存测试</string>
+</resources>
