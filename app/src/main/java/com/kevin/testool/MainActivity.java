@@ -1,6 +1,5 @@
 package com.kevin.testool;
 
-import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
@@ -25,13 +24,9 @@ import android.widget.Toast;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -312,12 +307,14 @@ public class MainActivity extends AppCompatActivity
             Uri uri = Uri.parse(logFile);
             intent.setDataAndType(uri, "*/*");
             intent.addCategory(Intent.CATEGORY_OPENABLE);
-//            startActivity(Intent.createChooser(intent, "文件管理"));
+//            startActivity(Intent.createChooser(intent, "open"));
             startActivity(intent);
 
         } else if (id == R.id.nav_power) {
+            startActivity(new Intent(MainActivity.this,powerMonitor.class));
 
         } else if (id == R.id.nav_memery) {
+            startActivity(new Intent(MainActivity.this, MemeryMonitor.class));
 
         } else if (id == R.id.nav_share) {
 
@@ -328,25 +325,5 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
-    }
-    //创建文件
-
-    @SuppressLint("SimpleDateFormat")
-    private File creatLogFile() throws FileNotFoundException {
-        sdf = new SimpleDateFormat("yyyy-MM-dd_HH_mm_ss");
-        String time_tag = sdf.format(new Date(System.currentTimeMillis()));
-        File ssDir = new File(Environment.getExternalStorageDirectory().getPath() + File.separator + "AutoTest" + File.separator + time_tag+ File.separator +"screenshot");
-        ssDir.mkdirs();
-        String tempFile = Environment.getExternalStorageDirectory() + File.separator + "AutoTest" + File.separator + "temp.txt";
-        FileOutputStream fos = new FileOutputStream(new File(tempFile),true);
-        OutputStreamWriter osw = new OutputStreamWriter(fos);
-        bw = new BufferedWriter(osw);
-        try {
-            bw.write(time_tag);
-            bw.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 }
