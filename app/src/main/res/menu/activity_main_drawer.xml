@@ -5,33 +5,42 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_import"
-            android:icon="@drawable/ic_menu_camera"
-            android:title="@string/update" />
+            android:id="@+id/add_new"
+            android:icon="@android:drawable/ic_menu_edit"
+            android:title="@string/add_new" />
+        <item
+            android:id="@+id/nav_syc"
+            android:icon="@drawable/ic_menu_edit"
+            android:title="@string/syncCases" />
+        <item
+            android:id="@+id/nav_update"
+            android:icon="@drawable/ic_menu_update"
+            android:title="@string/updateCases" />
         <item
             android:id="@+id/nav_report"
-            android:icon="@drawable/ic_menu_gallery"
+            android:icon="@drawable/ic_menu_report"
             android:title="@string/logAndReport" />
+
         <item
-            android:id="@+id/nav_power"
-            android:icon="@drawable/ic_menu_slideshow"
-            android:title="@string/powerTest" />
-        <item
-            android:id="@+id/nav_memery"
-            android:icon="@drawable/ic_menu_manage"
-            android:title="@string/memeryTest" />
+            android:id="@+id/nav_monkey"
+            android:icon="@drawable/ic_menu_memTest"
+            android:title="@string/monkeyTest" />
     </group>
 
-    <item android:title="Communicate">
+    <item android:title="@string/more">
         <menu>
             <item
                 android:id="@+id/nav_share"
                 android:icon="@drawable/ic_menu_share"
-                android:title="Share" />
+                android:title="@string/upgrade" />
             <item
-                android:id="@+id/nav_send"
+                android:id="@+id/nav_adb"
                 android:icon="@drawable/ic_menu_send"
-                android:title="Send" />
+                android:title="@string/adb" />
+            <item
+                android:id="@+id/nav_log"
+                android:icon="@drawable/ic_menu_bugreport"
+                android:title="@string/bugreprot" />
         </menu>
     </item>
 

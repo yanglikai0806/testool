@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/textView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/test_env"
+        android:textSize="18sp" />
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="39dp">
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal">
+
+            <RadioGroup
+                android:id="@+id/RdGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkedButton="@+id/proRb"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/proRb"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/production" />
+
+                <RadioButton
+                    android:id="@+id/preRb"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/preview" />
+
+                <RadioButton
+                    android:id="@+id/stgRb"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/staging" />
+            </RadioGroup>
+        </TableRow>
+
+    </TableLayout>
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="测试设置："
+        android:textSize="18sp" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="122dp"
+        android:orientation="vertical">
+
+        <Switch
+            android:id="@+id/log"
+            android:layout_width="245dp"
+            android:layout_height="wrap_content"
+            android:text="bugreport" />
+
+        <Switch
+            android:id="@+id/screenshot"
+            android:layout_width="245dp"
+            android:layout_height="wrap_content"
+            android:text="screenshot" />
+
+        <Switch
+            android:id="@+id/post_result"
+            android:layout_width="245dp"
+            android:layout_height="wrap_content"
+            android:text="post result" />
+
+        <Switch
+            android:id="@+id/alarm_msg"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="alarm msg" />
+
+    </LinearLayout>
+
+    <TableRow
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/branch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="分支：" />
+
+        <EditText
+            android:id="@+id/input_branch"
+            android:layout_width="78dp"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="输入测试分支"
+            android:inputType="textPersonName"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/retry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="重试次数：" />
+
+        <EditText
+            android:id="@+id/input_retry"
+            android:layout_width="30dp"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="number"
+            android:textAlignment="center" />
+
+        <TextView
+            android:id="@+id/caseTag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="casetag：" />
+
+        <EditText
+            android:id="@+id/input_case_tag"
+            android:layout_width="82dp"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="text"
+            android:textAlignment="textStart" />
+
+    </TableRow>
+
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <TextView
+            android:id="@+id/loop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="循环次数：" />
+
+        <EditText
+            android:id="@+id/input_loop"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="number"
+            android:text="1"
+            android:textAlignment="center"
+            android:textSize="14sp" />
+    </TableRow>
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="Mysql数据库配置："
+        android:textSize="18sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="128dp"
+        android:orientation="vertical">
+
+        <EditText
+            android:id="@+id/dbUrl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="text"
+            android:text="url:"
+            android:textSize="14sp"
+            tools:ignore="TextFields" />
+
+        <EditText
+            android:id="@+id/dbUser"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textPersonName"
+            android:text="user:"
+            android:textSize="14sp" />
+
+        <EditText
+            android:id="@+id/dbPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="text"
+            android:text="password:"
+            android:textSize="14sp"
+            tools:ignore="LabelFor,TextFields" />
+    </LinearLayout>
+
+</LinearLayout>

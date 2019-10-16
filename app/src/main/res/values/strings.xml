@@ -1,14 +1,57 @@
 <resources>
-    <string name="app_name">测试工具</string>
-
+    <string name="app_name">自动测试工具</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-
+    <string name="service_ticker">Auto test is running</string>
+    <string name="service_title">自动测试工具</string>
+    <string name="service_text">Auto test is running</string>
+    <string name="service_text2">Monkey is running</string>
+    <string name="service_text3">Monitor is running</string>
     <string name="action_settings">Settings</string>
-    <string name="appDescription">自动化测试工具</string>
+    <string name="appDescription">自动测试工具</string>
     <string name="author">凯哥出品</string>
-    <string name="update">刷新</string>
+    <string name="syncCases">同步用例</string>
+    <string name="updateCases">重新导入</string>
     <string name="logAndReport">日志报告</string>
-    <string name="powerTest">功耗测试</string>
-    <string name="memeryTest">内存测试</string>
+    <string name="share">分享</string>
+    <string name="title_activity_edit_case">editCaseActivity</string>
+    <string name="selectAll">全选</string>
+    <string name="selectCon">反选</string>
+    <string name="startTest">开始</string>
+    <string name="more">更多</string>
+    <string name="upgrade">关于</string>
+    <string name="adb">无线adb</string>
+    <string name="add_new">编辑用例</string>
+    <string name="tab_text_1">Tab 1</string>
+    <string name="tab_text_2">Tab 2</string>
+    <string name="tab_text_3">Tab 3</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+    <string name="clear_log">清空log文件</string>
+    <string name="monkeyTest">Monkey测试</string>
+    <string name="test_env">测试环境：</string>
+    <string name="preview">preview</string>
+    <string name="production">production</string>
+    <string name="staging">staging</string>
+
+    <string name="acquire_root_failed">获取Root权限失败！</string>
+    <string name="adb_start_fail">开启adb服务失败！</string>
+    <string name="adb_start">开启adb</string>
+    <string name="adb_started">adb已开启！</string>
+    <string name="adb_stop_fail">停止adb服务失败！</string>
+    <string name="adb_stop">停止adb</string>
+    <string name="adb_stopped">adb已停止！</string>
+    <string name="net_error">wifi已断开！</string>
+    <string name="wifi_off">wifi已断开！</string>
+    <string name="tv_title">无线adb工具</string>
+    <string name="about">无线adb工具\n功能：开启后可实现无线adb连接\n条件：手机需与服务器连接在同域网络的wifi下
+    </string>
+    <string name="ok">确定</string>
+    <string name="about_title">关于</string>
+    <string name="confirm">确认</string>
+    <string name="cancel">取消</string>
+    <string name="adb_on_screen_on">开启adb时屏幕保持常亮：</string>
+    <string name="net_ok">已连接到wifi%s</string>
+    <string name="bugreprot">抓取日志</string>
+    <string name="codeCoverage">代码覆盖</string>
+
 </resources>

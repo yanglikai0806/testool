@@ -3,24 +3,10 @@ package com.kevin.testool;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
-import android.os.SystemClock;
 import android.util.Log;
 
-import java.util.ArrayList;
-
-//
-//public class MyService extends Service {
-//    public MyService() {
-//    }
-//
-//    @Override
-//    public IBinder onBind(Intent intent) {
-//        // TODO: Return the communication channel to the service.
-//        throw new UnsupportedOperationException("Not yet implemented");
-//    }
-//}
 public class MyService extends Service {
-    private final String TAG = "MyService";
+    private final String TAG = "MonkeyService";
     //必须要实现的方法
     @Override
     public IBinder onBind(Intent intent) {
@@ -39,13 +25,7 @@ public class MyService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(TAG, "onStartCommand方法被调用!");
-        ArrayList<String> SELECTED_CASES;
-        SELECTED_CASES = intent.getStringArrayListExtra("SELECTED_CASES");
-        for(int i=0; i < SELECTED_CASES.size(); i++){
-            String command=CMDUtils.generateCommand("com.kevin.testcases", SELECTED_CASES.get(i));
-            CMDUtils.runCMD(command, true, true);
-            SystemClock.sleep(1000);
-        }
+        AdbUtils.runShellCommand("am instrument -w -r   -e debug false -e class 'com.kevin.testool.GetDumpTest#getDump' com.kevin.testool.test/android.support.test.runner.AndroidJUnitRunner\n", 0);
         return START_STICKY;
 //        return super.onStartCommand(intent, flags, startId);
     }

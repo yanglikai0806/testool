@@ -1,6 +1,8 @@
 package com.kevin.testool;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +12,9 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import static com.kevin.testool.CONST.LOGPATH;
+import static com.kevin.testool.CONST.TESTCASES_PATH;
 
 public class MyAdapter extends BaseAdapter{
     // 填充数据的list
@@ -72,6 +77,38 @@ public class MyAdapter extends BaseAdapter{
 
         // 设置list中TextView的显示
         holder.tv.setText(list.get(position));
+        holder.tv.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                ToastUtils.showShort(context, list.get(position));
+                android.support.v7.app.AlertDialog.Builder popWindow = new android.support.v7.app.AlertDialog.Builder(context);
+                //设置对话框标题
+                popWindow.setTitle("用例详情：");
+//                设置对话框消息
+                String res = logUtil.readToString(TESTCASES_PATH + list.get(position).split("\\.")[1].trim() + ".json");
+
+                TextView showText = new TextView(context);
+                showText.setTextSize(18);
+                assert res != null;
+                showText.setText(res.replace("}},","}},\n").replace(",", ",\n"));
+
+                showText.setTextIsSelectable(true);
+                popWindow.setView(showText);
+
+                // 添加选择按钮并注册监听
+//                popWindow.setPositiveButton("确定", new DialogInterface.OnClickListener() {
+//                    @Override
+//                    public void onClick(DialogInterface dialog, int which) {
+////                        finish();
+//                    }
+//                });
+                popWindow.setNegativeButton("关闭", null);
+                //对话框显示
+                popWindow.show();
+                return true;
+
+            }
+        });
         // 根据isSelected来设置checkbox的选中状况
         holder.cb.setChecked(getIsSelected().get(position));
         holder.cb.setOnClickListener(new View.OnClickListener() {

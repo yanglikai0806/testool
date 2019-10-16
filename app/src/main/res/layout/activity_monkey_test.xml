@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MonkeyTestActivity">
+
+    <RelativeLayout
+        android:layout_width="368dp"
+        android:layout_height="495dp"
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="8dp"
+        tools:ignore="MissingConstraints">
+
+        <TextView
+            android:id="@+id/m_package"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="40dp"
+            android:text="package/activity"
+            android:textAlignment="center"
+            android:textSize="18sp" />
+
+        <EditText
+            android:id="@+id/c_package"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/m_package"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="2dp"
+            android:layout_marginBottom="-5dp"
+            android:ems="10"
+            android:inputType="textPersonName"
+            android:text=""
+            android:textColor="@color/colorAccent" />
+
+        <TextView
+            android:id="@+id/m_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignEnd="@+id/m_package"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="101dp"
+            android:layout_marginEnd="40dp"
+            android:text="count"
+            android:textAlignment="center"
+            android:textSize="18sp" />
+
+        <EditText
+            android:id="@+id/c_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@+id/c_package"
+            android:layout_alignBottom="@+id/m_count"
+            android:layout_marginStart="2dp"
+            android:layout_marginBottom="-1dp"
+            android:ems="10"
+            android:inputType="number"
+            android:text="10000"
+            android:textColor="@color/colorAccent" />
+
+        <TextView
+            android:id="@+id/m_throttle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignEnd="@+id/m_package"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="164dp"
+            android:layout_marginEnd="40dp"
+            android:text="throttle"
+            android:textSize="18sp" />
+
+        <EditText
+            android:id="@+id/c_throttle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignStart="@+id/c_package"
+            android:layout_alignBottom="@+id/m_throttle"
+            android:ems="10"
+            android:inputType="number"
+            android:text="500"
+            android:textColor="@color/colorAccent" />
+
+        <Button
+            android:id="@+id/m_start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="150dp"
+            android:text="start" />
+
+        <TextView
+            android:id="@+id/seed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="218dp"
+            android:layout_marginEnd="61dp"
+            android:layout_toStartOf="@+id/c_seed"
+            android:text="seed"
+            android:textSize="18sp" />
+
+        <EditText
+            android:id="@+id/c_seed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignEnd="@+id/c_package"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="202dp"
+            android:layout_marginEnd="2dp"
+            android:ems="10"
+            android:inputType="textPersonName" />
+    </RelativeLayout>
+</android.support.constraint.ConstraintLayout>

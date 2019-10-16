@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".EditCaseActivity">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="3dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingConstraints">
+
+        <TextView
+            android:id="@+id/textView11"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="批量调试"
+            android:visibility="visible" />
+
+        <TableRow
+            android:layout_width="wrap_content"
+            android:layout_height="75dp">
+
+            <TextView
+                android:id="@+id/api_url"
+                android:layout_width="31dp"
+                android:layout_height="wrap_content"
+                android:text="url:"
+                android:textColor="@color/colorAccent" />
+
+            <EditText
+                android:id="@+id/input_url"
+                android:layout_width="265dp"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="http:\\\\"
+                android:inputType="textPersonName"
+                android:textSize="12sp"
+                tools:ignore="TextFields" />
+
+            <Button
+                android:id="@+id/btn_run_url"
+                android:layout_width="67dp"
+                android:layout_height="34dp"
+                android:text="调试"
+                android:textSize="12sp" />
+        </TableRow>
+
+        <TextView
+            android:id="@+id/textView12"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="单例调试"
+            tools:layout_editor_absoluteX="8dp"
+            tools:layout_editor_absoluteY="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/case_id"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:text="case_id:"
+                    android:textAlignment="textEnd"
+                    android:textColor="@color/colorAccent" />
+
+                <EditText
+                    android:id="@+id/input_case_id"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="textPersonName"
+                    android:textSize="12sp" />
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/query"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:text="query:"
+                    android:textAlignment="textEnd"
+                    android:textColor="@color/colorAccent" />
+
+                <EditText
+                    android:id="@+id/input_query"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="textPersonName"
+                    android:textSize="12sp" />
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/wait_time"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:text="wait_time:"
+                    android:textAlignment="textEnd"
+                    android:textColor="@color/colorAccent" />
+
+                <EditText
+                    android:id="@+id/input_wait_time"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="textPersonName"
+                    android:textSize="12sp" />
+
+
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/check_point"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:text="check_point:"
+                    android:textAlignment="textEnd"
+                    android:textColor="@color/colorAccent" />
+
+                <EditText
+                    android:id="@+id/input_check_point"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="textPersonName"
+                    android:textSize="12sp" />
+
+
+            </TableRow>
+
+
+        </LinearLayout>
+
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Button
+                android:id="@+id/btn_debug"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:layout_marginStart="32dp"
+                android:text="调试"
+                android:textSize="12sp"
+                app:layout_constraintStart_toStartOf="parent"
+                tools:ignore="MissingConstraints"
+                tools:layout_editor_absoluteY="0dp" />
+
+            <Button
+                android:id="@+id/btn_add"
+                android:layout_width="wrap_content"
+                android:layout_height="34dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:text="添加"
+                android:textSize="12sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.796"
+                app:layout_constraintStart_toEndOf="@+id/btn_debug"
+                tools:ignore="MissingConstraints"
+                tools:layout_editor_absoluteY="0dp" />
+        </android.support.constraint.ConstraintLayout>
+
+        <TextView
+            android:id="@+id/log_dis"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="执行结果展示"
+            android:scrollbars="vertical"
+            android:textAlignment="textStart"
+            android:textIsSelectable="true" />
+
+    </LinearLayout>
+
+
+</android.support.constraint.ConstraintLayout>
