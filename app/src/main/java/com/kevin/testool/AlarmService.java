@@ -1,15 +1,12 @@
 package com.kevin.testool;
 
-import java.util.Date;
-
 import android.app.AlarmManager;
 import android.app.IntentService;
-import android.app.PendingIntent;
-import android.app.Service;
 import android.content.Intent;
-import android.os.IBinder;
-import android.os.SystemClock;
 import android.util.Log;
+
+import com.kevin.testool.utils.AlarmManagerUtils;
+import com.kevin.testool.utils.DateTimeUtils;
 
 public class AlarmService extends IntentService {
 

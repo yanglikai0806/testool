@@ -4,20 +4,19 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import com.kevin.testool.common.HtmlReport;
+import com.kevin.testool.utils.ToastUtils;
 
 import org.json.JSONException;
 
 import java.io.File;
 import java.io.IOException;
 
-import static com.kevin.testool.CONST.LOGPATH;
 import static com.kevin.testool.CONST.REPORT_PATH;
 
 

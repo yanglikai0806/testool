@@ -1,4 +1,4 @@
-package com.kevin.testool;
+package com.kevin.testool.utils;
 
 import android.os.Build;
 import android.os.SystemClock;
@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.kevin.testool.adblib.CmdTools;
 import com.kevin.testool.common.Common;
+import com.kevin.testool.logUtil;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;

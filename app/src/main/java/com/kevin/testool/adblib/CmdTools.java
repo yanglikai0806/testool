@@ -15,19 +15,12 @@
  */
 package com.kevin.testool.adblib;
 
-import android.annotation.SuppressLint;
-import android.app.Application;
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Looper;
 import android.support.annotation.IntRange;
 import android.util.Base64;
 
 import com.kevin.testool.CONST;
-import com.kevin.testool.ToastUtils;
 import com.kevin.testool.logUtil;
 
 import java.io.BufferedReader;
@@ -43,11 +36,9 @@ import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;

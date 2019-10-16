@@ -1,8 +1,6 @@
 package com.kevin.testool;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,10 +8,11 @@ import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
+import com.kevin.testool.utils.ToastUtils;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import static com.kevin.testool.CONST.LOGPATH;
 import static com.kevin.testool.CONST.TESTCASES_PATH;
 
 public class MyAdapter extends BaseAdapter{

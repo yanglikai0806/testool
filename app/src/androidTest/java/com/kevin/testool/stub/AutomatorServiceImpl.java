@@ -46,7 +46,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 
 //import com.kevin.testool.ToastHelper;
-import com.kevin.testool.ToastUtils;
+import com.kevin.testool.utils.ToastUtils;
 import com.kevin.testool.stub.watcher.ClickUiObjectWatcher;
 import com.kevin.testool.stub.watcher.PressKeysWatcher;
 

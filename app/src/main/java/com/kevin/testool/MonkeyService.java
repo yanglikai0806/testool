@@ -1,12 +1,10 @@
 package com.kevin.testool;
 
-import android.app.Application;
 import android.app.IntentService;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.content.Context;
 import android.media.AudioManager;
@@ -16,15 +14,10 @@ import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.kevin.testool.common.Common;
-import com.kevin.testool.common.DBService;
-import com.kevin.testool.common.WifiHelper;
-
-import org.json.JSONArray;
-import org.json.JSONException;
+import com.kevin.testool.utils.ToastUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.SimpleDateFormat;

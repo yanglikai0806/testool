@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.kevin.testool.utils.AdbUtils;
+
 public class MyService extends Service {
     private final String TAG = "MonkeyService";
     //必须要实现的方法

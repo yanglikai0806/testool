@@ -3,18 +3,18 @@ package com.kevin.testool;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.kevin.testool.common.WifiHelper;
+import com.kevin.testool.utils.AdbUtils;
+import com.kevin.testool.utils.ToastUtils;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

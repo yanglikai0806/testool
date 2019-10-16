@@ -1,6 +1,4 @@
-package com.kevin.testool;
-
-import android.util.Log;
+package com.kevin.testool.utils;
 
 import java.text.DateFormat;
 import java.text.DecimalFormat;

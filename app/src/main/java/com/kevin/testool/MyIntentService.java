@@ -23,6 +23,9 @@ import com.kevin.testool.common.DBService;
 import com.kevin.testool.common.HtmlReport;
 import com.kevin.testool.common.MemoryManager;
 import com.kevin.testool.common.WifiHelper;
+import com.kevin.testool.utils.AdbUtils;
+import com.kevin.testool.utils.ToastUtils;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -42,7 +45,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.kevin.testool.common.Common.CONFIG;
-import static com.kevin.testool.common.Common.getRomName;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in

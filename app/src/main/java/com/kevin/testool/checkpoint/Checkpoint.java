@@ -1,6 +1,6 @@
 package com.kevin.testool.checkpoint;
 import android.os.Environment;
-import com.kevin.testool.AdbUtils;
+import com.kevin.testool.utils.AdbUtils;
 import com.kevin.testool.MyFile;
 import com.kevin.testool.common.Common;
 import com.kevin.testool.logUtil;
@@ -11,15 +11,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 
 import java.util.regex.*;

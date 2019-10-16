@@ -17,8 +17,8 @@ import android.support.annotation.RequiresApi;
 import android.telephony.TelephonyManager;
 import android.widget.Toast;
 
-import com.kevin.testool.AdbUtils;
-import com.kevin.testool.AppUtils;
+import com.kevin.testool.utils.AdbUtils;
+import com.kevin.testool.utils.AppUtils;
 import com.kevin.testool.CONST;
 import com.kevin.testool.MyFile;
 import com.kevin.testool.logUtil;

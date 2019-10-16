@@ -8,6 +8,9 @@ import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
+import com.kevin.testool.utils.AdbUtils;
+import com.kevin.testool.utils.ToastUtils;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
