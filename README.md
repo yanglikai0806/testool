@@ -51,6 +51,9 @@
   5. 测试完成后 点击导航栏 “日志报告” 可以查看测试报告
 # 三. 功能介绍：
 step 支持的操作方式可以从 MyIntentService.java 里的 execute_xa 方法里获得
+
 check_point 支持的检测方法可以从 resultCheck 方法里查看
+
 skipe_condition 为测试跳过条件，判断方法与check_point相似
+
 具体功能实现以后补充～～～
