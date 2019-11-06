@@ -10,23 +10,41 @@
   1. 测试case以json文件的格式执行：
   如：文件名 testDemon.json
   文件内容：
+  
   [
+  
   {"id":"testcase-1", 
+  
     "case":{
+    
      "case_tag": "monitor",
+     
     "feature":"demo",
+    
     "action": "demo",
+    
     "app": "系统设置",
+    
     "step":[{"press":"home"}, {"text":"设置"}],
+    
     "wait_time":[1,2] },
+    
   "check_point":{
+  
     "text":"",
+    
     "resource-id":"",
+    
     "activity":"com.android.setting",
+    
     "nd":"",
+    
     },
+    
     "skip_condition":{
+    
     }
+    
   },
   {"id":"testcase-2", 
     "case":{
