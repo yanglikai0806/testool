@@ -4,6 +4,7 @@
   2. 不需连接usb，脱机执行测试用例
   3. 需安装 app-debug.apk, atx.apk, atx-androidTest.apk 三个应用并允许读写存储等权限
   4. 测试用例需按照指定数据结构实现方可执行
+  5. app执行需要root权限，如果没有root权限需要链接usb 执行adb tcpip 5555后方可执行测试（手机重启后需重新开启5555端口）
   
 # 二. 使用简介：
 
