@@ -1,11 +1,11 @@
-# testool
-一. 测试工具介绍
+# Android UI测试工具
+#一. 测试工具介绍
   1. 适用于Android app ui 自动化测试
   2. 不需连接usb，脱机执行测试用例
   3. 需安装 app-debug.apk, atx.apk, atx-androidTest.apk 三个应用并允许读写存储等权限
   4. 测试用例需按照指定数据结构实现方可执行
   
-二. 使用简介：
+#二. 使用简介：
 
   1. 测试case以json文件的格式执行：
   如：文件名 testDemon.json
