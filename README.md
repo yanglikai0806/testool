@@ -10,43 +10,24 @@
   1. 测试case以json文件的格式执行：
   如：文件名 testDemon.json
   文件内容：
-  
-  [
-  
-  {"id":"testcase-1", 
-  
+ 
+    [{"id":"testcase-1", 
     "case":{
-    
      "case_tag": "monitor",
-     
     "feature":"demo",
-    
     "action": "demo",
-    
     "app": "系统设置",
-    
     "step":[{"press":"home"}, {"text":"设置"}],
-    
     "wait_time":[1,2] },
-    
-  "check_point":{
-  
+    "check_point":{
     "text":"",
-    
     "resource-id":"",
-    
     "activity":"com.android.setting",
-    
-    "nd":"",
-    
-    },
-    
+    "nd":""},
     "skip_condition":{
-    
     }
-    
-  },
-  {"id":"testcase-2", 
+    },
+    {"id":"testcase-2", 
     "case":{
      "case_tag": "monitor",
     "feature":"demo",
@@ -54,13 +35,16 @@
     "app": "系统设置",
     "step":[{"press":"home"}, {"text":"设置"}],
     "wait_time":[1,2] },
-  "check_point":{
+    "check_point":{
+  
     "text":"",
     "resource-id":"",
     "activity":"com.android.setting",
     "nd":"",
     }
-  }]
+    }]
+    
+    
   2. 将写好的testDemon.json文件存储到手机跟目录下/autotest/testcases/路径下
   3. 在工具左侧导航栏里选择“重新导入”，用例会显示在主界面
   4. 选中要执行的用例集合 点击 “开始” 测试开始执行
