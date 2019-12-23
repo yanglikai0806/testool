@@ -58,8 +58,7 @@ apk 安装完成后，首次启动apk会自动同步config.json文件（文件�
     "scope": "single",
     "app": {"pkg":"com.xxx.xxx", "version_code":[0, 30400500]} 
     }
-  }
-}]
+  }]
 ```
 ### 1. "id"
 主要标示case，根据case的特点命名即可，主要用于报告展示，方便查找定位
