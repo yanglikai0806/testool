@@ -1,4 +1,4 @@
-##一. 工具介绍
+一. 工具介绍
 ---
 
 * 适用于Android app ui 自动化测试
@@ -7,7 +7,7 @@
 * app执行需要root权限，如果无法获取root权限需要pc连接usb后执行**“adb tcpip 5555”**后方可执行测试（手机重启后需重新开启5555端口）
 * 需安装 testool.apk, app-debug.apk, app-debug-androidTest.apk 三个应用并允许读写存储等权限
 
-##二. 配置文件
+二. 配置文件
 ---
 apk 安装完成后，首次启动apk会自动同步config.json文件（文件路径：/sdcard/autotest/config.json）.
 配置文件内容及功能如下：
@@ -33,7 +33,7 @@ apk 安装完成后，首次启动apk会自动同步config.json文件（文件�
   }  
 }
 ```
-##三. 用例格式
+三. 用例格式
 ---
 测试case以json文件的格式执行： 如：文件名 testDemon.json 文件，用例主要包括四个部分    
 #####** id,  case,  check_point,  skip_condition**    
