@@ -36,7 +36,7 @@ apk 安装完成后，首次启动apk会自动同步config.json文件（文件�
 三. 用例格式
 ---
 测试case以json文件的格式执行： 如：文件名 testDemon.json 文件，用例主要包括四个部分    
-#####** id,  case,  check_point,  skip_condition**    
+id,  case,  check_point,  skip_condition 
 
     
 ```json
