@@ -4,7 +4,7 @@
 * 适用于Android app ui 自动化测试
 * 无需连接usb，**脱机执行**自动化测试
 * 测试用例需按照指定数据结构实现方可执行
-* app执行需要root权限，如果无法获取root权限需要pc连接usb后执行**“adb tcpip 5555”**后方可执行测试（手机重启后需重新开启5555端口）
+* app执行需要root权限，如果无法获取root权限需要pc连接usb后执行__“adb tcpip 5555”__后方可执行测试（手机重启后需重新开启5555端口）
 * 需安装 testool.apk, app-debug.apk, app-debug-androidTest.apk 三个应用并允许读写存储等权限
 
 二. 配置文件
