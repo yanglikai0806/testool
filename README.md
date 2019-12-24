@@ -34,7 +34,7 @@ apk 安装完成后，首次启动apk会自动同步config.json文件（文件�
 }
 ```    
 
-### 三. 用例格式
+三. 用例格式
 ---
 测试case以json文件的格式执行： 如：文件名 testDemon.json 文件，用例主要包括四个部分    
 id,  case,  check_point,  skip_condition 
@@ -217,7 +217,8 @@ skip\_condition 字段的用法继承了check\_point 的用法，check\_point的
      "dev_white_lst": ["mido"]
 ```
 * __"dev_black_lst"__   
-设备黑名单，用法同上
+设备黑名单，用法同上   
+
 四. 使用方法
 ---
 * 将写好的testDemon.json文件存储到手机跟目录下/autotest/testcases/路径下，或者 点击左侧导航栏 “同步用例” 会自动同步目前自动化测试实现的测试case   
