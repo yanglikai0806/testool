@@ -61,10 +61,10 @@ id,  case,  check_point,  skip_condition
   }]
 ```
 ### 1. "id"
-主要标示case，根据case的特点命名即可，主要用于报告展示，方便查找定位
+主要标识测试用例，根据测试用例功能特点命名即可，主要用于报告展示，方便查找定位
 
 ### 2. "case"
-case 是测试用例的主体，执行测试case的核心部分。
+case 是测试用例的主体，执行测试用例的核心部分。
 
 * __"app"__    
 类型 _String_，值 _app名称_，如“微信”。 会从config.json 中根据APP 配置的名称对应其package name。表示测试执行依赖此app，会判断其是否安装，未安装则跳过测试。
@@ -82,7 +82,7 @@ case 是测试用例的主体，执行测试case的核心部分。
 {"class":"string"} 根据界面元素class属性点击界面控件，"nex","index"用法同上。
 {"click": [x, y]} 根据x，y坐标点击操作。
 {"swipe":[xs, ys, xe, ye, step]} 根据起始点 xs, ys 滑动界面到 xe，ye；step 为滑动步数，控制滑动快慢。
-{"activity":"string"/list} 支持string/list两种value格式，list内多个activity 会随机启动一个，实现方式为adb命令。
+{"activity":"string"/list} 支持string/list两种数据类型，list内多个activity 会随机启动一个，实现方式为adb命令。
 {"launchApp":"string"} 支持activity启动，支持package name 启动应用，Android方法实现。
 {"kill":"string"} 根据应用package name 结束应用进程。
 {"uninstall":"string"} 根据应用 package name 卸载应用。
@@ -101,47 +101,76 @@ case 是测试用例的主体，执行测试case的核心部分。
 ### 3. check_point
 **check_point 对测试执行后的结果检测字段如下：**
 
-* __"text"__    
-        {"text":[]} / {"text":"string"}
+* __"text"__  
+```
+    {"text":[]} / {"text":"string"}
+```
 检测当前界面**(xml布局文件)**是否存在文本属性（text 、content-desc、recource-id...），list 元素之间为 _与_ 的关系，元素中 "|" 分割 为 _或_ 的关系，如{"text":["今天天气|空气","度"]}
-* __"resource-id__" / __"id"__    
-        {"resource-id":"string"} 
+
+* __"resource-id__" / __"id"__  
+```
+    {"resource-id":"string"} 
+```
 是否存在某个控件id，与"text"实现方式相似，只支持string参数
-* __"nd"__    
-        {"nd": [ ]/ "string"} 
+
+* __"nd"__  
+```
+    {"nd": [ ]/ "string"} 
+```
+
 与 __"text"__ 用法一致，结果取反
-* __"activity"__    
-        {"activity":"string"} 
+
+* __"activity"__  
+```
+    {"activity":"string"} 
+```
 检查当前activity,元素中 "|" 分割 为 _或_ 的关系
+
 * __"toast"__    
-        {"toast":"string"}
+```
+{"toast":"string"}
+```
 检查toast内容是否包含元素
+
 * __"status"__    
 {"status":{}} 检查某个元素的状态，"s_text", "s_id", "s_content", "nex", "index" 通过这几个元素定位要判断的元素，然后判断要检查的属性及其预期的值    
-例如：
-        {"s_text":"开关", "s_id":"id/button", "nex":0, "index":1, "checked":"false“} 
-        表示定位id为id/button, text属性为”开关“ 的第二个元素，"check"属性是否为”false“
+例如：   
+```
+    {"s_text":"开关", "s_id":"id/button", "nex":0, "index":1, "checked":"false“} 
+    表示定位id为id/button, text属性为”开关“ 的第二个元素，"check"属性是否为”false“
+```
 
 * __"delta"__
 {"delta":{"path": "you/folder/", "file\_re": "文件匹配的正则表达式", "cbt":0, "diff": 1}} 检测某路径下的文件增减情况 "cbt" 为 "count before test"    
 例如：
-        "delta":{"path": "/sdcard/DCIM/Camera", "file_re": "IMG_\\d{8}_\\d{6}\\.jpg", "cbt":0, "diff": 1} 
-        表示测试后相机目录下新增1个jpg文件
-* __"img"__    
-        {"img":{"text":"string", "language":"chi_sim"}} 
+```
+    "delta":{"path": "/sdcard/DCIM/Camera", "file_re": "IMG_\\d{8}_\\d{6}\\.jpg", "cbt":0, "diff": 1} 
+    表示测试后相机目录下新增1个jpg文件
+```
+
+* __"img"__  
+```
+    {"img":{"text":"string", "language":"chi_sim"}} 
+```
 通过ocr识别当前界面是否存在目标文本，"language" 可缺省，默认为中文简体"chi_sim", 可支持英文"eng".
 
-* __"logcat"__    
-        {"logcat":"string"}
+* __"logcat"__
+```
+    {"logcat":"string"}
+```
 检测logcat中是否存在目标log。
 
 * __"or"__
-        {"or":"true"} 
+```
+    {"or":"true"} 
+```
 "true" 
 表示对以上判断结果取 _或_
 
 * __"reverse"__
-        {"reverse":"true"} 
+```
+    {"reverse":"true"} 
+```
 "true" 
 表示对以上判断结果取 _反_
 
@@ -158,23 +187,33 @@ case 是测试用例的主体，执行测试case的核心部分。
 ### 4. skip_condition
 skip\_condition 字段的用法继承了check\_point 的用法，check\_point的字段都是支持的。   
 
-* __"scope"__    
-        "scope":"all/single"
+* __"scope"__ 
+```
+    "scope":"all/single"
+```
 表示跳过条件的影响范围，"all" 表示跳过条件成立时，json文件内当前case后面的所有case都会跳过，"single" 表示只跳过当前case
 
 * __"app"__
-      "app": {"pkg": "com.android.camera", "version_name": "3.0", "version_code": [100, 300]}
+```
+    "app": {"pkg": "com.android.camera", "version_name": "3.0", "version_code": [100, 300]}
+```
 判断 app的version name 或 version code 是否符合条件
 * __"sim_card"__  
-        "sim_card":"true/false" 
+```
+    "sim_card":"true/false" 
+```
 判断设备是否有sim卡安装
 
-* __"nfc"__    
-        "nfc":"true/false" 
+* __"nfc"__   
+```
+     "nfc":"true/false" 
+```
 判断是否支持nfc功能
 
 * __"dev_white_lst"__   
 设备白名单，参数为设备代号，例如：
-        "dev_white_lst": ["mido"]
+```
+     "dev_white_lst": ["mido"]
+```
 * __"dev_black_lst"__   
 设备黑名单，用法同上
