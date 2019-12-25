@@ -225,7 +225,7 @@ skip\_condition 字段的用法继承了check\_point 的用法，check\_point的
 * 在工具左侧导航栏里选择“重新导入”，用例会显示在主界面，长按每个item会显示 用例详情。   
 * 选中要执行的用例集合 点击 “开始” 测试开始执行，选择相应的测试环境，用例配置，case_tag 等参数   
 * 测试完成后 点击导航栏 “日志报告” 可以查看测试报告   
-![image](./resource/0.gif){:height="50%" width="50%"}
+<img src="https://github.com/yanglikai0806/testool/tree/master/resource/0.gif" width="200"/>
 
 Thank to
 ---
