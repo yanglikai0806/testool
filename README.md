@@ -14,6 +14,7 @@ apk 安装完成后，首次启动apk会自动同步config.json文件（文件�
 ```json
 {  
   "APP" : {
+    "package":"",
     "微信": "com.tencent.mm",
 },  
  "TEST_ENV": "production",  #测试环境
