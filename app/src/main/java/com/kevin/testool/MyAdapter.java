@@ -9,6 +9,7 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.kevin.testool.utils.ToastUtils;
+import com.kevin.testool.utils.logUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;

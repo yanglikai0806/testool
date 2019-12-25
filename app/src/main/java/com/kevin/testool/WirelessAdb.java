@@ -15,6 +15,7 @@ import android.widget.TextView;
 import com.kevin.testool.common.WifiHelper;
 import com.kevin.testool.utils.AdbUtils;
 import com.kevin.testool.utils.ToastUtils;
+import com.kevin.testool.utils.logUtil;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

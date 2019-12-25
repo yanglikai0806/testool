@@ -5,8 +5,6 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import com.kevin.testool.adblib.CmdTools;
-import com.kevin.testool.common.Common;
-import com.kevin.testool.logUtil;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -33,7 +31,7 @@ public class AdbUtils {
      *
      * @param processName 进程名字
      * @return 执行进程是否在运行
-     * @throws Exception
+     * @throws
      */
     public static boolean isProcessRunning(String processName) throws Exception {
         boolean running = false;
@@ -71,7 +69,7 @@ public class AdbUtils {
                 rooted = true;
             }
         } catch (Exception e) {
-//            e.printStackTrace();
+            e.printStackTrace();
             rooted = false;
         } finally {
             if (os != null) {
@@ -94,6 +92,7 @@ public class AdbUtils {
      * @return 是否成功执行shell命令
      */
     public static String runShellCommand(String command, int timeout) {
+        boolean waitResult = true;
         Process process = null;
         DataOutputStream os = null;
         StringBuilder successMsg = new StringBuilder();
@@ -113,29 +112,36 @@ public class AdbUtils {
             os.write(command.getBytes());
             os.writeChars("exit\n");
             os.flush();
+
             if (timeout > 0){
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    process.waitFor(timeout, TimeUnit.SECONDS);
+                    process.waitFor(timeout, TimeUnit.MILLISECONDS);
+                } else {
+                    SystemClock.sleep(timeout);
                 }
-            } else {
+            } else if (timeout == 0){
                 process.waitFor();
+            } else {
+                waitResult = false;
+                SystemClock.sleep(Math.abs(timeout));
+
             }
 
             //输出结果
-
-            BufferedReader successResult = new BufferedReader(
-                    new InputStreamReader(process.getInputStream()));
-            BufferedReader errorResult = new BufferedReader(
-                    new InputStreamReader(process.getErrorStream()));
-            String s;
-            while ((s = successResult.readLine()) != null) {
-                successMsg.append(s);
+            if (waitResult) {
+                BufferedReader successResult = new BufferedReader(
+                        new InputStreamReader(process.getInputStream()));
+                BufferedReader errorResult = new BufferedReader(
+                        new InputStreamReader(process.getErrorStream()));
+                String s;
+                while ((s = successResult.readLine()) != null) {
+                    successMsg.append(s);
+                }
+                while ((s = errorResult.readLine()) != null) {
+                    errorMsg.append(s);
+                    Log.i(TAG, errorMsg.toString());
+                }
             }
-            while ((s = errorResult.readLine()) != null) {
-                errorMsg.append(s);
-                Log.i(TAG, errorMsg.toString());
-            }
-
 
         } catch (Exception e) {
             logUtil.e("AdbUtils.runShellCommand", e.getMessage());

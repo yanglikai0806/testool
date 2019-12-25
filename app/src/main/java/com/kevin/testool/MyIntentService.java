@@ -25,6 +25,7 @@ import com.kevin.testool.common.MemoryManager;
 import com.kevin.testool.common.WifiHelper;
 import com.kevin.testool.utils.AdbUtils;
 import com.kevin.testool.utils.ToastUtils;
+import com.kevin.testool.utils.logUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -134,14 +135,14 @@ public class MyIntentService extends IntentService {
         String _caseid = testcase.getString("id");
         JSONObject _case = testcase.getJSONObject("case");
         JSONObject _check = testcase.getJSONObject("check_point");
-        JSONArray Query = _case.getJSONArray("query");
+        JSONArray Step = _case.getJSONArray("step");
         JSONArray waitTime = _case.getJSONArray("wait_time");
         logUtil.i(CASEID, _caseid);
         if (Common.isScreenLocked()){
             Common.unlockScreen("");
             Common.unlockScreen(CONFIG().getString("SCREEN_LOCK_PW"));  //测试手机锁屏密码
         }
-        execute_xa(Query, waitTime);
+        execute_xa(Step, waitTime);
         try {
             return resultCheck(_check, true);
         } catch (IOException e) {
@@ -189,26 +190,7 @@ public class MyIntentService extends IntentService {
             String resDate = dr.format(new Date());
 
             int retryTime = 0;
-            // post result 数据
-            String setup = "";
-            String act = "";
-            String feature = "";
-            String third_app = "default";
             JSONObject testcase = (JSONObject) testcases.get(i);
-            JSONObject _case = testcase.getJSONObject("case");
-            JSONArray Query = _case.getJSONArray("query");
-            if (!_case.isNull("setup")){
-                setup = _case.getString("setup");
-            }
-            if (!_case.isNull("action")){
-                act = _case.getString("action");
-            }
-            if (!_case.isNull("feature")){
-                feature = _case.getString("feature");
-            }
-            if (!_case.isNull("app")){
-                third_app = _case.getString("app");
-            }
             //处理音量避免扰民
             AudioManager audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
             if (audioManager != null) {
@@ -277,12 +259,6 @@ public class MyIntentService extends IntentService {
                         }
                         //失败率大于10%， case终止测试
                         if (result_loops_failed.size()/(float)loop > 0.1){
-//                            if (LOG_FLAG) {
-//                                String bugreportFile = "bugreport_" + dateFormat.format(new Date()) + ".txt";
-//                                Common.generateBugreport(CONST.REPORT_PATH + logUtil.readTempFile() + File.separator + CONST.SCREENSHOT + File.separator + bugreportFile);
-//                                logUtil.i("", bugreportFile.replace(".txt", ".zip"));
-//                                LOG_FLAG = false;
-//                            }
                             result = false;
                             break;
                         }
@@ -306,7 +282,6 @@ public class MyIntentService extends IntentService {
             }
             while (Objects.equals(result, false) & (retryTime < Integer.valueOf(CONFIG().getString("RETRY")))) {
                 Checkpoint.clickPopWindow();
-//                Common.switchCardFocusEnable("false");
                 Common.clearRecentApp();
                 retryTime++;
                 logUtil.i("", "----------------------retry------------------------");
@@ -408,13 +383,13 @@ public class MyIntentService extends IntentService {
                 continue_flag = false;
             }
         }
-        JSONArray Query;
+        JSONArray Step;
         // 实现uri测试， 针对case tag 为 uri的测试重新组装测试case
         if (case_tag.equals("uri")){
-            Query = new JSONArray().put(new JSONObject().put("uri", _case.getString("uri")));
+            Step = new JSONArray().put(new JSONObject().put("uri", _case.getString("uri")));
             _case.put("wait_time", new JSONArray().put(2));
         } else {
-            Query = _case.getJSONArray("query");
+            Step = _case.getJSONArray("step");
         }
         JSONArray waitTime;
         // 兼容wait_time类型
@@ -433,7 +408,7 @@ public class MyIntentService extends IntentService {
             Common.unlockScreen(Common.CONFIG().getString("SCREEN_LOCK_PW"));  //手机锁屏密码
         }
 //            Common.switchCardFocusEnable("true");
-        if (!execute_xa(Query, waitTime)){
+        if (!execute_xa(Step, waitTime)){
             return null;
         }
         Object result;
@@ -520,7 +495,7 @@ public class MyIntentService extends IntentService {
                     ALIAS = Common.getDeviceAlias();
                     APPVER = Common.getVersionName(this, PKG);
                     TEST_ENV = intent.getStringExtra("TEST_ENV");
-                    logUtil.i(REPORT_TITLE, "测试机型：" + DEVICE +"（"+ ALIAS + "） SN："+ Common.getSerialno()+" 应用版本：" + APPVER + " 测试环境：" + TEST_ENV);
+                    logUtil.i(REPORT_TITLE, "测试机型：" + DEVICE +"("+ ALIAS + ") SN："+ Common.getSerialno()+" 应用版本：" + APPVER + " 测试环境：" + TEST_ENV);
                     SELECTED_CASES = intent.getStringArrayListExtra("SELECTED_CASES");
                     CASE_TAG = intent.getStringExtra("CASE_TAG");
                     logUtil.i("","case_tag is :"+CASE_TAG);
@@ -579,7 +554,7 @@ public class MyIntentService extends IntentService {
                     if (TEST_ENV == null){
                         TEST_ENV = "production";
                     }
-                    logUtil.i(REPORT_TITLE, "测试机型：" + DEVICE +"（"+ ALIAS + "） SN："+ Common.getSerialno()+" 小爱版本：" + APPVER + " 测试环境：" + TEST_ENV);
+                    logUtil.i(REPORT_TITLE, "测试机型：" + DEVICE +"("+ ALIAS + ") SN："+ Common.getSerialno()+" 小爱版本：" + APPVER + " 测试环境：" + TEST_ENV);
                     String select_cases = intent.getStringExtra("SELECTED_CASES");
                     if (select_cases.toLowerCase().equals("all")){
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -702,30 +677,18 @@ public class MyIntentService extends IntentService {
                     });
                     break;
                 case DEBUG:
-                    String ress = AdbUtils.runShellCommand("ls", 0);
-                    System.out.println(ress);
-
-//                    CmdTools._execAdbCmd("input keyevent 3", 0);
-//                    Common.startActivityWithUri(getApplicationContext(), "intent:#Intent;launchFlags=0x14000000;component=com.tencent.mm/.ui.LauncherUI;B.LauncherUI.From.Scaner.Shortcut=true;end");
-
-//                    Imagett.imageToText(Common.screenImage(), "chi_sim");
-//                    JSONObject tmpResult = DBService.selectCaseResult("voice", 0);
-//                    System.out.println(tmpResult);
-//                    Common.startActivity("com.android.settings/.MainSettings");
-//                    String data = "{\"jsonrpc\": \"2.0\", \"id\": \"111111\", \"method\": \"dumpWindow\", \"params\": {}}";
-//                    String data = "{\"jsonrpc\": \"2.0\", \"id\": \"111111\", \"method\": \"dumpWindow\", \"params\": {}}";
-//                    Common.JsonRpc(data);
+                    //todo 调试代码
                     break;
 
             }
         }
     }
 
-    public boolean execute_xa(JSONArray Query, JSONArray waitTime) throws JSONException {
+    public boolean execute_xa(JSONArray Step, JSONArray waitTime) throws JSONException {
         boolean success = true;
-        logUtil.i("执行: ", Query.toString());
+        logUtil.i("执行: ", Step.toString());
         ArrayList<String> queryList = new ArrayList<>();
-        for (int i = 0; i < Query.length(); i++) {
+        for (int i = 0; i < Step.length(); i++) {
             int wait_time;
             try{
                 wait_time = waitTime.getInt(i);
@@ -733,21 +696,20 @@ public class MyIntentService extends IntentService {
                 wait_time = 5;
             }
 
-            if (Query.get(i) instanceof JSONObject){
-//                String key = Query.getJSONObject(i).keys().next();
-                Iterator<String> itr = Query.getJSONObject(i).keys();
+            if (Step.get(i) instanceof JSONObject){
+                Iterator<String> itr = Step.getJSONObject(i).keys();
                 ArrayList<String> keys = new ArrayList<>();
                 while (itr.hasNext()){
                     keys.add(itr.next());
                 }
                 String key = keys.get(0);
-                Object value = Query.getJSONObject(i).get(key);
+                Object value = Step.getJSONObject(i).get(key);
                 int nex = 0, index = 0;
                 if (keys.contains("nex")){
-                    nex = (int) Query.getJSONObject(i).get("nex");
+                    nex = (int) Step.getJSONObject(i).get("nex");
                 }
                 if (keys.contains("index")){
-                    index = (int) Query.getJSONObject(i).get("index");
+                    index = (int) Step.getJSONObject(i).get("index");
                 }
                 switch (key) {
                     case "click":
@@ -760,14 +722,23 @@ public class MyIntentService extends IntentService {
                     case "id":
                         Common.click_element(true, "resource-id", value.toString(), nex, index);
                         break;
+                    case "resource-id":
+                        Common.click_element(true, "resource-id", value.toString(), nex, index);
+                        break;
                     case "content":
                         Common.click_element(true, "content-desc", value.toString(), nex, index);
+                        break;
+                    case "class":
+                        Common.click_element(true, "class", value.toString(), nex, index);
                         break;
                     case "clazz":
                         Common.click_element(true, "class", value.toString(), nex, index);
                         break;
                     case "activity":
-                        Common.launchApp(value);
+                        Common.launchActivity(value.toString());
+                        break;
+                    case "launchApp":
+                        Common.launchApp(getApplicationContext(), value.toString());
                         break;
                     case "kill":
                         Common.killApp(value.toString());
@@ -785,26 +756,35 @@ public class MyIntentService extends IntentService {
                         Common.unlock(value.toString());
                         break;
                     case "uri":
-                        success = Common.startActivityWithUri(getApplicationContext(), String.valueOf(value));
+                        success = Common.startActivityWithUri(String.valueOf(value));
                         break;
 
                     case "swipe":
-                        JSONArray x_y = Common.getScreenSize();
-                        int X = 0;
-                        int Y = 0;
+                        double x1 = 0;
+                        double x2 = 0;
+                        double y1 = 0;
+                        double y2 = 0;
+                        int step = 100;
                         try {
-                            X = x_y.getInt(0);
-                            Y = x_y.getInt(1);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
+                            if (value instanceof JSONArray) {
+                                x1 = ((JSONArray) value).getDouble(0);
+                                y1 = ((JSONArray) value).getDouble(1);
+                                x2 = ((JSONArray) value).getDouble(2);
+                                y2 = ((JSONArray) value).getDouble(3);
+                                step = ((JSONArray) value).getInt(4);
+                            } else {
+                                String[] deta = value.toString().split(",");
+
+                                x1 = Double.valueOf(deta[0]);
+                                y1 = Double.valueOf(deta[1]);
+                                x2 = Double.valueOf(deta[2]);
+                                y2 = Double.valueOf(deta[3]);
+                                step = Integer.valueOf(deta[4]);
+                            }
+                        } catch (Exception Ignore){
+//                            logUtil.d("Common.swipe", "执行滑动操作出错:\n" + e.getMessage());
                         }
-                        String[] deta = value.toString().split(",");
-                        float x1, x2, y1, y2;
-                        x1 = X* Float.valueOf(deta[0]);
-                        x2 = X* Float.valueOf(deta[2]);
-                        y1 = Y* Float.valueOf(deta[1]);
-                        y2 = Y* Float.valueOf(deta[3]);
-                        Common.swipe(x1+"", y1+"",x2+"",y2+"", "100");
+                        Common.swipe(x1 , y1, x2, y2, step);
                         break;
                     case "press":
                         Common.press(value.toString());
@@ -824,23 +804,15 @@ public class MyIntentService extends IntentService {
                             Common.inputText(_key, _value, _msg, _mode);
                         }
                         break;
-                    case "offline":
-                        new WifiHelper(getApplicationContext()).closeWifi();
-                        break;
-                    case "online":
-                        if (AdbUtils.hasRootPermission()){
-                            Common.openWifi();
-                        } else {
-                            new WifiHelper(getApplicationContext()).openWifi();
-                            Common.click_element(true, "text", "允许", 0, 0);
-                        }
-                        break;
-                    case "check_point":
-                        if (value instanceof JSONObject) {
-                            try {
-                                resultCheck((JSONObject) value, true);
-                            } catch (IOException e) {
-                                e.printStackTrace();
+                    case "wifi":
+                        if (value.toString().equals("off")) {
+                            new WifiHelper(getApplicationContext()).closeWifi();
+                        } else if (value.toString().equals("on")){
+                            if (AdbUtils.hasRootPermission()){
+                                Common.openWifi();
+                            } else {
+                                new WifiHelper(getApplicationContext()).openWifi();
+                                Common.click_element(true, "text", "允许", 0, 0);
                             }
                         }
                         break;

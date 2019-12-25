@@ -1,6 +1,6 @@
 package com.kevin.testool.common;
 
-import com.kevin.testool.logUtil;
+import com.kevin.testool.utils.logUtil;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -10,7 +10,6 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.List;
 
 
 public class MysqlHelper {

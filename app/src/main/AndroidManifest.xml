@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.kevin.testool">
+    package="com.kevin.testool"
+    android:sharedUserId="kevin.testool">
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -20,6 +21,7 @@
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
+        android:name=".MyApplication"
         android:allowBackup="true"
         android:hardwareAccelerated="false"
         android:icon="@mipmap/ic_launcher"
@@ -90,7 +92,7 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".MonkeyTestActivity"
-            android:label="Monkey测试" />
+            android:label="Monkey" />
 
         <provider
             android:name="android.support.v4.content.FileProvider"
@@ -108,6 +110,9 @@
 
         <activity android:name=".WirelessAdb" />
         <activity android:name=".WebViewActivity" />
+        <activity
+            android:name=".UICrawlerActivity"
+            android:label="@string/uicrawler"/>
         <activity
             android:name=".ReportActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"

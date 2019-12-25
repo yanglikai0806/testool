@@ -21,7 +21,7 @@ import android.support.annotation.IntRange;
 import android.util.Base64;
 
 import com.kevin.testool.CONST;
-import com.kevin.testool.logUtil;
+import com.kevin.testool.utils.logUtil;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -326,7 +326,7 @@ public class CmdTools {
                 while (!stream.isClosed()) {
                     Thread.sleep(10);
                 }
-            } else {
+            } else if (wait > 0){
                 // 等待最长wait毫秒后强制退出
                 long start = System.currentTimeMillis();
                 while (!stream.isClosed() && System.currentTimeMillis() - start < wait) {
@@ -336,6 +336,8 @@ public class CmdTools {
                 if (!stream.isClosed()) {
                     stream.close();
                 }
+            } else {
+                Thread.sleep(Math.abs(wait));
             }
 
             // 获取stream所有输出

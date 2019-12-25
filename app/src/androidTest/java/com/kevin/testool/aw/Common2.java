@@ -1,8 +1,7 @@
-package com.kevin.testool.common;
+package com.kevin.testool.aw;
 
 import android.annotation.SuppressLint;
 import android.app.KeyguardManager;
-import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -14,24 +13,22 @@ import android.nfc.NfcAdapter;
 import android.nfc.NfcManager;
 import android.os.Build;
 import android.os.Environment;
-import android.os.PowerManager;
+import android.os.RemoteException;
 import android.os.SystemClock;
 import android.support.annotation.RequiresApi;
+import android.support.test.uiautomator.By;
+import android.support.test.uiautomator.UiObject2;
 import android.telephony.TelephonyManager;
 import android.widget.Toast;
 
-import com.kevin.testool.MyApplication;
-import com.kevin.testool.checkpoint.Checkpoint;
-import com.kevin.testool.utils.AdbUtils;
+import com.kevin.testool.adblib.CmdTools;
+import com.kevin.testool.stub.Automator;
+import com.kevin.testool.stub.DeviceInfo;
 import com.kevin.testool.utils.AppUtils;
 import com.kevin.testool.CONST;
 import com.kevin.testool.MyFile;
 import com.kevin.testool.utils.logUtil;
-import com.tananaev.adblib.AdbBase64;
-import com.tananaev.adblib.AdbConnection;
-import com.tananaev.adblib.AdbCrypto;
-import com.tananaev.adblib.AdbStream;
-import android.util.Base64;
+
 import org.dom4j.Document;
 import org.dom4j.Element;
 import org.dom4j.Node;
@@ -43,9 +40,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.Socket;
 import java.net.URISyntaxException;
-import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -69,11 +64,14 @@ import okhttp3.Response;
 
 import static com.kevin.testool.CONST.REPORT_PATH;
 import static com.kevin.testool.CONST.TESSDATA;
+import static com.kevin.testool.MyApplication.getContext;
 
-public abstract class Common {
+
+public abstract class Common2 extends Automator{
     public static String TAG = "";
     private static JSONArray fileList;
     public static String SCREENSHOT = "screenshot";
+    private static String ALIAS;
 
     private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US);//日期格式;
 
@@ -82,12 +80,35 @@ public abstract class Common {
     private static int n;
     private static int m;
 
-    public static void goBackHome(int back) {
+    public Common2(){
+
+    }
+
+    public static void goBackHome(int back){
         for (int i = 0; i < back; i++) {
-            AdbUtils.runShellCommand("input keyevent 4\n", 0);
+            pressKey("back");
             SystemClock.sleep(300);
         }
-        AdbUtils.runShellCommand("input keyevent 3\n", 0);
+        pressKey("home");
+
+    }
+
+    public static void openNegscreen() {
+
+        goBackHome(3);
+        JSONArray x_y = getScreenSize();
+        System.out.println(x_y);
+        int x = 0;
+        int y = 0;
+        try {
+            x = x_y.getInt(0);
+            y = x_y.getInt(1);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        swipe(0.01 * x, 0.5 * y, 0.8 * x, 0.5 * y, 500);
+        SystemClock.sleep(500);
+        logUtil.i(TAG, "打开负一屏");
 
     }
 
@@ -101,19 +122,24 @@ public abstract class Common {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-//        SystemClock.sleep(500);
         if (!isScreenLocked()) {
             return;
         } else {
-            Common.wakeup();
+            try {
+                wakeUp();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
         if (password.length() > 0) {
             if (get_elements(true, "content-desc", "密码区域", 0) == null) {
                 swipe(0.5 * x, 0.9 * y, 0.5 * x, 0.1 * y, 200);
             }
+
 //            SystemClock.sleep(100);
             for (int i = 0; i < password.length(); i++) {
-                AdbUtils.runShellCommand("input keyevent KEYCODE_NUMPAD_" + password.substring(i, i + 1) + "\n", 0);
+//                click_element(false, "text", password.substring(i, i + 1), 0, 0);
+                executeShellCommand("input keyevent KEYCODE_NUMPAD_" + password.substring(i, i + 1));
 
             }
 
@@ -128,68 +154,38 @@ public abstract class Common {
     public static void unlock(String password) {
         click(500, 200);
         for (int i = 0; i < password.length(); i++) {
-            AdbUtils.runShellCommand("input keyevent KEYCODE_NUMPAD_" + password.substring(i, i + 1) + "\n", 0);
+
+            executeShellCommand("input keyevent KEYCODE_NUMPAD_" + password.substring(i, i + 1) );
         }
         logUtil.i(TAG, "完成解锁操作");
 
     }
 
-    public static void wakeup() {
-        if (!isScreenOn()) {
-            pressPower();
-            logUtil.i(TAG, "唤醒屏幕");
-        }
-    }
-
-    public static void press(String key) {
-        switch (key) {
-            case "home":
-                AdbUtils.runShellCommand("input keyevent 3\n", 0);
-                break;
-            case "back":
-                AdbUtils.runShellCommand("input keyevent 4\n", 0);
-                break;
-            case "recent":
-                AdbUtils.runShellCommand("input keyevent KEYCODE_MENU\n", 0);
-                break;
-            case "power":
-                AdbUtils.runShellCommand("input keyevent 26\n", 0);
-                break;
-        }
-    }
-
-    public static void pressPower() {
-        AdbUtils.runShellCommand("input keyevent 26\n", 0);
-        SystemClock.sleep(100);
-    }
-
-    public static Boolean isScreenOn() {
-        PowerManager pm = (PowerManager) MyApplication.getContext().getSystemService(Service.POWER_SERVICE);
-        logUtil.i(TAG, "是否亮屏：" + pm.isScreenOn());
-        return pm.isScreenOn();
-
-    }
 
     public static Boolean isScreenLocked() {
-        KeyguardManager mKeyguardManager = (KeyguardManager) MyApplication.getContext().getSystemService (Context. KEYGUARD_SERVICE);
+
+        KeyguardManager mKeyguardManager = (KeyguardManager) getContext().getSystemService (Context. KEYGUARD_SERVICE);
         boolean flag = mKeyguardManager.inKeyguardRestrictedInputMode();
         logUtil.i(TAG, "是否锁屏：" + flag);
         return flag;
+
+//        String res = AdbUtils.runShellCommand("dumpsys window policy|grep mDreamingLockscreen\n", 0);
+//        String[] _res = res.trim().split("mDreamingLockscreen=");
+//        String result = _res[_res.length - 1].split(" ")[0];
+//        logUtil.i(TAG, "是否锁屏：" + result);
+//        return result.equals("true");
 
     }
 
     public static void lockScreen() {
 
-        AdbUtils.runShellCommand("input keyevent 26\n", 0);
+        pressKey("power");
         SystemClock.sleep(200);
         logUtil.i(TAG, "锁屏");
     }
 
     public static JSONArray getScreenSize() {
-        String SS;
-        String[] _SS;
-        String _x;
-        String _y;
+
         String screen_size = "screen_size";
         JSONArray x_y = new JSONArray();
         try {
@@ -202,14 +198,8 @@ public abstract class Common {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        SS = AdbUtils.runShellCommand("dumpsys window displays |grep init=\n", 0);
-        _SS = SS.trim().split(" ");
-        _SS = _SS[0].split("=");
-        _SS = _SS[1].split("x");
-        _x = _SS[0];
-        _y = _SS[1];
-        x_y.put(Integer.valueOf(_x));
-        x_y.put(Integer.valueOf(_y));
+        x_y.put(DeviceInfo.getDeviceInfo().getDisplaySizeDpX());
+        x_y.put(DeviceInfo.getDeviceInfo().getDisplaySizeDpY());
         JSONObject screenSize = null;
         try {
             screenSize = new JSONObject(String.valueOf(CONFIG()));
@@ -226,18 +216,9 @@ public abstract class Common {
         return x_y;
     }
 
-    public static void openNotification() {
-        JSONArray x_y = getScreenSize();
-        int x = 0;
-        int y = 0;
-        try {
-            x = x_y.getInt(0);
-            y = x_y.getInt(1);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        swipe(0.5 * x, 0.01 * y, 0.5 * x, 0.8 * y, 500);
+    public static boolean openNotification() {
         logUtil.i(TAG, "打开通知栏");
+        return Automator.openNotification();
 
     }
 
@@ -249,7 +230,7 @@ public abstract class Common {
         int X = 1;
         int Y = 1;
         if (a < 1 & b < 1 & A < 1 & B < 1) {
-            JSONArray x_y = Common.getScreenSize();
+            JSONArray x_y = Common2.getScreenSize();
             try {
                 X = x_y.getInt(0);
                 Y = x_y.getInt(1);
@@ -259,7 +240,8 @@ public abstract class Common {
         }
 
 
-        AdbUtils.runShellCommand("input swipe " + a * X + " " + b * Y + " " + A * X + " " + B * Y + " " + step, 0);
+        executeShellCommand("input swipe " + a * X + " " + b * Y + " " + A * X + " " + B * Y + " " + step);
+
         JSONArray xys = new JSONArray();
         try {
             xys.put(a);
@@ -274,14 +256,13 @@ public abstract class Common {
     }
 
     public static void uninstallApp(String pkgName) {
-        AdbUtils.runShellCommand("pm uninstall " + pkgName, 0);
-        SystemClock.sleep(5000);
+        executeShellCommand("pm uninstall " + pkgName);
     }
 
     public static String startActivity(String activityName) {
 //        logUtil.i(TAG, "打开activity：" + activityName);
         if (!getActivity().contains(activityName)) {
-            String res = AdbUtils.runShellCommand("am start -n " + activityName, 0);
+            String res = executeShellCommand("am start -n " + activityName);
             SystemClock.sleep(1000);
             return res;
         } else {
@@ -289,15 +270,15 @@ public abstract class Common {
         }
     }
 
-    public static boolean startActivityWithUri(String uri) {
+    public static boolean startActivityWithUri(Context context, String uri) {
         boolean success = false;
         try {
             final Intent intent = Intent.parseUri(uri, Intent.URI_INTENT_SCHEME);
-            PackageManager manager = MyApplication.getContext().getPackageManager();
+            PackageManager manager = context.getPackageManager();
             List<ResolveInfo> infos = manager.queryIntentActivities(intent, 0);
             if (infos.size() > 0) {
                 //Then there is an Application(s) can handle your intent
-                AdbUtils.runShellCommand(String.format("am start \"%s\"", uri), 0);
+                executeShellCommand(String.format("am start \"%s\"", uri));
                 success = true;
 //                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 //                context.startActivity(intent);
@@ -324,43 +305,33 @@ public abstract class Common {
 
     public static void launchApp(Context context, String activityName) {
 //        logUtil.i(TAG, "打开activity：" + activityName);
-        if (activityName.contains("/")) {
-            String pkg_name = activityName.split("/")[0];
-            String act_name = activityName.split("/")[1];
-            Intent it = new Intent();
-            it.setComponent(new ComponentName(pkg_name, act_name)); //包名和类名
-            context.startActivity(it);
-        } else {
-            PackageManager packageManager = context.getPackageManager();
-            Intent launchIntentForPackage = packageManager.getLaunchIntentForPackage(activityName);
-            if (launchIntentForPackage != null) {
-                context.startActivity(launchIntentForPackage);
-            } else {
-                logUtil.d("", "应用未安装：" + activityName);
-            }
-
-        }
+        String pkg_name = activityName.split("/")[0];
+        String act_name = activityName.split("/")[1];
+        Intent it = new Intent();
+        it.setComponent(new ComponentName(pkg_name, act_name)); //包名和类名
+        context.startActivity(it);
     }
 
     public static void killApp(String pkgName) {
-        AdbUtils.runShellCommand("am force-stop " + pkgName, 0);
+        executeShellCommand("am force-stop " + pkgName);
         SystemClock.sleep(1000);
     }
 
     public static void clearRecentApp() {
-        press("home");
-        press("recent");
-        String _id = "com.android.systemui:id/clearAnimView"; //清理后台控件id，默认为小米手机miui系统
+        pressKey("home");
+        pressKey("recent");
+        String _id = "com.android.systemui:id/clearAnimView"; //小米手机
         try {
             if (!Objects.requireNonNull(CONFIG()).isNull(_id)) {
                 JSONArray XY = Objects.requireNonNull(CONFIG()).getJSONArray(_id);
                 if (XY.length() > 0) {
+                    SystemClock.sleep(300);
                     click(Double.valueOf(XY.get(0).toString()), Double.valueOf(XY.get(1).toString()));
-                    SystemClock.sleep(2000);
+                    SystemClock.sleep(100);
                     return;
                 }
             }
-            SystemClock.sleep(1000);
+            SystemClock.sleep(300);
             JSONArray XY = click_element(true, "resource-id", _id, 0, 0);
             JSONObject CONFIG_UPDATE = new JSONObject(String.valueOf(CONFIG()));
             CONFIG_UPDATE.put(_id, XY);
@@ -381,7 +352,7 @@ public abstract class Common {
         int X = 1;
         int Y = 1;
         if (x < 1 & y < 1) {
-            JSONArray x_y = Common.getScreenSize();
+            JSONArray x_y = Common2.getScreenSize();
             try {
                 X = x_y.getInt(0);
                 Y = x_y.getInt(1);
@@ -389,7 +360,8 @@ public abstract class Common {
                 e.printStackTrace();
             }
         }
-        AdbUtils.runShellCommand("input tap " + x * X + " " + y * Y, 0);
+        logUtil.d("click", "点击坐标：" + x + "," + y);
+        Automator.click((int)(x * X) , (int)(y * Y));
     }
 
     public static JSONArray click_element(Boolean refresh, String key, String value, int nex, int index) {
@@ -428,20 +400,21 @@ public abstract class Common {
                     filePath.delete();
                 }
 //                String res = AdbUtils.runShellCommand("uiautomator dump\n", 0);
-                String res = AdbUtils.runShellCommand("am instrument -w -r   -e debug false -e class 'com.github.uiautomator.GetDumpTest' com.github.uiautomator.test/android.support.test.runner.AndroidJUnitRunner", -1800);
-                boolean complete = false;
-                int wait = 0;
-                while (!complete){
-                    if (MyFile.readFile(filePath.toString()).contains("</hierarchy>")){
-                        complete = true;
-                    } else {
-                        SystemClock.sleep(100);
-                        wait += 100;
-                    }
-                    if (wait > 15000){
-                        complete = true;
-                    }
-                }
+//                String res = AdbUtils.runShellCommand("am instrument -w -r   -e debug false -e class 'com.github.uiautomator.GetDumpTest' com.github.uiautomator.test/android.support.test.runner.AndroidJUnitRunner\n", -1800);
+                Automator.dumpWindowHierarchys(false);
+//                boolean complete = false;
+//                int wait = 0;
+//                while (!complete){
+//                    if (MyFile.readFile(filePath.toString()).contains("</hierarchy>")){
+//                        complete = true;
+//                    } else {
+//                        SystemClock.sleep(100);
+//                        wait += 100;
+//                    }
+//                    if (wait > 15000){
+//                        complete = true;
+//                    }
+//                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -494,16 +467,40 @@ public abstract class Common {
 
     public static void inputText(String key, String value, String msg, String... mode) {
         JSONObject inputObj = new JSONObject();
+        UiObject2 minput = null;
         try {
             inputObj.put("key", key);
             inputObj.put("value", value);
             inputObj.put("msg", msg);
             inputObj.put("mode", mode);
-            try {
-                MyFile.writeFile(CONST.INPUT_FILE, inputObj.toString(), false);
-                AdbUtils.runShellCommand("am instrument -w -r   -e debug false -e class 'com.github.uiautomator.Input#input' com.github.uiautomator.test/android.support.test.runner.AndroidJUnitRunner", 0);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
+
+            switch (key){
+                case "id":
+                    minput = findObject(By.res(inputObj.getString("value")));
+                    break;
+                case "resource-id":
+                    minput = findObject(By.res(inputObj.getString("value")));
+                    break;
+                case "resourceId":
+                    minput = findObject(By.res(inputObj.getString("value")));
+                    break;
+                case "text":
+                    minput = findObject(By.text(inputObj.getString("value")));
+                    break;
+                case "content":
+                    minput = findObject(By.desc(inputObj.getString("value")));
+                    break;
+                case "clazz":
+                    minput = findObject(By.clazz(inputObj.getString("value")));
+                    break;
+            }
+            if (minput != null) {
+                if (mode.equals("a")){
+                    inputObj.put("msg", minput.getText() + inputObj.getString("msg"));
+                }
+                minput.setText(inputObj.getString("msg"));
+            } else {
+                System.out.println("控件没有找到");
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -542,6 +539,7 @@ public abstract class Common {
     //递归查询节点函数,输出节点名称
     private static void getChildNodes(Element elem, String key, String value, List<Element> elem_list, int nex) {
         Iterator<Node> it = elem.nodeIterator();
+//        ArrayList<Node> tmpIt = new ArrayList<>();
         while (it.hasNext()) {
             Node node = it.next();
             if (node instanceof Element) {
@@ -584,6 +582,7 @@ public abstract class Common {
                             elem_list.add(e1);
 
                         }
+//                    node_list.add(e1.attribute("bounds").getValue());
                     }
 
                 }
@@ -595,14 +594,18 @@ public abstract class Common {
                     }
                 }
                 getChildNodes(e1, key, value, elem_list, nex);
+//
+//                System.out.println(e1.getName());
             }
         }
     }
 
     public static String getActivity() {
-//        String res = AdbUtils.runShellCommand("dumpsys input | grep FocusedApplication\n", 0);
-//        String[] act = res.trim().split("name=")[1].split("u0")[1].trim().split(" ");
-        String res = AdbUtils.runShellCommand("dumpsys activity top | grep ACTIVITY | tail -n 1", 0);
+        String activity = getCurrentActivity();
+        if (activity.contains("\\.")){
+            return activity;
+        }
+        String res = executeShellCommand("dumpsys activity top | grep ACTIVITY | tail -n 1");
         String act = res.trim().split("ACTIVITY ")[1].split(" ")[0];
         return act.trim();
     }
@@ -612,7 +615,7 @@ public abstract class Common {
         new Thread() {
             @Override
             public void run() {
-                AdbUtils.runShellCommand("bugreport > " + bugreportFile + "\n", 600);
+                executeShellCommand("bugreport > " + bugreportFile + "\n");
                 try {
                     MyFile.ZipFolder(logFileName, logFileName.replace(".txt", ".zip"));
                     MyFile.deleteFile(logFileName);
@@ -628,18 +631,18 @@ public abstract class Common {
         try {
             String png = dateFormat.format(new Date()) + ".png";
             img = REPORT_PATH + logUtil.readTempFile() + File.separator + SCREENSHOT + File.separator + png;
-            AdbUtils.runShellCommand("screencap -p " + img + "\n", 0);
-            logUtil.i("", png);
-            return png;
+            if (takeScreenShot(new File(img), 1.0f, 50)){
+                return png;
+            } else {
+                executeShellCommand("screencap -p " + img + "\n");
+                logUtil.i("", png);
+                return png;
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
             return "";
         }
-    }
-
-    public static void screenRecorder(String time, String file){
-        AdbUtils.runShellCommand(String.format("screenrecord  --time-limit %s %s", time, file), -15000);
     }
 
     public static String screenImage(boolean refresh) {
@@ -651,7 +654,7 @@ public abstract class Common {
             file.mkdirs();
         }
         if (refresh) {
-            AdbUtils.runShellCommand("screencap -p " + img + "\n", 0);
+            executeShellCommand("screencap -p " + img);
         }
         logUtil.i("", png);
         return img;
@@ -659,9 +662,7 @@ public abstract class Common {
     }
 
     public static String getDeviceName() {
-        return android.os.Build.MODEL;
-//        String res = AdbUtils.runShellCommand("getprop ro.product.model\n",0);
-//        return res.trim();
+        return Build.MODEL;
     }
 
 
@@ -675,7 +676,7 @@ public abstract class Common {
     }
 
     public static String getSerialno() {
-        return AdbUtils.runShellCommand("getprop ro.serialno", 0);
+        return executeShellCommand("getprop ro.serialno");
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -684,15 +685,24 @@ public abstract class Common {
         return Build.getSerial();
     }
 
-    public static String getVersionName(Context context, String pkg){
+    public static String getVersionName(String pkg){
 
-        return AppUtils.getVersionName(context, pkg);
+        return AppUtils.getVersionName(getContext(), pkg);
 
     }
     public static int getVersionCode(Context context, String pkg){
 
         return AppUtils.getVersionCode(context, pkg);
 
+    }
+
+    public static String getVersionName2(String pkg){
+        if (pkg.contains("/")){
+            pkg = pkg.split("/")[0];
+        }
+        String res = executeShellCommand("dumpsys package "+pkg+" |grep versionName");
+        String[] res_tmp = res.trim().split(" ")[0].split("=");
+        return res_tmp[1];
     }
 
 
@@ -705,28 +715,31 @@ public abstract class Common {
         MyFile.creatDir(logDir);
         String _log = "2>" + logDir + "monkey_error.txt 1> " + logDir + "monkey_info.txt";
         String monkey_cmd = String.format("monkey -p %s --throttle %s --pct-nav 0 --pct-majornav 0 --ignore-crashes --ignore-security-exceptions --ignore-timeouts --monitor-native-crashes -v -v %s ", pkg, throttle, count) + _log + "\n";
-
+        System.out.println(monkey_cmd);
         if (seed != null && seed.length() > 0){
             monkey_cmd = String.format("monkey -p %s -s %s --throttle %s --pct-nav 0 --pct-majornav 0 --ignore-crashes --ignore-security-exceptions --ignore-timeouts --monitor-native-crashes -v -v %s " ,pkg, seed, throttle, count) + _log + "\n";
 
         }
-        AdbUtils.runShellCommand(monkey_cmd, 0);
+        executeShellCommand(monkey_cmd);
         return logDir + "monkey_error.txt";
     }
 
     public static String getMonkeyProcess(){
-        return AdbUtils.runShellCommand("ps -A| grep monkey\n", 0);
+        return executeShellCommand("ps -A| grep monkey");
     }
 
-    private static JSONArray getAllTestCases(Context context, String dir, String _type, String flag, String tag){
+    private static JSONArray getAllTestCases(String dir, String _type, String flag, String tag){
         if (flag.equals("reload")){
             fileList = new JSONArray();
         }
         File casesDir = new File(dir);
         if (! casesDir.exists()){
-            Toast.makeText(context.getApplicationContext(), "导入用例失败", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "导入用例失败", Toast.LENGTH_SHORT).show();
         }
         File[] files = casesDir.listFiles();
+
+//        JSONArray fileList = new JSONArray();
+//        JSONObject _fInfo = new JSONObject();
         for (File _file : files) {//遍历目录
             if(_file.isFile() && _file.getName().endsWith(_type)){
                 String _name=_file.getName();
@@ -748,22 +761,22 @@ public abstract class Common {
                 }
             } else if(_file.isDirectory()){//查询子目录
                 logUtil.d("", _file.getName());
-                getAllTestCases(context,_file.getAbsolutePath(), _type, "append", _file.getName());
+                getAllTestCases(_file.getAbsolutePath(), _type, "append", _file.getName());
             }
         }
         return fileList;
 
     }
 
-    public static ArrayList<String> getCaseList(Context context){
+    public static ArrayList<String> getCaseList(){
         ArrayList<String> cases_list = new ArrayList<String>();//获取测试用例
         JSONArray fileList;
         File testcasesFolder = new File(CONST.TESTCASES_PATH);
         if (! testcasesFolder.exists()){
-            Toast.makeText(context.getApplicationContext(), "未发现用例配置文件", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "未发现用例配置文件", Toast.LENGTH_SHORT).show();
             return null;
         }
-        fileList = getAllTestCases(context, CONST.TESTCASES_PATH, "json", "reload", "");
+        fileList = getAllTestCases(CONST.TESTCASES_PATH, "json", "reload", "");
         for (int i=0; i < fileList.length(); i++ ){
             JSONObject caseItem;
             try {
@@ -784,10 +797,11 @@ public abstract class Common {
         return cases_list;
     }
 
-    public static boolean hasSimCard(Context context) {
+
+    public static boolean hasSimCard() {
 //        Context context = App.getAppContext();
         TelephonyManager telMgr = (TelephonyManager)
-                context.getSystemService(Context.TELEPHONY_SERVICE);
+                getContext().getSystemService(Context.TELEPHONY_SERVICE);
         int simState = telMgr.getSimState();
         boolean result = true;
         switch (simState) {
@@ -802,11 +816,11 @@ public abstract class Common {
         return result;
     }
 
-    public static boolean hasNfc(Context context){
+    public static boolean hasNfc(){
         boolean result=false;
-        if(context==null)
+        if(getContext()==null)
             return false;
-        NfcManager manager = (NfcManager) context.getSystemService(Context.NFC_SERVICE);
+        NfcManager manager = (NfcManager) getContext().getSystemService(Context.NFC_SERVICE);
         if (manager != null) {
             NfcAdapter adapter = manager.getDefaultAdapter();
             if (adapter != null && adapter.isEnabled()) {
@@ -819,19 +833,19 @@ public abstract class Common {
     }
 
     public static void openWifi(){
-        AdbUtils.runShellCommand("svc wifi enable\n", 0);
+        executeShellCommand("svc wifi enable");
     }
 
     public static void closeWifi(){
-        AdbUtils.runShellCommand("svc wifi disable\n", 0);
+        executeShellCommand("svc wifi disable");
     }
 
 
 
-    public static boolean isNetworkConnected(Context context) {
-        if (context != null) {
+    public static boolean isNetworkConnected() {
+        if (getContext() != null) {
             // 获取手机所有连接管理对象(包括对wi-fi,net等连接的管理)
-            ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            ConnectivityManager manager = (ConnectivityManager) getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
             // 获取NetworkInfo对象
             NetworkInfo networkInfo = null;
             if (manager != null) {
@@ -846,10 +860,14 @@ public abstract class Common {
 
     public static void postJson(String url, String data) throws JSONException {
 
+
+//        String j = String.format("{\"branch\": \"%s\", \"query\": \"讲个笑话|讲个冷笑话\", \"attach_file\": \"\", \"manager\": \"韩伟(hanwei)\", \"result\": \"Pass\", \"message\": \"\", \"dimensions\": {\"action\": \"笑话\", \"hardware\": \"MI 6\", \"miui\": \"MIUI9.3.18\", \"xiaoai\": \"4.6.0-201904300143-internal_test\", \"third_app\": \"default_default\", \"domain\": \"joke\", \"feature\": \"笑话\", \"time\": \"2019-05-05T11:44:32Z\", \"setup\": \"任意界面\"}}", branch);
+//        JSONObject json = new JSONObject(j);
+
         final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
         RequestBody body = RequestBody.create(JSON, data);
         Request request = new Request.Builder()
-                .url(url)
+                .url(url) //"http://qp.ai.srv/v1/xiaoai/testcase"
                 .post(body)
                 .build();
         new OkHttpClient().newCall(request).enqueue(new Callback() {
@@ -884,7 +902,7 @@ public abstract class Common {
                 .post(requestBody)
                 .build();
 
-        final okhttp3.OkHttpClient.Builder httpBuilder = new OkHttpClient.Builder();
+        final OkHttpClient.Builder httpBuilder = new OkHttpClient.Builder();
         OkHttpClient okHttpClient  = httpBuilder
                 //设置超时
                 .connectTimeout(100, TimeUnit.SECONDS)
@@ -893,6 +911,23 @@ public abstract class Common {
 
         Response response = okHttpClient.newCall(request).execute();
         responeCode = response.code();
+
+//        okHttpClient.newCall(request).enqueue(new Callback() {
+//
+//            @Override
+//            public void onResponse(Call call, Response response) throws IOException {
+//                System.out.println(response.body().string());
+//                responeCode[0] = response.code();
+//            }
+//
+//            @Override
+//            public void onFailure(Call arg0, IOException e) {
+//                // TODO Auto-generated method stub
+//                System.out.println(e.toString());
+//
+//            }
+//
+//        });
         return responeCode;
     }
 
@@ -918,94 +953,6 @@ public abstract class Common {
             }
         });
     }
-    // 通过atx实现shell命令，不稳定，弃用～～
-    public static String shell(String cmd, int timeout){
-        String result = "";
-        FormBody formBody = new FormBody.Builder()
-                .add("command", cmd).add("timeout", "60").build();
-        final Request request = new Request.Builder()
-                .addHeader("Connection","close")
-                .url("http://127.0.0.1:7912/shell")
-                .post(formBody)
-                .build();
-
-        OkHttpClient client=new OkHttpClient.Builder()
-                .connectTimeout(90, TimeUnit.SECONDS)
-                .readTimeout(90,TimeUnit.SECONDS)
-                .build();
-
-        Response response = null;
-        try {
-            response = client.newCall(request).execute();
-//            response = new OkHttpClient().newCall(request).execute();
-        } catch (IOException e) {
-            logUtil.i("shell", e.toString());
-            if (AdbUtils.hasRootPermission()){
-                AdbUtils.runShellCommand("killall -9 atx-agent", 0);
-                SystemClock.sleep(500);
-                AdbUtils.runShellCommand("/data/local/tmp/atx-agent server -d", 0);
-            } else {
-                try {
-                    logUtil.d("shell", cmd);
-                    MyFile.writeFile(CONST.TEMP_FILE, "::"+dateFormat.format(new Date())+">"+e.toString(), true); //测试异常标志
-                } catch (IOException e1) {
-                    logUtil.d("shell", e1.toString());
-                }
-            }
-        }
-        try {
-            if (response != null && response.body() != null) {
-                JSONObject resp = new JSONObject(response.body().string());
-                response.close();
-                result = resp.getString("output").trim();
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        SystemClock.sleep(timeout*1000);
-        return result;
-    }
-    // socket 实现 adb shell 命令， 相同功能迁移到adblib.CmdTools中实现
-    public static void adbSocket(String cmd){
-        Socket socket = null; // put phone IP address here
-        try {
-            socket = new Socket("localhost", 5555);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        AdbCrypto crypto = null;
-        try {
-            crypto = AdbCrypto.generateAdbKeyPair(new AdbBase64() {
-                @Override
-                public String encodeToString(byte[] data) {
-                    return Base64.encodeToString(data, 2);
-                }
-            });
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-
-        AdbConnection connection = null;
-        try {
-            connection = AdbConnection.create(socket, crypto);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            connection.connect();
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        try {
-            AdbStream stream = connection.open("shell:" + cmd);
-            System.out.println(stream);
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
 
     public static String getLastToast() throws IOException {
         String filePath = Environment.getExternalStorageDirectory() + File.separator + "toast.txt";
@@ -1014,147 +961,6 @@ public abstract class Common {
             return MyFile.readFile(filePath);
         }
         return "";
-    }
-
-    public static boolean execute_step(JSONArray Step, JSONArray waitTime) throws JSONException {
-        boolean success = true;
-        logUtil.i("执行: ", Step.toString());
-        for (int i = 0; i < Step.length(); i++) {
-            int wait_time;
-            try{
-                wait_time = waitTime.getInt(i);
-            } catch (Exception e){
-                wait_time = 5;
-            }
-
-            if (Step.get(i) instanceof JSONObject){
-                Iterator<String> itr = Step.getJSONObject(i).keys();
-                ArrayList<String> keys = new ArrayList<>();
-                while (itr.hasNext()){
-                    keys.add(itr.next());
-                }
-                String key = keys.get(0);
-                Object value = Step.getJSONObject(i).get(key);
-                int nex = 0, index = 0;
-                if (keys.contains("nex")){
-                    nex = (int) Step.getJSONObject(i).get("nex");
-                }
-                if (keys.contains("index")){
-                    index = (int) Step.getJSONObject(i).get("index");
-                }
-                switch (key) {
-                    case "click":
-                        if (value instanceof JSONArray) {
-                            Common.click(((JSONArray) value).getDouble(0), ((JSONArray) value).getDouble(1));
-                        }
-                        break;
-                    case "text":
-                        Common.click_element(true, "text", value.toString(), nex, index);
-                        break;
-                    case "id":
-                        Common.click_element(true, "resource-id", value.toString(), nex, index);
-                        break;
-                    case "resource-id":
-                        Common.click_element(true, "resource-id", value.toString(), nex, index);
-                        break;
-                    case "content":
-                        Common.click_element(true, "content-desc", value.toString(), nex, index);
-                        break;
-                    case "class":
-                        Common.click_element(true, "class", value.toString(), nex, index);
-                        break;
-                    case "clazz":
-                        Common.click_element(true, "class", value.toString(), nex, index);
-                        break;
-                    case "activity":
-                        Common.launchActivity(value.toString());
-                        break;
-                    case "launchApp":
-                        Common.launchApp(MyApplication.getContext(), value.toString());
-                        break;
-                    case "kill":
-                        Common.killApp(value.toString());
-                        break;
-                    case "uninstall":
-                        Common.uninstallApp(value.toString());
-                        break;
-                    case "notification":
-                        Common.openNotification();
-                        break;
-                    case "lock":
-                        Common.lockScreen();
-                        break;
-                    case "unlock":
-                        Common.unlock(value.toString());
-                        break;
-                    case "uri":
-                        success = Common.startActivityWithUri(String.valueOf(value));
-                        break;
-
-                    case "swipe":
-                        double x1 = 0;
-                        double x2 = 0;
-                        double y1 = 0;
-                        double y2 = 0;
-                        int step = 100;
-                        try {
-                            if (value instanceof JSONArray) {
-                                x1 = ((JSONArray) value).getDouble(0);
-                                y1 = ((JSONArray) value).getDouble(1);
-                                x2 = ((JSONArray) value).getDouble(2);
-                                y2 = ((JSONArray) value).getDouble(3);
-                                step = ((JSONArray) value).getInt(4);
-                            } else {
-                                String[] deta = value.toString().split(",");
-
-                                x1 = Double.valueOf(deta[0]);
-                                y1 = Double.valueOf(deta[1]);
-                                x2 = Double.valueOf(deta[2]);
-                                y2 = Double.valueOf(deta[3]);
-                                step = Integer.valueOf(deta[4]);
-                            }
-                        } catch (Exception Ignore){
-//                            logUtil.d("Common.swipe", "执行滑动操作出错:\n" + e.getMessage());
-                        }
-                        Common.swipe(x1 , y1, x2, y2, step);
-                        break;
-                    case "press":
-                        Common.press(value.toString());
-                        break;
-                    case "wait":
-                        SystemClock.sleep((Integer)value * 1000);
-                        break;
-                    case "shell":
-                        AdbUtils.runShellCommand(value.toString(), 0);
-                        break;
-                    case "input":
-                        if (value instanceof JSONObject){
-                            String _key = ((JSONObject) value).getString("key");
-                            String _value = ((JSONObject) value).getString("value");
-                            String _msg = ((JSONObject) value).getString("msg");
-                            String _mode = ((JSONObject) value).getString("mode");
-                            Common.inputText(_key, _value, _msg, _mode);
-                        }
-                        break;
-                    case "wifi":
-                        if (value.toString().equals("off")) {
-                            new WifiHelper(MyApplication.getContext()).closeWifi();
-                        } else if (value.toString().equals("on")){
-                            if (AdbUtils.hasRootPermission()){
-                                Common.openWifi();
-                            } else {
-                                new WifiHelper(MyApplication.getContext()).openWifi();
-                                Common.click_element(true, "text", "允许", 0, 0);
-                            }
-                        }
-                        break;
-
-                }
-                SystemClock.sleep(wait_time *1000);
-            }
-
-        }
-        return success;
     }
 
 }

@@ -1,9 +1,6 @@
 package com.kevin.testool.common;
 
-import android.os.SystemClock;
-
 import com.kevin.testool.MyFile;
-import com.kevin.testool.logUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;

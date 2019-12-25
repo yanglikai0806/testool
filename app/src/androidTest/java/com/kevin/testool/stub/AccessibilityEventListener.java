@@ -3,8 +3,11 @@ package com.kevin.testool.stub;
 import android.app.Notification;
 import android.app.UiAutomation;
 import android.os.Parcelable;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.uiautomator.UiDevice;
 import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityNodeInfo;
+import android.accessibilityservice.AccessibilityService;
 
 import java.util.HashSet;
 

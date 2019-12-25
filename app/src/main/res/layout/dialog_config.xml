@@ -98,21 +98,6 @@
         android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/branch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="分支：" />
-
-        <EditText
-            android:id="@+id/input_branch"
-            android:layout_width="78dp"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:hint="输入测试分支"
-            android:inputType="textPersonName"
-            android:textSize="14sp" />
-
-        <TextView
             android:id="@+id/retry"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -143,8 +128,8 @@
     </TableRow>
 
     <TableRow
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_width="251dp"
+        android:layout_height="wrap_content">
 
         <TextView
             android:id="@+id/loop"

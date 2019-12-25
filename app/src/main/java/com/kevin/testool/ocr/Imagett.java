@@ -8,7 +8,7 @@ import android.util.Log;
 import com.googlecode.tesseract.android.TessBaseAPI;
 import com.kevin.testool.CONST;
 import com.kevin.testool.MyFile;
-import com.kevin.testool.logUtil;
+import com.kevin.testool.utils.logUtil;
 
 import java.io.File;
 import java.io.FileNotFoundException;

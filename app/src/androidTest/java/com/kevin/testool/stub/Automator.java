@@ -23,68 +23,134 @@
 
 package com.kevin.testool.stub;
 
+import android.app.UiAutomation;
+import android.os.Build;
+import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.RemoteException;
+import android.os.SystemClock;
+import android.support.test.InstrumentationRegistry;
+import android.support.test.uiautomator.BySelector;
+import android.support.test.uiautomator.Configurator;
+import android.support.test.uiautomator.Direction;
+import android.support.test.uiautomator.StaleObjectException;
+import android.support.test.uiautomator.UiCollection;
+import android.support.test.uiautomator.UiDevice;
+import android.support.test.uiautomator.UiObject;
+import android.support.test.uiautomator.UiObject2;
 import android.support.test.uiautomator.UiObjectNotFoundException;
+import android.support.test.uiautomator.UiScrollable;
+import android.support.test.uiautomator.UiSelector;
+import android.support.test.uiautomator.Until;
+import android.view.InputDevice;
+import android.view.KeyEvent;
+import android.view.MotionEvent;
+import android.widget.Toast;
 
-import com.googlecode.jsonrpc4j.JsonRpcError;
-import com.googlecode.jsonrpc4j.JsonRpcErrors;
+import com.kevin.testool.stub.watcher.ClickUiObjectWatcher;
+import com.kevin.testool.stub.watcher.PressKeysWatcher;
+import com.kevin.testool.utils.AdbUtils;
 
-public interface AutomatorService {
-    final static int ERROR_CODE_BASE = -32000;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+
+public class Automator {
+
+    private final HashSet<String> watchers = new HashSet<String>();
+    private static final ConcurrentHashMap<String, UiObject> uiObjects = new ConcurrentHashMap<String, UiObject>();
+
+    private static UiDevice device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
+    private static UiAutomation uiAutomation = InstrumentationRegistry.getInstrumentation().getUiAutomation();
+
+    public Automator() {
+//        this.uiAutomation = InstrumentationRegistry.getInstrumentation().getUiAutomation();
+//        this.device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
+
+        // Reset Configurator Wait Timeout
+        Configurator configurator = Configurator.getInstance();
+        configurator.setWaitForSelectorTimeout(0L); // Default 10000
+        configurator.setWaitForIdleTimeout(0L); // Default 10000
+        configurator.setActionAcknowledgmentTimeout(500); // Default 3000
+        configurator.setScrollAcknowledgmentTimeout(200); // Default 200
+        configurator.setKeyInjectionDelay(0); // Default 0
+
+        // default uiAutomation serviceInfo.eventTypes is -1
+        // I guess this might be watch all eventTypes
+        uiAutomation.setOnAccessibilityEventListener(new AccessibilityEventListener(device, watchers));
+    }
 
     /**
      * It's to test if the service is alive.
      *
      * @return 'pong'
      */
-    String ping();
-
-    /**
-     * Auto click permission popups
-     *
-     * @param enabled to enable runWatches on windowChanged
-     */
-    void runWatchersOnWindowsChange(boolean enabled);
-
-    /**
-     * get watched status
-     */
-    boolean hasWatchedOnWindowsChange();
-
-    /**
-     * show toast text in seconds
-     *
-     * @param text     the text to show
-     * @param duration text duration
-     * @return true if text is shown, false otherwise
-     */
-    boolean makeToast(String text, int duration);
-
-    /**
-     * get last toast text
-     *
-     * @param cacheDuration milliseconds
-     * @return the latest toast text or empty String
-     */
-    String getLastToast(long cacheDuration);
-
-    /**
-     * clear the last toast text and set
-     *
-     * @return true if we clear the last toast text, false otherwise
-     */
-    boolean clearLastToast();
-
-    /***************************************************************************
-     * Below section contains all methods from UiDevice.
-     ***************************************************************************/
+    public String ping() {
+        return "pong";
+    }
 
     /**
      * Get the device info.
      *
      * @return device info.
      */
-    DeviceInfo deviceInfo();
+    
+    public DeviceInfo deviceInfo() {
+        return DeviceInfo.getDeviceInfo();
+    }
+
+    /**
+     * Trigger all watchers when TYPE_WINDOW_STATE_CHANGED or TYPE_WINDOW_CONTENT_CHANGED
+     */
+    
+    public void runWatchersOnWindowsChange(boolean enabled) {
+        // Important: UiAutomator2 is based on accessibility. so we should keep the old eventTypes.
+        // Default eventTypes contains many ...
+        // and keep serviceInfo.packageNames unchanged.
+        AccessibilityEventListener.getInstance().triggerWatchers = enabled;
+    }
+
+    
+    public boolean hasWatchedOnWindowsChange() {
+        return AccessibilityEventListener.getInstance().triggerWatchers;
+    }
+
+    
+    public boolean makeToast(final String text, final int duration) {
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.post(new Runnable() {
+            
+            public void run() {
+                Toast.makeText(InstrumentationRegistry.getTargetContext(), text, duration).show();
+            }
+        });
+        return true;
+    }
+
+    
+    public String getLastToast(long cacheDuration) {
+        AccessibilityEventListener instance = AccessibilityEventListener.getInstance();
+        if (System.currentTimeMillis() < cacheDuration + instance.toastTime) {
+            return instance.toastMessage;
+        }
+        return null;
+    }
+
+    
+    public boolean clearLastToast() {
+        AccessibilityEventListener.getInstance().toastMessage = null;
+        return true;
+    }
 
     /**
      * Perform a click at arbitrary coordinates specified by the user.
@@ -93,7 +159,9 @@ public interface AutomatorService {
      * @param y coordinate
      * @return true if the click succeeded else false
      */
-    boolean click(int x, int y);
+    public static boolean click(int x, int y) {
+        return device.click(x, y);
+    }
 
     /**
      * Performs a swipe from one coordinate to another coordinate. You can control the smoothness and speed of the swipe by specifying the number of steps. Each step execution is throttled to 5 milliseconds per step, so for a 100 steps, the swipe will take around 0.5 seconds to complete.
@@ -106,8 +174,10 @@ public interface AutomatorService {
      * @return true if swipe is performed, false if the operation fails or the coordinates are invalid
      * @throws NotImplementedException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = NotImplementedException.class, code = ERROR_CODE_BASE - 3)})
-    boolean drag(int startX, int startY, int endX, int endY, int steps) throws NotImplementedException;
+    
+    public boolean drag(int startX, int startY, int endX, int endY, int steps) throws NotImplementedException {
+        return device.drag(startX, startY, endX, endY, steps);
+    }
 
     /**
      * Performs a swipe from one coordinate to another using the number of steps to determine smoothness and speed. Each step execution is throttled to 5ms per step. So for a 100 steps, the swipe will take about 1/2 second to complete.
@@ -119,36 +189,44 @@ public interface AutomatorService {
      * @param steps  is the number of move steps sent to the system
      * @return false if the operation fails or the coordinates are invalid
      */
-    boolean swipe(int startX, int startY, int endX, int endY, int steps);
+    
+    public boolean swipe(int startX, int startY, int endX, int endY, int steps) {
+        return device.swipe(startX, startY, endX, endY, steps);
+    }
 
-    /**
-     * Performs a swipe between points in the point array
-     *
-     * @param segments     the point array
-     * @param segmentSteps steps to inject between two points, each step lasting 5ms
-     */
-    boolean swipePoints(int[] segments, int segmentSteps);
+    
+    public boolean swipePoints(int[] segments, int segmentSteps) {
+        android.graphics.Point[] points = new android.graphics.Point[segments.length / 2];
+        for (int i = 0; i < segments.length / 2; i++) {
+            points[i] = new android.graphics.Point(segments[2 * i], segments[2 * i + 1]);
+        }
+        return device.swipe(points, segmentSteps);
+    }
 
-
-    /**
-     * Inject a low-level InputEvent (MotionEvent) to the input stream
-     *
-     * @param action    MotionEvent.ACTION_*
-     * @param x         x coordinate
-     * @param y         y coordinate
-     * @param metaState any meta info
-     */
-    boolean injectInputEvent(int action, float x, float y, int metaState);
+    // Multi touch is a little complicated
+    
+    public boolean injectInputEvent(int action, float x, float y, int metaState) {
+        MotionEvent e = MotionEvent.obtain(SystemClock.uptimeMillis(),
+                SystemClock.uptimeMillis(),
+                action, x, y, metaState);
+        e.setSource(InputDevice.SOURCE_TOUCHSCREEN);
+        boolean b = uiAutomation.injectInputEvent(e, true);
+        e.recycle();
+        return b;
+    }
 
     /**
      * Helper method used for debugging to dump the current window's layout hierarchy. The file root location is /data/local/tmp
      *
      * @param compressed use compressed layout hierarchy or not using setCompressedLayoutHeirarchy method. Ignore the parameter in case the API level lt 18.
-     * @param filename   the filename to be stored.
+     * @param filename   the filename to be stored. @deprecated
      * @return the absolute path name of dumped file.
      */
     @Deprecated
-    String dumpWindowHierarchy(boolean compressed, String filename);
+    
+    public String dumpWindowHierarchy(boolean compressed, String filename) {
+        return dumpWindowHierarchy(compressed);
+    }
 
     /**
      * Helper method used for debugging to dump the current window's layout hierarchy.
@@ -156,18 +234,56 @@ public interface AutomatorService {
      * @param compressed use compressed layout hierarchy or not using setCompressedLayoutHeirarchy method. Ignore the parameter in case the API level lt 18.
      * @return the absolute path name of dumped file.
      */
-    String dumpWindowHierarchy(boolean compressed);
+    
+    public String dumpWindowHierarchy(boolean compressed) {
+        device.setCompressedLayoutHeirarchy(compressed);
+        try {
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            AccessibilityNodeInfoDumper.dumpWindowHierarchy(device, os);
+//            device.dumpWindowHierarchy(os);
+            os.close();
+            return os.toString("UTF-8");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public static String dumpWindowHierarchys(boolean compressed) {
+        device.setCompressedLayoutHeirarchy(compressed);
+        try {
+
+            String strPath = Environment.getExternalStorageDirectory().getPath();
+            //创建xml文件
+            File file = new File(strPath, "window_dump.xml");
+            FileOutputStream fos = new FileOutputStream(file);
+            AccessibilityNodeInfoDumper.dumpWindowHierarchy(device, fos);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
 
     /**
      * Take a screenshot of current window and store it as PNG The screenshot is adjusted per screen rotation
+     *
+     * @param filename where the PNG should be written to
+     * @param scale    scale the screenshot down if needed; 1.0f for original size
+     * @param quality  quality of the PNG compression; range: 0-100
      * @return the file name of the screenshot. null if failed.
      * @throws NotImplementedException
      */
-
-    boolean dumpWindow();
-
-    @JsonRpcErrors({@JsonRpcError(exception = NotImplementedException.class, code = ERROR_CODE_BASE - 3)})
-    String takeScreenshot(String filename, float scale, int quality) throws NotImplementedException;
+    
+    public String takeScreenshot(String filename, float scale, int quality) throws NotImplementedException {
+        File f = new File(InstrumentationRegistry.getTargetContext().getFilesDir(), filename);
+        device.takeScreenshot(f, scale, quality);
+        if (f.exists()) return f.getAbsolutePath();
+        return null;
+    }
 
     /**
      * Disables the sensors and freezes the device rotation at its current rotation state, or enable it.
@@ -175,8 +291,11 @@ public interface AutomatorService {
      * @param freeze true to freeze the rotation, false to unfreeze the rotation.
      * @throws RemoteException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = RemoteException.class, code = ERROR_CODE_BASE - 1)})
-    void freezeRotation(boolean freeze) throws RemoteException;  // freeze or unfreeze rotation, see also unfreezeRotation()
+    
+    public void freezeRotation(boolean freeze) throws RemoteException {
+        if (freeze) device.freezeRotation();
+        else device.unfreezeRotation();
+    }
 
     /**
      * Simulates orienting the device to the left/right/natural and also freezes rotation by disabling the sensors.
@@ -185,20 +304,31 @@ public interface AutomatorService {
      * @throws RemoteException
      * @throws NotImplementedException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = RemoteException.class, code = ERROR_CODE_BASE - 1), @JsonRpcError(exception = NotImplementedException.class, code = ERROR_CODE_BASE - 3)})
-    void setOrientation(String dir) throws RemoteException, NotImplementedException;
+    
+    public void setOrientation(String dir) throws RemoteException, NotImplementedException {
+        dir = dir.toLowerCase();
+        if ("left".equals(dir) || "l".equals(dir)) device.setOrientationLeft();
+        else if ("right".equals(dir) || "r".equals(dir)) device.setOrientationRight();
+        else if ("natural".equals(dir) || "n".equals(dir)) device.setOrientationNatural();
+    }
 
     /**
      * Retrieves the text from the last UI traversal event received.
      *
      * @return the text from the last UI traversal event received.
      */
-    String getLastTraversedText();
+    
+    public String getLastTraversedText() {
+        return device.getLastTraversedText();
+    }
 
     /**
      * Clears the text from the last UI traversal event.
      */
-    void clearLastTraversedText();
+    
+    public void clearLastTraversedText() {
+        device.clearLastTraversedText();
+    }
 
     /**
      * Opens the notification shade.
@@ -206,8 +336,10 @@ public interface AutomatorService {
      * @return true if successful, else return false
      * @throws NotImplementedException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = NotImplementedException.class, code = ERROR_CODE_BASE - 3)})
-    boolean openNotification() throws NotImplementedException;
+    
+    public static boolean openNotification() {
+        return device.openNotification();
+    }
 
     /**
      * Opens the Quick Settings shade.
@@ -215,8 +347,10 @@ public interface AutomatorService {
      * @return true if successful, else return false
      * @throws NotImplementedException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = NotImplementedException.class, code = ERROR_CODE_BASE - 3)})
-    boolean openQuickSettings() throws NotImplementedException;
+    
+    public boolean openQuickSettings() throws NotImplementedException {
+        return device.openQuickSettings();
+    }
 
     /**
      * Checks if a specific registered UiWatcher has triggered. See registerWatcher(String, UiWatcher). If a UiWatcher runs and its checkForCondition() call returned true, then the UiWatcher is considered triggered. This is helpful if a watcher is detecting errors from ANR or crash dialogs and the test needs to know if a UiWatcher has been triggered.
@@ -224,14 +358,20 @@ public interface AutomatorService {
      * @param watcherName the name of registered watcher.
      * @return true if triggered else false
      */
-    boolean hasWatcherTriggered(String watcherName); // We should implement some watchers to treat some blocking issues, e.g. force close dialog
+    
+    public boolean hasWatcherTriggered(String watcherName) {
+        return device.hasWatcherTriggered(watcherName);
+    }
 
     /**
      * Checks if any registered UiWatcher have triggered.
      *
      * @return true if any UiWatcher have triggered else false.
      */
-    boolean hasAnyWatcherTriggered();
+    
+    public boolean hasAnyWatcherTriggered() {
+        return device.hasAnyWatcherTriggered();
+    }
 
     /**
      * Register a ClickUiObjectWatcher
@@ -240,7 +380,22 @@ public interface AutomatorService {
      * @param conditions If all UiObject in the conditions match, the watcher should be triggered.
      * @param target     The target UiObject should be clicked if all conditions match.
      */
-    void registerClickUiObjectWatcher(String name, Selector[] conditions, Selector target);
+    
+    public void registerClickUiObjectWatcher(String name, Selector[] conditions, Selector target) {
+        synchronized (watchers) {
+            if (watchers.contains(name)) {
+                device.removeWatcher(name);
+                watchers.remove(name);
+            }
+
+            UiSelector[] selectors = new UiSelector[conditions.length];
+            for (int i = 0; i < conditions.length; i++) {
+                selectors[i] = conditions[i].toUiSelector();
+            }
+            device.registerWatcher(name, new ClickUiObjectWatcher(selectors, target.toUiSelector()));
+            watchers.add(name);
+        }
+    }
 
     /**
      * Register a PressKeysWatcher
@@ -249,31 +404,65 @@ public interface AutomatorService {
      * @param conditions If all UiObject in the conditions match, the watcher should be triggered.
      * @param keys       All keys will be pressed in sequence.
      */
-    void registerPressKeyskWatcher(String name, Selector[] conditions, String[] keys);
+    
+    public void registerPressKeyskWatcher(String name, Selector[] conditions, String[] keys) {
+        synchronized (watchers) {
+            if (watchers.contains(name)) {
+                device.removeWatcher(name);
+                watchers.remove(name);
+            }
+
+            UiSelector[] selectors = new UiSelector[conditions.length];
+            for (int i = 0; i < conditions.length; i++) {
+                selectors[i] = conditions[i].toUiSelector();
+            }
+            device.registerWatcher(name, new PressKeysWatcher(selectors, keys));
+            watchers.add(name);
+        }
+    }
 
     /**
      * Removes a previously registered UiWatcher.
      *
      * @param name Watcher name
      */
-    void removeWatcher(String name);
+    
+    public void removeWatcher(String name) {
+        synchronized (watchers) {
+            if (watchers.contains(name)) {
+                device.removeWatcher(name);
+                watchers.remove(name);
+            }
+        }
+    }
 
     /**
      * Resets a UiWatcher that has been triggered. If a UiWatcher runs and its checkForCondition() call returned true, then the UiWatcher is considered triggered.
      */
-    void resetWatcherTriggers();
+    
+    public void resetWatcherTriggers() {
+        device.resetWatcherTriggers();
+    }
 
     /**
      * Force to run all watchers.
      */
-    void runWatchers();
+    
+    public void runWatchers() {
+        device.runWatchers();
+    }
 
     /**
      * Get all registered UiWatchers
      *
      * @return UiWatcher names
      */
-    String[] getWatchers();
+    
+    public String[] getWatchers() {
+        synchronized (watchers) {
+            return watchers.toArray(new String[watchers.size()]);
+        }
+    }
 
     /**
      * Simulates a short press using key name.
@@ -282,8 +471,40 @@ public interface AutomatorService {
      * @return true if successful, else return false
      * @throws RemoteException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = RemoteException.class, code = ERROR_CODE_BASE - 1)})
-    boolean pressKey(String key) throws RemoteException;
+    
+    public static boolean pressKey(String key) {
+        boolean result;
+        key = key.toLowerCase();
+        if ("home".equals(key)) result = device.pressHome();
+        else if ("back".equals(key)) result = device.pressBack();
+        else if ("left".equals(key)) result = device.pressDPadLeft();
+        else if ("right".equals(key)) result = device.pressDPadRight();
+        else if ("up".equals(key)) result = device.pressDPadUp();
+        else if ("down".equals(key)) result = device.pressDPadDown();
+        else if ("center".equals(key)) result = device.pressDPadCenter();
+        else if ("menu".equals(key)) result = device.pressMenu();
+        else if ("search".equals(key)) result = device.pressSearch();
+        else if ("enter".equals(key)) result = device.pressEnter();
+        else if ("delete".equals(key) || "del".equals(key)) result = device.pressDelete();
+        else if ("recent".equals(key)) {
+            try {
+                result = device.pressRecentApps();
+            } catch (RemoteException e) {
+                result = false;
+                e.printStackTrace();
+            }
+        }
+        else if ("volume_up".equals(key)) result = device.pressKeyCode(KeyEvent.KEYCODE_VOLUME_UP);
+        else if ("volume_down".equals(key))
+            result = device.pressKeyCode(KeyEvent.KEYCODE_VOLUME_DOWN);
+        else if ("volume_mute".equals(key))
+            result = device.pressKeyCode(KeyEvent.KEYCODE_VOLUME_MUTE);
+        else if ("camera".equals(key)) result = device.pressKeyCode(KeyEvent.KEYCODE_CAMERA);
+        else if ( "AIkey".equals(key)) result = pressKeyCode(689);
+        else result = "power".equals(key) && device.pressKeyCode(KeyEvent.KEYCODE_POWER);
+
+        return result;
+    }
 
     /**
      * Simulates a short press using a key code. See KeyEvent.
@@ -291,7 +512,10 @@ public interface AutomatorService {
      * @param keyCode the key code of the event.
      * @return true if successful, else return false
      */
-    boolean pressKeyCode(int keyCode);
+    
+    public static boolean pressKeyCode(int keyCode) {
+        return device.pressKeyCode(keyCode);
+    }
 
     /**
      * Simulates a short press using a key code. See KeyEvent.
@@ -300,23 +524,30 @@ public interface AutomatorService {
      * @param metaState an integer in which each bit set to 1 represents a pressed meta key
      * @return true if successful, else return false
      */
-    boolean pressKeyCode(int keyCode, int metaState);
+    
+    public boolean pressKeyCode(int keyCode, int metaState) {
+        return device.pressKeyCode(keyCode, metaState);
+    }
 
     /**
      * This method simulates pressing the power button if the screen is OFF else it does nothing if the screen is already ON. If the screen was OFF and it just got turned ON, this method will insert a 500ms delay to allow the device time to wake up and accept input.
      *
      * @throws RemoteException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = RemoteException.class, code = ERROR_CODE_BASE - 1)})
-    void wakeUp() throws RemoteException;
+    
+    public static void wakeUp() throws RemoteException {
+        device.wakeUp();
+    }
 
     /**
      * This method simply presses the power button if the screen is ON else it does nothing if the screen is already OFF.
      *
      * @throws RemoteException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = RemoteException.class, code = ERROR_CODE_BASE - 1)})
-    void sleep() throws RemoteException;
+    
+    public void sleep() throws RemoteException {
+        device.sleep();
+    }
 
     /**
      * Checks the power manager if the screen is ON.
@@ -324,15 +555,24 @@ public interface AutomatorService {
      * @return true if the screen is ON else false
      * @throws RemoteException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = RemoteException.class, code = ERROR_CODE_BASE - 1)})
-    boolean isScreenOn() throws RemoteException;
+    
+    public static boolean isScreenOn() {
+        try {
+            return device.isScreenOn();
+        } catch (RemoteException e) {
+            return false;
+        }
+    }
 
     /**
      * Waits for the current application to idle.
      *
      * @param timeout in milliseconds
      */
-    void waitForIdle(long timeout);
+    
+    public void waitForIdle(long timeout) {
+        device.waitForIdle(timeout);
+    }
 
     /**
      * Waits for a window content update event to occur. If a package name for the window is specified, but the current window does not have the same package name, the function returns immediately.
@@ -341,11 +581,10 @@ public interface AutomatorService {
      * @param timeout     the timeout for the wait
      * @return true if a window update occurred, false if timeout has elapsed or if the current window does not have the specified package name
      */
-    boolean waitForWindowUpdate(String packageName, long timeout);
-
-    /***************************************************************************
-     * Below section contains all methods from UiObject.
-     ***************************************************************************/
+    
+    public boolean waitForWindowUpdate(String packageName, long timeout) {
+        return device.waitForWindowUpdate(packageName, timeout);
+    }
 
     /**
      * Clears the existing text contents in an editable field. The UiSelector of this object must reference a UI element that is editable. When you call this method, the method first sets focus at the start edge of the field. The method then simulates a long-press to select the existing text, and deletes the selected text. If a "Select-All" option is displayed, the method will automatically attempt to use it to ensure full text selection. Note that it is possible that not all the text in the field is selected; for example, if the text contains separators such as spaces, slashes, at symbol etc. Also, not all editable fields support the long-press functionality.
@@ -353,8 +592,15 @@ public interface AutomatorService {
      * @param obj the selector of the UiObject.
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    void clearTextField(Selector obj) throws UiObjectNotFoundException;
+    
+    public void clearTextField(Selector obj) throws UiObjectNotFoundException {
+        try {
+            obj.toUiObject2().clear();
+        } catch (NullPointerException | StaleObjectException e) {
+            device.findObject(obj.toUiSelector()).clearTextField();
+        }
+
+    }
 
     /**
      * Reads the text property of the UI element
@@ -363,8 +609,14 @@ public interface AutomatorService {
      * @return text value of the current node represented by this UiObject
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    String getText(Selector obj) throws UiObjectNotFoundException;
+    
+    public String getText(Selector obj) throws UiObjectNotFoundException {
+        if (obj.toUiObject2() == null) {
+            return device.findObject(obj.toUiSelector()).getText();
+        } else {
+            return obj.toUiObject2().getText();
+        }
+    }
 
     /**
      * Sets the text in an editable field, after clearing the field's content. The UiSelector selector of this object must reference a UI element that is editable. When you call this method, the method first simulates a click() on editable field to set focus. The method then clears the field's contents and injects your specified text into the field. If you want to capture the original contents of the field, call getText() first. You can then modify the text and use this method to update the field.
@@ -374,8 +626,16 @@ public interface AutomatorService {
      * @return true if operation is successful
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean setText(Selector obj, String text) throws UiObjectNotFoundException;
+    
+    public boolean setText(Selector obj, String text) throws UiObjectNotFoundException {
+        try {
+            obj.toUiObject2().click();
+            obj.toUiObject2().setText(text);
+            return true;
+        } catch (NullPointerException | StaleObjectException e) {
+            return device.findObject(obj.toUiSelector()).setText(text);
+        }
+    }
 
     /**
      * Performs a click at the center of the visible bounds of the UI element represented by this UiObject.
@@ -384,8 +644,15 @@ public interface AutomatorService {
      * @return true id successful else false
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean click(Selector obj) throws UiObjectNotFoundException;
+    
+    public boolean click(Selector obj) throws UiObjectNotFoundException {
+        if (obj.toUiObject2() == null) {
+            return device.findObject(obj.toUiSelector()).click();
+        } else {
+            obj.toUiObject2().click();
+            return true;
+        }
+    }
 
     /**
      * Clicks the bottom and right corner or top and left corner of the UI element
@@ -395,8 +662,19 @@ public interface AutomatorService {
      * @return true on success
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean click(Selector obj, String corner) throws UiObjectNotFoundException;
+    
+    public boolean click(Selector obj, String corner) throws UiObjectNotFoundException {
+        return click(device.findObject(obj.toUiSelector()), corner);
+    }
+
+    private boolean click(UiObject obj, String corner) throws UiObjectNotFoundException {
+        if (corner == null) corner = "center";
+        corner = corner.toLowerCase();
+        if ("br".equals(corner) || "bottomright".equals(corner)) return obj.clickBottomRight();
+        else if ("tl".equals(corner) || "topleft".equals(corner)) return obj.clickTopLeft();
+        else if ("c".equals(corner) || "center".equals(corner)) return obj.click();
+        return false;
+    }
 
     /**
      * Performs a click at the center of the visible bounds of the UI element represented by this UiObject and waits for window transitions. This method differ from click() only in that this method waits for a a new window transition as a result of the click. Some examples of a window transition:
@@ -409,8 +687,14 @@ public interface AutomatorService {
      * @return true if the event was triggered, else false
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean clickAndWaitForNewWindow(Selector obj, long timeout) throws UiObjectNotFoundException;
+    
+    public boolean clickAndWaitForNewWindow(Selector obj, long timeout) throws UiObjectNotFoundException {
+        if (obj.toUiObject2() == null) {
+            return device.findObject(obj.toUiSelector()).clickAndWaitForNewWindow(timeout);
+        } else {
+            return obj.toUiObject2().clickAndWait(Until.newWindow(), timeout);
+        }
+    }
 
     /**
      * Long clicks the center of the visible bounds of the UI element
@@ -419,8 +703,15 @@ public interface AutomatorService {
      * @return true if operation was successful
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean longClick(Selector obj) throws UiObjectNotFoundException;
+    
+    public boolean longClick(Selector obj) throws UiObjectNotFoundException {
+        if (obj.toUiObject2() == null) {
+            return device.findObject(obj.toUiSelector()).longClick();
+        } else {
+            obj.toUiObject2().longClick();
+            return true;
+        }
+    }
 
     /**
      * Long clicks bottom and right corner of the UI element
@@ -430,8 +721,21 @@ public interface AutomatorService {
      * @return true if operation was successful
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean longClick(Selector obj, String corner) throws UiObjectNotFoundException;
+    
+    public boolean longClick(Selector obj, String corner) throws UiObjectNotFoundException {
+        return longClick(device.findObject(obj.toUiSelector()), corner);
+    }
+
+    private boolean longClick(UiObject obj, String corner) throws UiObjectNotFoundException {
+        if (corner == null) corner = "center";
+
+        corner = corner.toLowerCase();
+        if ("br".equals(corner) || "bottomright".equals(corner)) return obj.longClickBottomRight();
+        else if ("tl".equals(corner) || "topleft".equals(corner)) return obj.longClickTopLeft();
+        else if ("c".equals(corner) || "center".equals(corner)) return obj.longClick();
+
+        return false;
+    }
 
     /**
      * Drags this object to a destination UiObject. The number of steps specified in your input parameter can influence the drag speed, and varying speeds may impact the results. Consider evaluating different speeds when using this method in your tests.
@@ -443,8 +747,14 @@ public interface AutomatorService {
      * @throws UiObjectNotFoundException
      * @throws NotImplementedException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2), @JsonRpcError(exception = NotImplementedException.class, code = ERROR_CODE_BASE - 3)})
-    boolean dragTo(Selector obj, Selector destObj, int steps) throws UiObjectNotFoundException, NotImplementedException;
+    
+    public boolean dragTo(Selector obj, Selector destObj, int steps) throws UiObjectNotFoundException, NotImplementedException {
+        return dragTo(device.findObject(obj.toUiSelector()), destObj, steps);
+    }
+
+    private boolean dragTo(UiObject obj, Selector destObj, int steps) throws UiObjectNotFoundException, NotImplementedException {
+        return obj.dragTo(device.findObject(destObj.toUiSelector()), steps);
+    }
 
     /**
      * Drags this object to arbitrary coordinates. The number of steps specified in your input parameter can influence the drag speed, and varying speeds may impact the results. Consider evaluating different speeds when using this method in your tests.
@@ -457,8 +767,14 @@ public interface AutomatorService {
      * @throws UiObjectNotFoundException
      * @throws NotImplementedException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2), @JsonRpcError(exception = NotImplementedException.class, code = ERROR_CODE_BASE - 3)})
-    boolean dragTo(Selector obj, int destX, int destY, int steps) throws UiObjectNotFoundException, NotImplementedException;
+    
+    public boolean dragTo(Selector obj, int destX, int destY, int steps) throws UiObjectNotFoundException, NotImplementedException {
+        return dragTo(device.findObject(obj.toUiSelector()), destX, destY, steps);
+    }
+
+    private boolean dragTo(UiObject obj, int destX, int destY, int steps) throws UiObjectNotFoundException, NotImplementedException {
+        return obj.dragTo(destX, destY, steps);
+    }
 
     /**
      * Check if view exists. This methods performs a waitForExists(long) with zero timeout. This basically returns immediately whether the view represented by this UiObject exists or not.
@@ -466,8 +782,12 @@ public interface AutomatorService {
      * @param obj the ui object.
      * @return true if the view represented by this UiObject does exist
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean exist(Selector obj);
+    
+    public boolean exist(Selector obj) {
+        if (obj.getChildOrSibling().length == 0 && obj.toBySelector() != null)
+            return device.wait(Until.hasObject(obj.toBySelector()), 0L);
+        return device.findObject(obj.toUiSelector()).exists();
+    }
 
     /**
      * Get the object info.
@@ -476,8 +796,20 @@ public interface AutomatorService {
      * @return object info.
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    ObjInfo objInfo(Selector obj) throws UiObjectNotFoundException;
+    
+    public ObjInfo objInfo(Selector obj) throws UiObjectNotFoundException {
+        try {
+             final UiObject2 obj2 = obj.toUiObject2(); // to avoid a race condition
+             if (obj2 != null) {
+                 return ObjInfo.getObjInfo(obj2);
+             }
+        } catch(StaleObjectException e){
+            Log.d("objInfo got StaleObjectException " + e);
+            // HotFix(ssx): Here always raise StaleObjectException
+            // Refs: https://github.com/openatx/uiautomator2/issues/138
+        }
+        return ObjInfo.getObjInfo(device.findObject(obj.toUiSelector()));
+    }
 
     /**
      * Get the count of the UiObject instances by the selector
@@ -485,7 +817,34 @@ public interface AutomatorService {
      * @param obj the selector of the ui object
      * @return the count of instances.
      */
-    int count(Selector obj);
+    
+    public int count(Selector obj) {
+        if ((obj.deepSelector().getMask() & Selector.MASK_INSTANCE) > 0) {
+            if (device.findObject(obj.toUiSelector()).exists()) return 1;
+            else return 0;
+        } else {
+            UiSelector sel = obj.toUiSelector();
+            if (!device.findObject(sel).exists()) return 0;
+            int low = 1;
+            int high = 2;
+
+            // Note: can not use `sel = sel.instance(high -1)`
+            // because this will change first selector in chain not last.
+            sel = obj.toUiSelector(high - 1);
+            while (device.findObject(sel).exists()) {
+                low = high;
+                high = high * 2;
+                sel = obj.toUiSelector(high - 1);
+            }
+            while (high > low + 1) {
+                int mid = (low + high) / 2;
+                sel = obj.toUiSelector(mid - 1);
+                if (device.findObject(sel).exists()) low = mid;
+                else high = mid;
+            }
+            return low;
+        }
+    }
 
     /**
      * Get the info of all instance by the selector.
@@ -493,7 +852,26 @@ public interface AutomatorService {
      * @param obj the selector of ui object.
      * @return array of object info.
      */
-    ObjInfo[] objInfoOfAllInstances(Selector obj);
+    
+    public ObjInfo[] objInfoOfAllInstances(Selector obj) {
+        int total = count(obj);
+        ObjInfo objs[] = new ObjInfo[total];
+        if ((obj.getMask() & Selector.MASK_INSTANCE) > 0 && total > 0) {
+            try {
+                objs[0] = objInfo(obj);
+            } catch (UiObjectNotFoundException e) {
+            }
+        } else {
+            UiSelector sel = obj.toUiSelector();
+            for (int i = 0; i < total; i++) {
+                try {
+                    objs[i] = ObjInfo.getObjInfo(sel.instance(i));
+                } catch (UiObjectNotFoundException e) {
+                }
+            }
+        }
+        return objs;
+    }
 
     /**
      * Generates a two-pointer gesture with arbitrary starting and ending points.
@@ -507,8 +885,14 @@ public interface AutomatorService {
      * @return true if all touch events for this gesture are injected successfully, false otherwise
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2), @JsonRpcError(exception = NotImplementedException.class, code = ERROR_CODE_BASE - 3)})
-    boolean gesture(Selector obj, Point startPoint1, Point startPoint2, Point endPoint1, Point endPoint2, int steps) throws UiObjectNotFoundException, NotImplementedException;
+    
+    public boolean gesture(Selector obj, Point startPoint1, Point startPoint2, Point endPoint1, Point endPoint2, int steps) throws UiObjectNotFoundException, NotImplementedException {
+        return gesture(device.findObject(obj.toUiSelector()), startPoint1, startPoint2, endPoint1, endPoint2, steps);
+    }
+
+    private boolean gesture(UiObject obj, Point startPoint1, Point startPoint2, Point endPoint1, Point endPoint2, int steps) throws UiObjectNotFoundException, NotImplementedException {
+        return obj.performTwoPointerGesture(startPoint1.toPoint(), startPoint2.toPoint(), endPoint1.toPoint(), endPoint2.toPoint(), steps);
+    }
 
     /**
      * Performs a two-pointer gesture, where each pointer moves diagonally toward the other, from the edges to the center of this UiObject .
@@ -520,8 +904,14 @@ public interface AutomatorService {
      * @throws UiObjectNotFoundException
      * @throws NotImplementedException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2), @JsonRpcError(exception = NotImplementedException.class, code = ERROR_CODE_BASE - 3)})
-    boolean pinchIn(Selector obj, int percent, int steps) throws UiObjectNotFoundException, NotImplementedException;
+    
+    public boolean pinchIn(Selector obj, int percent, int steps) throws UiObjectNotFoundException, NotImplementedException {
+        return pinchIn(device.findObject(obj.toUiSelector()), percent, steps);
+    }
+
+    private boolean pinchIn(UiObject obj, int percent, int steps) throws UiObjectNotFoundException, NotImplementedException {
+        return obj.pinchIn(percent, steps);
+    }
 
     /**
      * Performs a two-pointer gesture, where each pointer moves diagonally opposite across the other, from the center out towards the edges of the this UiObject.
@@ -533,8 +923,14 @@ public interface AutomatorService {
      * @throws UiObjectNotFoundException
      * @throws NotImplementedException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2), @JsonRpcError(exception = NotImplementedException.class, code = ERROR_CODE_BASE - 3)})
-    boolean pinchOut(Selector obj, int percent, int steps) throws UiObjectNotFoundException, NotImplementedException;
+    
+    public boolean pinchOut(Selector obj, int percent, int steps) throws UiObjectNotFoundException, NotImplementedException {
+        return pinchOut(device.findObject(obj.toUiSelector()), percent, steps);
+    }
+
+    private boolean pinchOut(UiObject obj, int percent, int steps) throws UiObjectNotFoundException, NotImplementedException {
+        return obj.pinchOut(percent, steps);
+    }
 
     /**
      * Performs the swipe up/down/left/right action on the UiObject
@@ -545,8 +941,20 @@ public interface AutomatorService {
      * @return true of successful
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean swipe(Selector obj, String dir, int steps) throws UiObjectNotFoundException;
+    
+    public boolean swipe(Selector obj, String dir, int steps) throws UiObjectNotFoundException {
+        return swipe(device.findObject(obj.toUiSelector()), dir, steps);
+    }
+
+    private boolean swipe(UiObject item, String dir, int steps) throws UiObjectNotFoundException {
+        dir = dir.toLowerCase();
+        boolean result = false;
+        if ("u".equals(dir) || "up".equals(dir)) result = item.swipeUp(steps);
+        else if ("d".equals(dir) || "down".equals(dir)) result = item.swipeDown(steps);
+        else if ("l".equals(dir) || "left".equals(dir)) result = item.swipeLeft(steps);
+        else if ("r".equals(dir) || "right".equals(dir)) result = item.swipeRight(steps);
+        return result;
+    }
 
     /**
      * Performs the swipe up/down/left/right action on the UiObject
@@ -556,10 +964,25 @@ public interface AutomatorService {
      * @param percent expect value: percent >= 0.0F && percent <= 1.0F,The length of the swipe as a percentage of this object's size.
      * @param steps   indicates the number of injected move steps into the system. Steps are injected about 5ms apart. So a 100 steps may take about 1/2 second to complete.
      * @return true of successful
-     * @throws android.support.test.uiautomator.UiObjectNotFoundException
+     * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean swipe(Selector obj, String dir, float percent, int steps) throws UiObjectNotFoundException;
+    
+    public boolean swipe(Selector obj, String dir, float percent, int steps) throws UiObjectNotFoundException {
+        if (obj.toUiObject2() == null) {
+            return swipe(device.findObject(obj.toUiSelector()), dir, steps);
+        }
+        return swipe(obj.toUiObject2(), dir, percent, steps);
+    }
+
+    private boolean swipe(UiObject2 item, String dir, float percent, int steps) throws UiObjectNotFoundException {
+        dir = dir.toLowerCase();
+        if ("u".equals(dir) || "up".equals(dir)) item.swipe(Direction.UP, percent, steps);
+        else if ("d".equals(dir) || "down".equals(dir)) item.swipe(Direction.DOWN, percent, steps);
+        else if ("l".equals(dir) || "left".equals(dir)) item.swipe(Direction.LEFT, percent, steps);
+        else if ("r".equals(dir) || "right".equals(dir))
+            item.swipe(Direction.RIGHT, percent, steps);
+        return true;
+    }
 
     /**
      * Waits a specified length of time for a view to become visible. This method waits until the view becomes visible on the display, or until the timeout has elapsed. You can use this method in situations where the content that you want to select is not immediately displayed.
@@ -568,8 +991,18 @@ public interface AutomatorService {
      * @param timeout time to wait (in milliseconds)
      * @return true if the view is displayed, else false if timeout elapsed while waiting
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean waitForExists(Selector obj, long timeout);
+    
+    public boolean waitForExists(Selector obj, long timeout) {
+        try {
+            if (obj.getChildOrSibling().length == 0 && obj.checkBySelectorNull(obj) == false)
+                return device.wait(Until.hasObject(obj.toBySelector()), timeout);
+        } catch (ClassCastException e) {
+            Log.d("waitForExists got ClassCastException "+ e);
+            // Hotfix because of https://github.com/openatx/uiautomator2/issues/140
+        }
+        // https://developer.android.com/reference/android/support/test/uiautomator/UiObject#waitforexists
+        return device.findObject(obj.toUiSelector()).waitForExists(timeout);
+    }
 
     /**
      * Waits a specified length of time for a view to become undetectable. This method waits until a view is no longer matchable, or until the timeout has elapsed. A view becomes undetectable when the UiSelector of the object is unable to find a match because the element has either changed its state or is no longer displayed. You can use this method when attempting to wait for some long operation to compete, such as downloading a large file or connecting to a remote server.
@@ -578,12 +1011,16 @@ public interface AutomatorService {
      * @param timeout time to wait (in milliseconds)
      * @return true if the element is gone before timeout elapsed, else false if timeout elapsed but a matching element is still found.
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean waitUntilGone(Selector obj, long timeout);
-
-    /***************************************************************************
-     * Below section contains all methods from UiScrollable.
-     ***************************************************************************/
+    
+    public boolean waitUntilGone(Selector obj, long timeout) {
+        try {
+            if (obj.getChildOrSibling().length == 0 && obj.checkBySelectorNull(obj) == false)
+                return device.wait(Until.gone(obj.toBySelector()), timeout);
+        } catch (ClassCastException e) {
+            Log.d("waitUntilGone got ClassCastException "+ e);
+        }
+        return device.findObject(obj.toUiSelector()).waitUntilGone(timeout);
+    }
 
     /**
      * Performs a backwards fling action with the default number of fling steps (5). If the swipe direction is set to vertical, then the swipe will be performed from top to bottom. If the swipe direction is set to horizontal, then the swipes will be performed from left to right. Make sure to take into account devices configured with right-to-left languages like Arabic and Hebrew.
@@ -593,8 +1030,13 @@ public interface AutomatorService {
      * @return true if scrolled, and false if can't scroll anymore
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean flingBackward(Selector obj, boolean isVertical) throws UiObjectNotFoundException;
+    
+    public boolean flingBackward(Selector obj, boolean isVertical) throws UiObjectNotFoundException {
+        UiScrollable scrollable = new UiScrollable(obj.toUiSelector());
+        if (isVertical) scrollable.setAsVerticalList();
+        else scrollable.setAsHorizontalList();
+        return scrollable.flingBackward();
+    }
 
     /**
      * Performs a forward fling with the default number of fling steps (5). If the swipe direction is set to vertical, then the swipes will be performed from bottom to top. If the swipe direction is set to horizontal, then the swipes will be performed from right to left. Make sure to take into account devices configured with right-to-left languages like Arabic and Hebrew.
@@ -604,8 +1046,13 @@ public interface AutomatorService {
      * @return true if scrolled, and false if can't scroll anymore
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean flingForward(Selector obj, boolean isVertical) throws UiObjectNotFoundException;
+    
+    public boolean flingForward(Selector obj, boolean isVertical) throws UiObjectNotFoundException {
+        UiScrollable scrollable = new UiScrollable(obj.toUiSelector());
+        if (isVertical) scrollable.setAsVerticalList();
+        else scrollable.setAsHorizontalList();
+        return scrollable.flingForward();
+    }
 
     /**
      * Performs a fling gesture to reach the beginning of a scrollable layout element. The beginning can be at the top-most edge in the case of vertical controls, or the left-most edge for horizontal controls. Make sure to take into account devices configured with right-to-left languages like Arabic and Hebrew.
@@ -616,8 +1063,13 @@ public interface AutomatorService {
      * @return true on scrolled, else false
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean flingToBeginning(Selector obj, boolean isVertical, int maxSwipes) throws UiObjectNotFoundException;
+    
+    public boolean flingToBeginning(Selector obj, boolean isVertical, int maxSwipes) throws UiObjectNotFoundException {
+        UiScrollable scrollable = new UiScrollable(obj.toUiSelector());
+        if (isVertical) scrollable.setAsVerticalList();
+        else scrollable.setAsHorizontalList();
+        return scrollable.flingToBeginning(maxSwipes);
+    }
 
     /**
      * Performs a fling gesture to reach the end of a scrollable layout element. The end can be at the bottom-most edge in the case of vertical controls, or the right-most edge for horizontal controls. Make sure to take into account devices configured with right-to-left languages like Arabic and Hebrew.
@@ -628,8 +1080,13 @@ public interface AutomatorService {
      * @return true on scrolled, else false
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean flingToEnd(Selector obj, boolean isVertical, int maxSwipes) throws UiObjectNotFoundException;
+    
+    public boolean flingToEnd(Selector obj, boolean isVertical, int maxSwipes) throws UiObjectNotFoundException {
+        UiScrollable scrollable = new UiScrollable(obj.toUiSelector());
+        if (isVertical) scrollable.setAsVerticalList();
+        else scrollable.setAsHorizontalList();
+        return scrollable.flingToEnd(maxSwipes);
+    }
 
     /**
      * Performs a backward scroll. If the swipe direction is set to vertical, then the swipes will be performed from top to bottom. If the swipe direction is set to horizontal, then the swipes will be performed from left to right. Make sure to take into account devices configured with right-to-left languages like Arabic and Hebrew.
@@ -640,8 +1097,13 @@ public interface AutomatorService {
      * @return true if scrolled, false if can't scroll anymore
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean scrollBackward(Selector obj, boolean isVertical, int steps) throws UiObjectNotFoundException;
+    
+    public boolean scrollBackward(Selector obj, boolean isVertical, int steps) throws UiObjectNotFoundException {
+        UiScrollable scrollable = new UiScrollable(obj.toUiSelector());
+        if (isVertical) scrollable.setAsVerticalList();
+        else scrollable.setAsHorizontalList();
+        return scrollable.scrollBackward(steps);
+    }
 
     /**
      * Performs a forward scroll with the default number of scroll steps (55). If the swipe direction is set to vertical, then the swipes will be performed from bottom to top. If the swipe direction is set to horizontal, then the swipes will be performed from right to left. Make sure to take into account devices configured with right-to-left languages like Arabic and Hebrew.
@@ -652,8 +1114,13 @@ public interface AutomatorService {
      * @return true on scrolled, else false
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean scrollForward(Selector obj, boolean isVertical, int steps) throws UiObjectNotFoundException;
+    
+    public boolean scrollForward(Selector obj, boolean isVertical, int steps) throws UiObjectNotFoundException {
+        UiScrollable scrollable = new UiScrollable(obj.toUiSelector());
+        if (isVertical) scrollable.setAsVerticalList();
+        else scrollable.setAsHorizontalList();
+        return scrollable.scrollForward(steps);
+    }
 
     /**
      * Scrolls to the beginning of a scrollable layout element. The beginning can be at the top-most edge in the case of vertical controls, or the left-most edge for horizontal controls. Make sure to take into account devices configured with right-to-left languages like Arabic and Hebrew.
@@ -665,8 +1132,13 @@ public interface AutomatorService {
      * @return true on scrolled else false
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean scrollToBeginning(Selector obj, boolean isVertical, int maxSwipes, int steps) throws UiObjectNotFoundException;
+    
+    public boolean scrollToBeginning(Selector obj, boolean isVertical, int maxSwipes, int steps) throws UiObjectNotFoundException {
+        UiScrollable scrollable = new UiScrollable(obj.toUiSelector());
+        if (isVertical) scrollable.setAsVerticalList();
+        else scrollable.setAsHorizontalList();
+        return scrollable.scrollToBeginning(maxSwipes, steps);
+    }
 
     /**
      * Scrolls to the end of a scrollable layout element. The end can be at the bottom-most edge in the case of vertical controls, or the right-most edge for horizontal controls. Make sure to take into account devices configured with right-to-left languages like Arabic and Hebrew.
@@ -678,8 +1150,13 @@ public interface AutomatorService {
      * @return true on scrolled, else false
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean scrollToEnd(Selector obj, boolean isVertical, int maxSwipes, int steps) throws UiObjectNotFoundException;
+    
+    public boolean scrollToEnd(Selector obj, boolean isVertical, int maxSwipes, int steps) throws UiObjectNotFoundException {
+        UiScrollable scrollable = new UiScrollable(obj.toUiSelector());
+        if (isVertical) scrollable.setAsVerticalList();
+        else scrollable.setAsHorizontalList();
+        return scrollable.scrollToEnd(maxSwipes, steps);
+    }
 
     /**
      * Perform a scroll forward action to move through the scrollable layout element until a visible item that matches the selector is found.
@@ -690,14 +1167,42 @@ public interface AutomatorService {
      * @return true on scrolled, else false
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean scrollTo(Selector obj, Selector targetObj, boolean isVertical) throws UiObjectNotFoundException;
+    
+    public boolean scrollTo(Selector obj, Selector targetObj, boolean isVertical) throws UiObjectNotFoundException {
+        UiScrollable scrollable = new UiScrollable(obj.toUiSelector());
+        if (isVertical) scrollable.setAsVerticalList();
+        else scrollable.setAsHorizontalList();
+        return scrollable.scrollIntoView(targetObj.toUiSelector());
+    }
 
-    /***************************************************************************
-     * Some time we have to use chained selection, e.g.
-     * new UiCollection(...).getChildByText(...).getChild()....
-     * So we should have a mechanism to save the previous UiObject.
-     ***************************************************************************/
+
+    /**
+     * Name an UiObject and cache it.
+     *
+     * @param obj UiObject
+     * @return the name of the UiObject
+     */
+    private static String addUiObject(UiObject obj) {
+        String key = UUID.randomUUID().toString();
+        uiObjects.put(key, obj);
+        // schedule the clear timer.
+        Timer clearTimer = new Timer();
+        clearTimer.schedule(new ClearUiObjectTimerTask(key), 60000);
+        return key;
+    }
+
+    static class ClearUiObjectTimerTask extends TimerTask {
+        String name;
+
+        public ClearUiObjectTimerTask(String name) {
+            this.name = name;
+        }
+
+        
+        public void run() {
+            uiObjects.remove(name);
+        }
+    }
 
     /**
      * Searches for child UI element within the constraints of this UiSelector selector. It looks for any child matching the childPattern argument that has a child UI element anywhere within its sub hierarchy that has a text attribute equal to text. The returned UiObject will point at the childPattern instance that matched the search and not at the identifying child element that matched the text attribute.
@@ -707,11 +1212,22 @@ public interface AutomatorService {
      * @param child      UiSelector selector of the child pattern to match and return
      * @return A string ID represent the returned UiObject.
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    String childByText(Selector collection, Selector child, String text) throws UiObjectNotFoundException;
+    
+    public String childByText(Selector collection, Selector child, String text) throws UiObjectNotFoundException {
+        UiObject obj;
+        if (exist(collection) && objInfo(collection).isScrollable()) {
+            obj = new UiScrollable(collection.toUiSelector()).getChildByText(child.toUiSelector(), text);
+        } else {
+            obj = new UiCollection(collection.toUiSelector()).getChildByText(child.toUiSelector(), text);
+        }
+        return addUiObject(obj);
+    }
 
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    String childByText(Selector collection, Selector child, String text, boolean allowScrollSearch) throws UiObjectNotFoundException;
+    
+    public String childByText(Selector collection, Selector child, String text, boolean allowScrollSearch) throws UiObjectNotFoundException {
+        UiObject obj = new UiScrollable(collection.toUiSelector()).getChildByText(child.toUiSelector(), text, allowScrollSearch);
+        return addUiObject(obj);
+    }
 
     /**
      * Searches for child UI element within the constraints of this UiSelector selector. It looks for any child matching the childPattern argument that has a child UI element anywhere within its sub hierarchy that has content-description text. The returned UiObject will point at the childPattern instance that matched the search and not at the identifying child element that matched the content description.
@@ -721,11 +1237,22 @@ public interface AutomatorService {
      * @param text       String of the identifying child contents of of the childPattern
      * @return A string ID represent the returned UiObject.
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    String childByDescription(Selector collection, Selector child, String text) throws UiObjectNotFoundException;
+    
+    public String childByDescription(Selector collection, Selector child, String text) throws UiObjectNotFoundException {
+        UiObject obj;
+        if (exist(collection) && objInfo(collection).isScrollable()) {
+            obj = new UiScrollable(collection.toUiSelector()).getChildByDescription(child.toUiSelector(), text);
+        } else {
+            obj = new UiCollection(collection.toUiSelector()).getChildByDescription(child.toUiSelector(), text);
+        }
+        return addUiObject(obj);
+    }
 
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    String childByDescription(Selector collection, Selector child, String text, boolean allowScrollSearch) throws UiObjectNotFoundException;
+    
+    public String childByDescription(Selector collection, Selector child, String text, boolean allowScrollSearch) throws UiObjectNotFoundException {
+        UiObject obj = new UiScrollable(collection.toUiSelector()).getChildByDescription(child.toUiSelector(), text, allowScrollSearch);
+        return addUiObject(obj);
+    }
 
     /**
      * Searches for child UI element within the constraints of this UiSelector. It looks for any child matching the childPattern argument that has a child UI element anywhere within its sub hierarchy that is at the instance specified. The operation is performed only on the visible items and no scrolling is performed in this case.
@@ -735,8 +1262,16 @@ public interface AutomatorService {
      * @param instance   int the desired matched instance of this childPattern
      * @return A string ID represent the returned UiObject.
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    String childByInstance(Selector collection, Selector child, int instance) throws UiObjectNotFoundException;
+    
+    public String childByInstance(Selector collection, Selector child, int instance) throws UiObjectNotFoundException {
+        UiObject obj;
+        if (exist(collection) && objInfo(collection).isScrollable()) {
+            obj = new UiScrollable(collection.toUiSelector()).getChildByInstance(child.toUiSelector(), instance);
+        } else {
+            obj = new UiCollection(collection.toUiSelector()).getChildByInstance(child.toUiSelector(), instance);
+        }
+        return addUiObject(obj);
+    }
 
     /**
      * Creates a new UiObject for a child view that is under the present UiObject.
@@ -745,8 +1280,14 @@ public interface AutomatorService {
      * @param selector UiSelector selector of the child pattern to match and return
      * @return A string ID represent the returned UiObject.
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    String getChild(String obj, Selector selector) throws UiObjectNotFoundException;
+    
+    public String getChild(String obj, Selector selector) throws UiObjectNotFoundException {
+        UiObject ui = uiObjects.get(obj);
+        if (ui != null) {
+            return addUiObject(ui.getChild(selector.toUiSelector()));
+        }
+        return null;
+    }
 
     /**
      * Creates a new UiObject for a sibling view or a child of the sibling view, relative to the present UiObject.
@@ -755,8 +1296,14 @@ public interface AutomatorService {
      * @param selector for a sibling view or children of the sibling view
      * @return A string ID represent the returned UiObject.
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    String getFromParent(String obj, Selector selector) throws UiObjectNotFoundException;
+    
+    public String getFromParent(String obj, Selector selector) throws UiObjectNotFoundException {
+        UiObject ui = uiObjects.get(obj);
+        if (ui != null) {
+            return addUiObject(ui.getFromParent(selector.toUiSelector()));
+        }
+        return null;
+    }
 
     /**
      * Get a new UiObject from the selector.
@@ -765,21 +1312,37 @@ public interface AutomatorService {
      * @return A string ID represent the returned UiObject.
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    String getUiObject(Selector selector) throws UiObjectNotFoundException;
+    
+    public static String getUiObject(Selector selector) throws UiObjectNotFoundException {
+        return addUiObject(device.findObject(selector.toUiSelector()));
+    }
 
     /**
      * Remove the UiObject from memory.
      */
-    void removeUiObject(String obj);
-
+    
+    public void removeUiObject(String obj) {
+        uiObjects.remove(obj);
+    }
 
     /**
      * Get all named UiObjects.
      *
      * @return all names
      */
-    String[] getUiObjects();
+    
+    public static String[] getUiObjects() {
+        Set<String> strings = uiObjects.keySet();
+        return strings.toArray(new String[strings.size()]);
+    }
+
+    private static UiObject getUiObject(String name) throws UiObjectNotFoundException {
+        if (uiObjects.containsKey(name)) {
+            return uiObjects.get(name);
+        } else {
+            throw new UiObjectNotFoundException("UiObject " + name + " not found!");
+        }
+    }
 
     /**
      * Clears the existing text contents in an editable field. The UiSelector of this object must reference a UI element that is editable. When you call this method, the method first sets focus at the start edge of the field. The method then simulates a long-press to select the existing text, and deletes the selected text. If a "Select-All" option is displayed, the method will automatically attempt to use it to ensure full text selection. Note that it is possible that not all the text in the field is selected; for example, if the text contains separators such as spaces, slashes, at symbol etc. Also, not all editable fields support the long-press functionality.
@@ -787,8 +1350,10 @@ public interface AutomatorService {
      * @param obj the id of the UiObject.
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    void clearTextField(String obj) throws UiObjectNotFoundException;
+    
+    public void clearTextField(String obj) throws UiObjectNotFoundException {
+        getUiObject(obj).clearTextField();
+    }
 
     /**
      * Reads the text property of the UI element
@@ -797,8 +1362,10 @@ public interface AutomatorService {
      * @return text value of the current node represented by this UiObject
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    String getText(String obj) throws UiObjectNotFoundException;
+    
+    public String getText(String obj) throws UiObjectNotFoundException {
+        return getUiObject(obj).getText();
+    }
 
     /**
      * Sets the text in an editable field, after clearing the field's content. The UiSelector selector of this object must reference a UI element that is editable. When you call this method, the method first simulates a click() on editable field to set focus. The method then clears the field's contents and injects your specified text into the field. If you want to capture the original contents of the field, call getText() first. You can then modify the text and use this method to update the field.
@@ -808,8 +1375,10 @@ public interface AutomatorService {
      * @return true if operation is successful
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean setText(String obj, String text) throws UiObjectNotFoundException;
+    
+    public boolean setText(String obj, String text) throws UiObjectNotFoundException {
+        return getUiObject(obj).setText(text);
+    }
 
     /**
      * Performs a click at the center of the visible bounds of the UI element represented by this UiObject.
@@ -818,8 +1387,10 @@ public interface AutomatorService {
      * @return true id successful else false
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean click(String obj) throws UiObjectNotFoundException;
+    
+    public boolean click(String obj) throws UiObjectNotFoundException {
+        return getUiObject(obj).click();
+    }
 
     /**
      * Clicks the bottom and right corner or top and left corner of the UI element
@@ -829,8 +1400,10 @@ public interface AutomatorService {
      * @return true on success
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean click(String obj, String corner) throws UiObjectNotFoundException;
+    
+    public boolean click(String obj, String corner) throws UiObjectNotFoundException {
+        return click(getUiObject(obj), corner);
+    }
 
     /**
      * Performs a click at the center of the visible bounds of the UI element represented by this UiObject and waits for window transitions. This method differ from click() only in that this method waits for a a new window transition as a result of the click. Some examples of a window transition:
@@ -843,8 +1416,10 @@ public interface AutomatorService {
      * @return true if the event was triggered, else false
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean clickAndWaitForNewWindow(String obj, long timeout) throws UiObjectNotFoundException;
+    
+    public boolean clickAndWaitForNewWindow(String obj, long timeout) throws UiObjectNotFoundException {
+        return getUiObject(obj).clickAndWaitForNewWindow(timeout);
+    }
 
     /**
      * Long clicks the center of the visible bounds of the UI element
@@ -853,8 +1428,10 @@ public interface AutomatorService {
      * @return true if operation was successful
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean longClick(String obj) throws UiObjectNotFoundException;
+    
+    public boolean longClick(String obj) throws UiObjectNotFoundException {
+        return getUiObject(obj).longClick();
+    }
 
     /**
      * Long clicks bottom and right corner of the UI element
@@ -864,8 +1441,10 @@ public interface AutomatorService {
      * @return true if operation was successful
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean longClick(String obj, String corner) throws UiObjectNotFoundException;
+    
+    public boolean longClick(String obj, String corner) throws UiObjectNotFoundException {
+        return longClick(getUiObject(obj), corner);
+    }
 
     /**
      * Drags this object to a destination UiObject. The number of steps specified in your input parameter can influence the drag speed, and varying speeds may impact the results. Consider evaluating different speeds when using this method in your tests.
@@ -877,8 +1456,10 @@ public interface AutomatorService {
      * @throws UiObjectNotFoundException
      * @throws NotImplementedException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2), @JsonRpcError(exception = NotImplementedException.class, code = ERROR_CODE_BASE - 3)})
-    boolean dragTo(String obj, Selector destObj, int steps) throws UiObjectNotFoundException, NotImplementedException;
+    
+    public boolean dragTo(String obj, Selector destObj, int steps) throws UiObjectNotFoundException, NotImplementedException {
+        return dragTo(getUiObject(obj), destObj, steps);
+    }
 
     /**
      * Drags this object to arbitrary coordinates. The number of steps specified in your input parameter can influence the drag speed, and varying speeds may impact the results. Consider evaluating different speeds when using this method in your tests.
@@ -891,8 +1472,10 @@ public interface AutomatorService {
      * @throws UiObjectNotFoundException
      * @throws NotImplementedException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2), @JsonRpcError(exception = NotImplementedException.class, code = ERROR_CODE_BASE - 3)})
-    boolean dragTo(String obj, int destX, int destY, int steps) throws UiObjectNotFoundException, NotImplementedException;
+    
+    public boolean dragTo(String obj, int destX, int destY, int steps) throws UiObjectNotFoundException, NotImplementedException {
+        return dragTo(getUiObject(obj), destX, destY, steps);
+    }
 
     /**
      * Check if view exists. This methods performs a waitForExists(long) with zero timeout. This basically returns immediately whether the view represented by this UiObject exists or not.
@@ -900,8 +1483,14 @@ public interface AutomatorService {
      * @param obj the id of ui object.
      * @return true if the view represented by this UiObject does exist
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean exist(String obj);
+    
+    public boolean exist(String obj) {
+        try {
+            return getUiObject(obj).exists();
+        } catch (UiObjectNotFoundException e) {
+            return false;
+        }
+    }
 
     /**
      * Get the object info.
@@ -910,8 +1499,10 @@ public interface AutomatorService {
      * @return object info.
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    ObjInfo objInfo(String obj) throws UiObjectNotFoundException;
+    
+    public ObjInfo objInfo(String obj) throws UiObjectNotFoundException {
+        return ObjInfo.getObjInfo(getUiObject(obj));
+    }
 
     /**
      * Generates a two-pointer gesture with arbitrary starting and ending points.
@@ -925,8 +1516,10 @@ public interface AutomatorService {
      * @return true if all touch events for this gesture are injected successfully, false otherwise
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2), @JsonRpcError(exception = NotImplementedException.class, code = ERROR_CODE_BASE - 3)})
-    boolean gesture(String obj, Point startPoint1, Point startPoint2, Point endPoint1, Point endPoint2, int steps) throws UiObjectNotFoundException, NotImplementedException;
+    
+    public boolean gesture(String obj, Point startPoint1, Point startPoint2, Point endPoint1, Point endPoint2, int steps) throws UiObjectNotFoundException, NotImplementedException {
+        return gesture(getUiObject(obj), startPoint1, startPoint2, endPoint1, endPoint2, steps);
+    }
 
     /**
      * Performs a two-pointer gesture, where each pointer moves diagonally toward the other, from the edges to the center of this UiObject .
@@ -938,8 +1531,10 @@ public interface AutomatorService {
      * @throws UiObjectNotFoundException
      * @throws NotImplementedException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2), @JsonRpcError(exception = NotImplementedException.class, code = ERROR_CODE_BASE - 3)})
-    boolean pinchIn(String obj, int percent, int steps) throws UiObjectNotFoundException, NotImplementedException;
+    
+    public boolean pinchIn(String obj, int percent, int steps) throws UiObjectNotFoundException, NotImplementedException {
+        return pinchIn(getUiObject(obj), percent, steps);
+    }
 
     /**
      * Performs a two-pointer gesture, where each pointer moves diagonally opposite across the other, from the center out towards the edges of the this UiObject.
@@ -951,8 +1546,10 @@ public interface AutomatorService {
      * @throws UiObjectNotFoundException
      * @throws NotImplementedException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2), @JsonRpcError(exception = NotImplementedException.class, code = ERROR_CODE_BASE - 3)})
-    boolean pinchOut(String obj, int percent, int steps) throws UiObjectNotFoundException, NotImplementedException;
+    
+    public boolean pinchOut(String obj, int percent, int steps) throws UiObjectNotFoundException, NotImplementedException {
+        return pinchOut(getUiObject(obj), percent, steps);
+    }
 
     /**
      * Performs the swipe up/down/left/right action on the UiObject
@@ -963,8 +1560,10 @@ public interface AutomatorService {
      * @return true of successful
      * @throws UiObjectNotFoundException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean swipe(String obj, String dir, int steps) throws UiObjectNotFoundException;
+    
+    public boolean swipe(String obj, String dir, int steps) throws UiObjectNotFoundException {
+        return swipe(getUiObject(obj), dir, steps);
+    }
 
     /**
      * Waits a specified length of time for a view to become visible. This method waits until the view becomes visible on the display, or until the timeout has elapsed. You can use this method in situations where the content that you want to select is not immediately displayed.
@@ -973,8 +1572,10 @@ public interface AutomatorService {
      * @param timeout time to wait (in milliseconds)
      * @return true if the view is displayed, else false if timeout elapsed while waiting
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean waitForExists(String obj, long timeout) throws UiObjectNotFoundException;
+    
+    public boolean waitForExists(String obj, long timeout) throws UiObjectNotFoundException {
+        return getUiObject(obj).waitForExists(timeout);
+    }
 
     /**
      * Waits a specified length of time for a view to become undetectable. This method waits until a view is no longer matchable, or until the timeout has elapsed. A view becomes undetectable when the UiSelector of the object is unable to find a match because the element has either changed its state or is no longer displayed. You can use this method when attempting to wait for some long operation to compete, such as downloading a large file or connecting to a remote server.
@@ -983,8 +1584,10 @@ public interface AutomatorService {
      * @param timeout time to wait (in milliseconds)
      * @return true if the element is gone before timeout elapsed, else false if timeout elapsed but a matching element is still found.
      */
-    @JsonRpcErrors({@JsonRpcError(exception = UiObjectNotFoundException.class, code = ERROR_CODE_BASE - 2)})
-    boolean waitUntilGone(String obj, long timeout) throws UiObjectNotFoundException;
+    
+    public boolean waitUntilGone(String obj, long timeout) throws UiObjectNotFoundException {
+        return getUiObject(obj).waitUntilGone(timeout);
+    }
 
     /**
      * Get Configurator
@@ -992,8 +1595,10 @@ public interface AutomatorService {
      * @return Configurator information.
      * @throws NotImplementedException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = NotImplementedException.class, code = ERROR_CODE_BASE - 3)})
-    ConfiguratorInfo getConfigurator() throws NotImplementedException;
+    
+    public ConfiguratorInfo getConfigurator() throws NotImplementedException {
+        return new ConfiguratorInfo();
+    }
 
     /**
      * Set Configurator.
@@ -1001,6 +1606,38 @@ public interface AutomatorService {
      * @param info the configurator information to be set.
      * @throws NotImplementedException
      */
-    @JsonRpcErrors({@JsonRpcError(exception = NotImplementedException.class, code = ERROR_CODE_BASE - 3)})
-    ConfiguratorInfo setConfigurator(ConfiguratorInfo info) throws NotImplementedException;
+    
+    public ConfiguratorInfo setConfigurator(ConfiguratorInfo info) throws NotImplementedException {
+        ConfiguratorInfo.setConfigurator(info);
+        return new ConfiguratorInfo();
+    }
+
+    public static UiObject2 findObject(BySelector selector){
+        return device.findObject(selector);
+    }
+
+    public static String getCurrentActivity(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            return device.getCurrentActivityName();
+        } else {
+            return "";
+        }
+    }
+
+    public static boolean takeScreenShot(File storePath, float scale, int quality){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1){
+             return device.takeScreenshot(storePath, scale, quality);
+        } else {
+            return false;
+        }
+    }
+
+    public static String executeShellCommand(String cmd){
+        try {
+            return device.executeShellCommand(cmd);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
 }

@@ -99,7 +99,7 @@
                     android:id="@+id/query"
                     android:layout_width="80dp"
                     android:layout_height="wrap_content"
-                    android:text="query:"
+                    android:text="step:"
                     android:textAlignment="textEnd"
                     android:textColor="@color/colorAccent" />
 

@@ -20,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.kevin.testool.utils.ToastUtils;
+import com.kevin.testool.utils.logUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;

@@ -40,10 +40,10 @@ import java.io.File;
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
 @RunWith(AndroidJUnit4.class)
-public class GetDumpTest {
+public class dumpWindow {
     @Test
     public void getDump() {
-        AutomatorServiceImpl.dumpWindowHierarchys();
         AutomatorServiceImpl.takeScreenshot(Environment.getExternalStorageDirectory().getPath() + File.separator + "window_dump.png");
+        AutomatorServiceImpl.dumpWindowHierarchys();
     }
 }

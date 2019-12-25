@@ -44,17 +44,18 @@ import android.support.test.uiautomator.Until;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.widget.Toast;
 
-//import com.kevin.testool.ToastHelper;
-import com.kevin.testool.utils.ToastUtils;
 import com.kevin.testool.stub.watcher.ClickUiObjectWatcher;
 import com.kevin.testool.stub.watcher.PressKeysWatcher;
 
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Timer;
@@ -68,12 +69,12 @@ public class AutomatorServiceImpl implements AutomatorService {
     private final HashSet<String> watchers = new HashSet<String>();
     private final ConcurrentHashMap<String, UiObject> uiObjects = new ConcurrentHashMap<String, UiObject>();
 
-    private static UiDevice device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());;
+    private static UiDevice device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
     private UiAutomation uiAutomation;
 
     public AutomatorServiceImpl() {
         this.uiAutomation = InstrumentationRegistry.getInstrumentation().getUiAutomation();
-
+//        this.device = UiDevice.getInstance(InstrumentationRegistry.getInstrumentation());
 
         // Reset Configurator Wait Timeout
         Configurator configurator = Configurator.getInstance();
@@ -85,10 +86,7 @@ public class AutomatorServiceImpl implements AutomatorService {
 
         // default uiAutomation serviceInfo.eventTypes is -1
         // I guess this might be watch all eventTypes
-
-        // Disable it also disable toast catcher
-        // Just to make sure if the following code make global worse or better.
-        // uiAutomation.setOnAccessibilityEventListener(new AccessibilityEventListener(device, watchers));
+        uiAutomation.setOnAccessibilityEventListener(new AccessibilityEventListener(device, watchers));
     }
 
     /**
@@ -133,18 +131,52 @@ public class AutomatorServiceImpl implements AutomatorService {
         handler.post(new Runnable() {
             @Override
             public void run() {
-                ToastUtils.showShort(InstrumentationRegistry.getTargetContext(), text);
+                Toast.makeText(InstrumentationRegistry.getTargetContext(), text, duration).show();
 //                ToastHelper.makeText(InstrumentationRegistry.getTargetContext(), text, duration).show();
             }
         });
         return true;
     }
 
+
     @Override
     public String getLastToast(long cacheDuration) {
         AccessibilityEventListener instance = AccessibilityEventListener.getInstance();
         if (System.currentTimeMillis() < cacheDuration + instance.toastTime) {
             return instance.toastMessage;
+        }
+        return null;
+    }
+
+//    @Override
+    public static String lastToast() throws FileNotFoundException {
+        AccessibilityEventListener instance = AccessibilityEventListener.getInstance();
+
+        String filePath = Environment.getExternalStorageDirectory() + File.separator + "toast.txt";
+        File file = new File(filePath);
+        if (file.exists()){
+            file.delete();
+        }
+        long startTime = System.currentTimeMillis();
+        while (System.currentTimeMillis() - startTime < 5000) {
+            if (instance.toastMessage != null) {
+                Log.d("lastToast:" + instance.toastMessage);
+
+                FileOutputStream fos = new FileOutputStream(file,false);
+                OutputStreamWriter osw = new OutputStreamWriter(fos);
+                BufferedWriter bw = new BufferedWriter(osw);
+                try {
+                    bw.write(instance.toastMessage);
+//            logUtil.d("writeFile",content);
+                    bw.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                return instance.toastMessage;
+            } else{
+                SystemClock.sleep(500);
+            }
         }
         return null;
     }
@@ -232,6 +264,12 @@ public class AutomatorServiceImpl implements AutomatorService {
         return dumpWindowHierarchy(compressed);
     }
 
+    /**
+     * Helper method used for debugging to dump the current window's layout hierarchy.
+     *
+     * @param compressed use compressed layout hierarchy or not using setCompressedLayoutHeirarchy method. Ignore the parameter in case the API level lt 18.
+     * @return the absolute path name of dumped file.
+     */
     @Override
     public String dumpWindowHierarchy(boolean compressed) {
         device.setCompressedLayoutHeirarchy(compressed);
@@ -250,28 +288,34 @@ public class AutomatorServiceImpl implements AutomatorService {
         return null;
     }
 
-
-    /**
-     * Helper method used for debugging to dump the current window's layout hierarchy.
-     *
-     * @param compressed use compressed layout hierarchy or not using setCompressedLayoutHeirarchy method. Ignore the parameter in case the API level lt 18.
-     * @return the absolute path name of dumped file.
-     */
-
-    public static String dumpWindowHierarchys(boolean compressed) {
-        device.setCompressedLayoutHeirarchy(compressed);
+    @Override
+    public boolean dumpWindow(){
+        device.setCompressedLayoutHeirarchy(true);
         try {
+
             String strPath = Environment.getExternalStorageDirectory().getPath();
             //创建xml文件
             File file = new File(strPath, "window_dump.xml");
             FileOutputStream fos = new FileOutputStream(file);
             AccessibilityNodeInfoDumper.dumpWindowHierarchy(device, fos);
-//            device.dumpWindowHierarchy(os);
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return true;
+    }
 
-        return null;
+    public static void dumpWindowHierarchys() {
+        device.setCompressedLayoutHeirarchy(false);
+        try {
+
+            String strPath = Environment.getExternalStorageDirectory().getPath();
+            //创建xml文件
+            File file = new File(strPath, "window_dump.xml");
+            FileOutputStream fos = new FileOutputStream(file);
+            AccessibilityNodeInfoDumper.dumpWindowHierarchy(device, fos);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -289,6 +333,12 @@ public class AutomatorServiceImpl implements AutomatorService {
         device.takeScreenshot(f, scale, quality);
         if (f.exists()) return f.getAbsolutePath();
         return null;
+    }
+
+    public static void takeScreenshot(String filename) {
+        File f = new File(filename);
+        System.out.println(InstrumentationRegistry.getTargetContext().getFilesDir().toString());
+        device.takeScreenshot(f, (float) 1.0, 100);
     }
 
     /**

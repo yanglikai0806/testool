@@ -1,11 +1,9 @@
 package com.kevin.testool.common;
 
-import android.annotation.SuppressLint;
 import android.os.Build;
-import android.util.Log;
 
 import com.kevin.testool.MyFile;
-import com.kevin.testool.logUtil;
+import com.kevin.testool.utils.logUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -13,17 +11,10 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
-
-import static java.lang.System.in;
-import static java.lang.System.lineSeparator;
 
 public class HtmlReport {
 

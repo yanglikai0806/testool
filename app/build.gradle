@@ -5,9 +5,9 @@ android {
     defaultConfig {
         applicationId "com.kevin.testool"
         minSdkVersion 19
-        targetSdkVersion 23
-        versionCode 104002
-        versionName "4.2"
+        targetSdkVersion 28
+        versionCode 101002
+        versionName "1.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

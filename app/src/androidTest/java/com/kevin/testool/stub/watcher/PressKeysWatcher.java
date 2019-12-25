@@ -25,10 +25,9 @@ package com.kevin.testool.stub.watcher;
 
 import android.os.RemoteException;
 import android.support.test.InstrumentationRegistry;
+import android.view.KeyEvent;
 import android.support.test.uiautomator.UiDevice;
 import android.support.test.uiautomator.UiSelector;
-import android.view.KeyEvent;
-
 import com.kevin.testool.stub.Log;
 
 /**

@@ -35,8 +35,8 @@ import android.support.test.uiautomator.UiDevice;
 import android.support.test.uiautomator.UiObjectNotFoundException;
 import android.support.test.uiautomator.Until;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+//import com.fasterxml.jackson.databind.JsonNode;
+//import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.jsonrpc4j.ErrorResolver;
 import com.googlecode.jsonrpc4j.JsonRpcServer;
 
@@ -66,27 +66,27 @@ public class Stub {
     int PORT = 9008;
     AutomatorHttpServer server = new AutomatorHttpServer(PORT);
 
-    @Before
-    public void setUp() throws Exception {
-        launchService();
-        JsonRpcServer jrs = new JsonRpcServer(new ObjectMapper(), new AutomatorServiceImpl(), AutomatorService.class);
-        jrs.setShouldLogInvocationErrors(true);
-        jrs.setErrorResolver(new ErrorResolver() {
-            @Override
-            public JsonError resolveError(Throwable throwable, Method method, List<JsonNode> list) {
-                String data = throwable.getMessage();
-                if (!throwable.getClass().equals(UiObjectNotFoundException.class)) {
-                    throwable.printStackTrace();
-                    StringWriter sw = new StringWriter();
-                    throwable.printStackTrace(new PrintWriter(sw));
-                    data = sw.toString();
-                }
-                return new JsonError(CUSTOM_ERROR_CODE, throwable.getClass().getName(), data);
-            }
-        });
-        server.route("/jsonrpc/0", jrs);
-        server.start();
-    }
+//    @Before
+//    public void setUp() throws Exception {
+//        launchService();
+//        JsonRpcServer jrs = new JsonRpcServer(new ObjectMapper(), new AutomatorServiceImpl(), AutomatorService.class);
+//        jrs.setShouldLogInvocationErrors(true);
+//        jrs.setErrorResolver(new ErrorResolver() {
+//            @Override
+//            public JsonError resolveError(Throwable throwable, Method method, List<JsonNode> list) {
+//                String data = throwable.getMessage();
+//                if (!throwable.getClass().equals(UiObjectNotFoundException.class)) {
+//                    throwable.printStackTrace();
+//                    StringWriter sw = new StringWriter();
+//                    throwable.printStackTrace(new PrintWriter(sw));
+//                    data = sw.toString();
+//                }
+//                return new JsonError(CUSTOM_ERROR_CODE, throwable.getClass().getName(), data);
+//            }
+//        });
+//        server.route("/jsonrpc/0", jrs);
+//        server.start();
+//    }
 
     private void launchPackage(String packageName) {
         Log.i(TAG, "Launch " + packageName);

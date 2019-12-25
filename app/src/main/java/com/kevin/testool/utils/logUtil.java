@@ -1,7 +1,9 @@
-package com.kevin.testool;
+package com.kevin.testool.utils;
 
 import android.os.Environment;
 import android.util.Log;
+
+import com.kevin.testool.CONST;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -27,7 +29,7 @@ import java.util.Locale;
  */
 public class logUtil {
 
-    private static String TAG = "LogToFile";
+    private static String TAG = "";
 
     private static String logPath = null;//log日志存放路径
 
@@ -61,12 +63,12 @@ public class logUtil {
     }
 
     public static void d(String tag, String msg) {
-        Log.d(tag, msg);
+        Log.d(TAG+tag, msg);
 //        writeToFile(DEBUG, tag, msg);
     }
 
     public static void i(String tag, String msg) {
-        System.out.println(msg);
+        System.out.println(TAG + msg);
         writeToFile(INFO, tag, msg);
     }
 

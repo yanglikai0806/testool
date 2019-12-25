@@ -7,14 +7,16 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.content.Context;
-import android.media.AudioManager;
 import android.os.Build;
 import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.kevin.testool.common.Common;
-import com.kevin.testool.utils.ToastUtils;
+import com.kevin.testool.UICrawler.UICrawler;
+import com.kevin.testool.utils.logUtil;
+
+import org.json.JSONException;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -42,7 +44,7 @@ public class MonkeyService extends IntentService {
     private NotificationCompat.Builder builder;
 
     private static final String ACTION_MONKEY = "com.kevin.testool.monkey";
-    private static final String ACTION_MONKEY_VOICEASSIST = "com.kevin.testool.monkey.voiceassist";
+    private static final String ACTION_UICRAWLER = "com.kevin.testool.monkey.uicrawler";
 
     public MonkeyService() {
         super("MonkeyService");
@@ -96,12 +98,13 @@ public class MonkeyService extends IntentService {
         int KEEP_TIME = Integer.valueOf(con)*Integer.valueOf(thro);
 //        final Thread tm;
         int waitTime = 2000;
-        MyFile.creatDir(logDir);
-        Log.i("Monkey", "开启monkey测试");
+
         String action = intent.getAction();
         if (action != null) {
             switch (action) {
                 case ACTION_MONKEY:
+                    MyFile.creatDir(logDir);
+                    Log.i("Monkey", "开启monkey测试");
                     monkey(pkg, con, thro, seed, logDir);
                     if (pkg.contains("/")) {
                         Common.startActivity(pkg);
@@ -116,41 +119,18 @@ public class MonkeyService extends IntentService {
                     }
 
                     break;
-                case ACTION_MONKEY_VOICEASSIST:
-                    monkey(pkg, con, thro, seed, logDir);
-                    File querysFile = new File(CONST.MONKEY_QUERYS_FILE);
-//                    StringBuilder sb = new StringBuilder();
-                    if (querysFile.exists()){
-                        String line;
-                        try {
-                            BufferedReader br = new BufferedReader(new FileReader(querysFile));
-                            while(true){
-                                line = br.readLine();
-                                if (line == null){
-                                    br = new BufferedReader(new FileReader(querysFile));
-                                    line = "打开wifi";
-                                }
-                                logUtil.d("QUERY", line);
-                                //处理音量避免扰民
-                                AudioManager audioManager = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
-                                if (audioManager != null) {
-                                    int currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-                                    if (currentVolume > 1) {
-                                        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, 0, AudioManager.FLAG_PLAY_SOUND);
-                                    }
-                                }
-
-                                if (Common.getMonkeyProcess().length() == 0){
-                                    break;
-                                }
-                            }
-                            br.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        ToastUtils.showShort(this, "querys.txt 文件不存在");
+                case ACTION_UICRAWLER:
+                    Log.i("UICrawler", "开启UICrawler测试");
+                    int deepth = intent.getIntExtra("DEEPTH", 1);
+                    UICrawler uc = new UICrawler(pkg, Common.getVersionName(this, pkg));
+                    uc.guideStep();
+                    try {
+                        uc.crawlerPage(deepth);
+                    } catch (JSONException | IOException e) {
+                        e.printStackTrace();
                     }
+                    uc.lastStep();
+
                     break;
 
             }

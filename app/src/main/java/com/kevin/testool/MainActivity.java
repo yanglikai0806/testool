@@ -6,6 +6,8 @@ import android.app.ActivityManager;
 import android.app.DownloadManager;
 import android.app.TimePickerDialog;
 import android.content.BroadcastReceiver;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -38,13 +40,16 @@ import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Switch;
+import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.kevin.testool.common.Common;
 import com.kevin.testool.utils.AdbUtils;
+import com.kevin.testool.utils.AppUtils;
 import com.kevin.testool.utils.DateTimeUtils;
 import com.kevin.testool.utils.ToastUtils;
+import com.kevin.testool.utils.logUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -52,6 +57,7 @@ import org.json.JSONObject;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -120,7 +126,7 @@ public class MainActivity extends AppCompatActivity
         if (!AdbUtils.hasRootPermission()){
             new AlertDialog.Builder(MainActivity.this)
                     .setTitle("提示：")
-                    .setMessage("请先开启root权限, 或 usb连接电脑 输入\"adb tcpip 5555\"开启5555端口后\n才能执行测试")
+                    .setMessage("请先开启root权限, 或 usb连接电脑 输入\"adb tcpip 5555\"执行测试")
                     .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -138,9 +144,9 @@ public class MainActivity extends AppCompatActivity
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
+
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
         Button selectAll = findViewById(R.id.selectAll);
         Button conSelect = findViewById(R.id.conSelect);
         Button setTime = findViewById(R.id.set_time);
@@ -149,8 +155,33 @@ public class MainActivity extends AppCompatActivity
 
         //config文件加载
         if (!new File(CONST.CONFIG_FILE).exists()) {
-            //todo 加载config文件
+            //todo 自动加载config文件
 //            downloadResource("");
+            //初始化config文件
+            String content = "{  \n" +
+                    "  \"APP\" : {\n" +
+                    "    \"微信\": \"com.tencent.mm\",\n" +
+                    "},  \n" +
+                    " \"TEST_ENV\": \"production\",\n" +
+                    " \"RETRY\": 2, \n" +
+                    " \"CASE_TAG\": \"\",\n" +
+                    " \"LOG\": \"true\",\n" +
+                    " \"SCREENSHOT\": \"true\",\n" +
+                    " \"ALARM_MSG\": \"false\",\n" +
+                    " \"SCREEN_LOCK_PW\": \"0000\",\n" +
+                    " \"CHECK_TYPE\"：1,\n" +
+                    " \"POST_RESULT\": \"false\",\n" +
+                    " \"MYSQL\": {\n" +
+                    "    \"url\": \"jdbc:mysql://your.mysql.ip/your_table?useUnicode=true&characterEncoding=UTF-8\",  \n" +
+                    " \"user\": \"user_name\",  \n" +
+                    " \"password\": \"your_pw\"  \n" +
+                    "  }  \n" +
+                    "}";
+            try {
+                MyFile.writeFile(CONFIG_FILE, content,false);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
         }
 
         //加载测试用例
@@ -372,10 +403,8 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        // Handle navigation view item clicks here.
         int id = item.getItemId();
         if (id == R.id.nav_syc) {
             Intent intent = new Intent(this, MyIntentService.class);
@@ -395,25 +424,21 @@ public class MainActivity extends AppCompatActivity
 
                 ToastUtils.showShort(this, "导入成功");
             }
-
-
         } else if (id == R.id.nav_report) {
             startActivity(new Intent(MainActivity.this, ReportActivity.class));
-//            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-//            Uri uri = Uri.parse(CONST.LOGPATH);
-//            intent.setDataAndType(uri, "*/*");
-//            intent.addCategory(Intent.CATEGORY_OPENABLE);
-//            startActivity(intent);
-
+        } else if (id == R.id.nav_share) {
+            about();
         } else if (id == R.id.nav_adb) {
             startActivity(new Intent(MainActivity.this, WirelessAdb.class));
         } else if (id == R.id.add_new){
             startActivity(new Intent(MainActivity.this, EditCaseActivity.class));
-        }else if (id == R.id.nav_monkey){
+        } else if (id == R.id.nav_monkey){
             startActivity(new Intent(MainActivity.this, MonkeyTestActivity.class));
-        }else if (id == R.id.nav_log){
+        } else if (id == R.id.nav_log){
             Common.generateBugreport(CONST.LOGPATH + "bugreport_" + DateTimeUtils.getCurrentDateTimeString() + ".txt");
             ToastUtils.showShort(MainActivity.this, "正在抓取...，稍后请在autotest文件夹下查看");
+        } else if (id == R.id.nav_uicrawler) {
+            startActivity(new Intent(MainActivity.this, UICrawlerActivity.class));
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -426,9 +451,7 @@ public class MainActivity extends AppCompatActivity
             case 1: {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // 权限被用户同意，可以去放肆了。
                 } else {
-                    // 权限被用户拒绝了，洗洗睡吧。
                 }
                 return;
             }
@@ -603,39 +626,6 @@ public class MainActivity extends AppCompatActivity
                 }
             }
         });
-        // branch 设置
-        final EditText branch = dialogView.findViewById(R.id.input_branch);
-        if (!Common.CONFIG().isNull("BRANCH")) {
-            branch.setText(Common.CONFIG().getString("BRANCH"));
-        }
-        branch.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                try {
-                    MyFile.editJsonFile(CONFIG_FILE, new JSONObject().put("BRANCH", s));
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        });
-//        branch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-//            @Override
-//            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-//                System.out.println(v.getText());
-//                return false;
-//            }
-//        });
         final EditText retry = dialogView.findViewById(R.id.input_retry);
         if (!Common.CONFIG().isNull("RETRY")) {
             retry.setText(Common.CONFIG().getString("RETRY"));
@@ -719,14 +709,36 @@ public class MainActivity extends AppCompatActivity
         JSONObject mysql = null;
         try {
             mysql = Common.CONFIG().getJSONObject("MYSQL");
-            dbUrl.setText(String.format("url: %s", mysql.getString("url")));
-            dbUser.setText(String.format("username: %s", mysql.getString("user")));
+            dbUrl.setText("");
+            dbUser.setText("test");
+//            dbUrl.setText(String.format("url: %s", mysql.getString("url")));
+//            dbUser.setText(String.format("username: %s", mysql.getString("user")));
 //            dbPassword.setText(String.format("password:%s",mysql.getString("password")));
             dbPassword.setText(String.format("password: %s","*******"));
         } catch (JSONException e) {
             e.printStackTrace();
         }
         return configDialog;
+    }
+
+    private void about(){
+        final String githubUrl = "https://github.com/yanglikai0806/testool.git";
+        new android.app.AlertDialog.Builder(MainActivity.this).setTitle("关于")
+                .setMessage("当前版本：" + AppUtils.getVersionName(MainActivity.this, getPackageName()) +"\n" + githubUrl)
+                .setPositiveButton("分享", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                        // 创建普通字符型ClipData
+                        ClipData mClipData = ClipData.newPlainText("Label", githubUrl);
+                        // 将ClipData内容放到系统剪贴板里。
+                        cm.setPrimaryClip(mClipData);
+                        ToastUtils.showLong(MainActivity.this, "已复制github连接到剪贴板");
+
+                    }
+                })
+                .setNegativeButton("取消", null)
+                .show();
     }
 
 

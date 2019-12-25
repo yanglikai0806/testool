@@ -25,6 +25,8 @@ public final class CONST {
      public static final String TEMP_FILE = LOGPATH +"temp.txt";
      public static final String INPUT_FILE = LOGPATH + INPUT;
      public static final String TESSDATA = LOGPATH + "tessdata";
+    public static final String UICRAWLWER_CONFIG_FILE = LOGPATH + "uicrawler.json";
+
 
 
 

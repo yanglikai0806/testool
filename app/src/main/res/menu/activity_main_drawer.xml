@@ -25,6 +25,10 @@
             android:id="@+id/nav_monkey"
             android:icon="@drawable/ic_menu_memTest"
             android:title="@string/monkeyTest" />
+        <item
+            android:id="@+id/nav_uicrawler"
+            android:icon="@drawable/ic_menu_memTest"
+            android:title="@string/uicrawler" />
     </group>
 
     <item android:title="@string/more">
