@@ -226,7 +226,7 @@ skip\_condition 字段的用法继承了check\_point 的用法，check\_point的
 * 选中要执行的用例集合 点击 “开始” 测试开始执行，选择相应的测试环境，用例配置，case_tag 等参数   
 * 测试完成后 点击导航栏 “日志报告” 可以查看测试报告    
 
-  <img src="https://raw.githubusercontent.com/yanglikai0806/testool/master/resource/0.gif" width="325" height="570" alt="展示"/>
+  <img src="https://raw.githubusercontent.com/yanglikai0806/testool/master/resource/0.gif" width="300" height="570" alt="展示"/>
 
 
 Thank to
