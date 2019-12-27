@@ -178,12 +178,12 @@ case 是测试用例的主体，执行测试用例的核心部分。
 **check_point 中的执行操作字段如下：**
 
 * __"teardown"__
-执行消除测试影响的步骤，使用方法与 case 中的 "query" 字段一致
+执行消除测试影响的步骤，使用方法与 case 中的 "step" 字段一致
 
 * __"true"__
-检测结果为true时，执行相关操作，使用方法与 case 中的 "query" 字段一致
+检测结果为true时，执行相关操作，使用方法与 case 中的 "step" 字段一致
 * __"false"__
-检测结果为false时，执行相关操作，使用方法与 case 中的 "query" 字段一致
+检测结果为false时，执行相关操作，使用方法与 case 中的 "step" 字段一致
 
 ### 4. skip_condition
 skip\_condition 字段的用法继承了check\_point 的用法，check\_point的字段都是支持的。   
@@ -233,3 +233,5 @@ Thank to
 ---
 * [https://github.com/openatx/android-uiautomator-server](https://github.com/openatx/android-uiautomator-server) 
 * [https://github.com/openatx/uiautomator2](https://github.com/openatx/uiautomator2)
+* [https://github.com/cgutman/AdbLib](https://github.com/cgutman/AdbLib)
+* [https://github.com/alipay/SoloPi](https://github.com/alipay/SoloPi)
