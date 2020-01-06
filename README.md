@@ -179,12 +179,12 @@ case 是测试用例的主体，执行测试用例的核心部分。
 **check_point 中的执行操作字段如下：**
 
 * __"teardown"__
-执行消除测试影响的步骤，使用方法与 case 中的 "query" 字段一致
+执行消除测试影响的步骤，使用方法与 case 中的 "step" 字段一致
 
 * __"true"__
-检测结果为true时，执行相关操作，使用方法与 case 中的 "query" 字段一致
+检测结果为true时，执行相关操作，使用方法与 case 中的 "step" 字段一致
 * __"false"__
-检测结果为false时，执行相关操作，使用方法与 case 中的 "query" 字段一致
+检测结果为false时，执行相关操作，使用方法与 case 中的 "step" 字段一致
 
 ### 4. skip_condition
 skip\_condition 字段的用法继承了check\_point 的用法，check\_point的字段都是支持的。   
@@ -227,10 +227,12 @@ skip\_condition 字段的用法继承了check\_point 的用法，check\_point的
 * 选中要执行的用例集合 点击 “开始” 测试开始执行，选择相应的测试环境，用例配置，case_tag 等参数   
 * 测试完成后 点击导航栏 “日志报告” 可以查看测试报告    
 
-  <img src="https://raw.githubusercontent.com/yanglikai0806/testool/master/resource/0.gif" width="325" height="570" alt="展示"/>
+  <img src="https://raw.githubusercontent.com/yanglikai0806/testool/master/resource/0.gif" width="300" height="570" alt="展示"/>
 
 
 Thank to
 ---
 * [https://github.com/openatx/android-uiautomator-server](https://github.com/openatx/android-uiautomator-server) 
 * [https://github.com/openatx/uiautomator2](https://github.com/openatx/uiautomator2)
+* [https://github.com/cgutman/AdbLib](https://github.com/cgutman/AdbLib)
+* [https://github.com/alipay/SoloPi](https://github.com/alipay/SoloPi)
