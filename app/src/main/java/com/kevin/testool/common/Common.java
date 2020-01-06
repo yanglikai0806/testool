@@ -612,7 +612,7 @@ public abstract class Common {
         new Thread() {
             @Override
             public void run() {
-                AdbUtils.runShellCommand("bugreport > " + bugreportFile + "\n", 600);
+                AdbUtils.runShellCommand("bugreport > " + bugreportFile, 600000);
                 try {
                     MyFile.ZipFolder(logFileName, logFileName.replace(".txt", ".zip"));
                     MyFile.deleteFile(logFileName);

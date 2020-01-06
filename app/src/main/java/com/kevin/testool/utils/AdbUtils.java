@@ -50,12 +50,12 @@ public class AdbUtils {
      * @return 当前app是否有root权限
      */
     public static boolean hasRootPermission() {
-        Log.d(TAG, "hasRootPermission: " + rooted);
         Process process = null;
         DataOutputStream os = null;
-        if (rooted != null){
-            return rooted;
-        }
+//        if (rooted != null){
+//            logUtil.d(TAG, "hasRootPermission: " + rooted);
+//            return rooted;
+//        }
         try {
             process = Runtime.getRuntime().exec("su");
 //            process = Runtime.getRuntime().exec("echo hello");
@@ -63,11 +63,8 @@ public class AdbUtils {
             os.writeBytes("exit\n");
             os.flush();
             process.waitFor();
-            if (process.exitValue() != 0) {
-                rooted = false;
-            } else {
-                rooted = true;
-            }
+//            logUtil.d("", process.exitValue()+"");
+            rooted = process.exitValue() == 0;
         } catch (Exception e) {
             e.printStackTrace();
             rooted = false;
@@ -81,8 +78,31 @@ public class AdbUtils {
                 }
             }
         }
-//        Log.d(TAG, "hasRootPermission: " + rooted);
+        logUtil.d(TAG, "hasRootPermission: " + rooted);
         return rooted;
+    }
+
+    /**
+     * 是否可以执行adb命令
+     * @return boolean
+     */
+    public static boolean isAdbEnable(){
+        final boolean[] result = new boolean[1];
+        if (hasRootPermission()){
+            return true;
+        } else {
+         Thread isAdb = new Thread(new Runnable() {
+             @Override
+             public void run() {
+                 result[0] = CmdTools.generateConnection();
+             }
+         });
+         isAdb.start();
+         while (isAdb.isAlive()){
+             SystemClock.sleep(100);
+         }
+         return result[0];
+        }
     }
 
     /**

@@ -32,7 +32,7 @@ public abstract class Checkpoint extends Common {
         }
             if (key.length() == 0){
                 if (refresh) {
-                    AdbUtils.runShellCommand("am instrument -w -r   -e debug false -e class 'com.github.uiautomator.GetDumpTest' com.github.uiautomator.test/android.support.test.runner.AndroidJUnitRunner\n", 0);
+                    get_elements(true, "", "", 0);
                 }
                 try {
                     String content = MyFile.readFile(Environment.getExternalStorageDirectory().getPath() + File.separator + "window_dump.xml");

@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity
                 ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CHANGE_WIFI_STATE}, 1);
             }
         }
-        if (!AdbUtils.hasRootPermission()){
+        if (!AdbUtils.isAdbEnable()){
             new AlertDialog.Builder(MainActivity.this)
                     .setTitle("提示：")
                     .setMessage("请先开启root权限, 或 usb连接电脑 输入\"adb tcpip 5555\"执行测试")
@@ -709,10 +709,8 @@ public class MainActivity extends AppCompatActivity
         JSONObject mysql = null;
         try {
             mysql = Common.CONFIG().getJSONObject("MYSQL");
-            dbUrl.setText("");
-            dbUser.setText("test");
-//            dbUrl.setText(String.format("url: %s", mysql.getString("url")));
-//            dbUser.setText(String.format("username: %s", mysql.getString("user")));
+            dbUrl.setText(String.format("url: %s", mysql.getString("url")));
+            dbUser.setText(String.format("username: %s", mysql.getString("user")));
 //            dbPassword.setText(String.format("password:%s",mysql.getString("password")));
             dbPassword.setText(String.format("password: %s","*******"));
         } catch (JSONException e) {
