@@ -438,7 +438,7 @@ public abstract class Common {
                         SystemClock.sleep(100);
                         wait += 100;
                     }
-                    if (wait > 15000){
+                    if (wait > 60000){
                         complete = true;
                     }
                 }

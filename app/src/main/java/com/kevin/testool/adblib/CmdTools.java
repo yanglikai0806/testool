@@ -337,7 +337,8 @@ public class CmdTools {
                     stream.close();
                 }
             } else {
-                Thread.sleep(Math.abs(wait));
+                Thread.sleep(100);
+                return "";
             }
 
             // 获取stream所有输出

@@ -106,10 +106,10 @@ public class AdbUtils {
     }
 
     /**
-     * Root身份执行shell命令，不关注输出结果
-     *
+     * 执行shell命令，无root权限需开启adb tcpip 5555
      * @param command 待执行的shell命令
-     * @return 是否成功执行shell命令
+     * @param timeout timeout == 0 阻塞命令直到执行结束;timeout>0 超时时间,超时后结束进程; timeout< 0 等待timeout绝对值时间，不返回命令结果
+     * @return shell命令执行结果
      */
     public static String runShellCommand(String command, int timeout) {
         boolean waitResult = true;
