@@ -479,9 +479,6 @@ public class MyIntentService extends IntentService {
             }
         }
         LAST_WAIT_TIME = 0; // 初始化
-        String out = AdbUtils.runShellCommand("dumpsys meminfo|grep com.kevin.testool:MyIntentService", 0);
-        logUtil.i("-------", out.split(":")[0].trim());
-        MyFile.writeFile(CONST.LOGPATH + "mem.txt", out.split(":")[0].trim().replace(",","").replace("K", "") + "\n", true);
         return result;
     }
 
