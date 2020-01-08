@@ -16,6 +16,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
+import com.kevin.testool.UICrawler.ErrorDetect;
 import com.kevin.testool.adblib.CmdTools;
 import com.kevin.testool.checkpoint.Checkpoint;
 import com.kevin.testool.common.Common;
@@ -46,6 +47,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.kevin.testool.common.Common.CONFIG;
+import static com.kevin.testool.common.Common.get_elements;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -82,6 +84,8 @@ public class MyIntentService extends IntentService {
     private static String APPVER;
     private static String TEST_ENV = "";
     private static String SCREENIMG;
+    private static int LAST_WAIT_TIME = 0;
+    private static int checkType = 1;
 
     private static final int NOTIFICATION_ID = 0x1;
 
@@ -92,6 +96,8 @@ public class MyIntentService extends IntentService {
     private static Boolean ALARM_FLAG = false;
     private static Boolean POST_FLAG = false;
 
+    private long sdTime = System.currentTimeMillis();//记录开始时间
+    private static String timeTag;
 
     public MyIntentService() {
         super("MyIntentService");
@@ -144,7 +150,7 @@ public class MyIntentService extends IntentService {
         }
         execute_xa(Step, waitTime);
         try {
-            return resultCheck(_check, true);
+            return resultCheck(_check, true, System.currentTimeMillis(), false);
         } catch (IOException e) {
             e.printStackTrace();
             return false;
@@ -281,7 +287,8 @@ public class MyIntentService extends IntentService {
                 continue;
             }
             while (Objects.equals(result, false) & (retryTime < Integer.valueOf(CONFIG().getString("RETRY")))) {
-                Checkpoint.clickPopWindow();
+                Checkpoint.clickPopWindow(false);
+//                Common.switchCardFocusEnable("false");
                 Common.clearRecentApp();
                 retryTime++;
                 logUtil.i("", "----------------------retry------------------------");
@@ -311,7 +318,7 @@ public class MyIntentService extends IntentService {
                         Checkpoint.sendAlarm(alarm_tag);
                     }
                 }
-                Common.goBackHome(2);
+                Common.goBackHome(1);
                 if (POST_FLAG) {
                     // TODO 数据上传逻辑，比如更新测试结果等
                 }
@@ -325,7 +332,7 @@ public class MyIntentService extends IntentService {
 
     private Object action(JSONObject testcase, int retry, String case_tag) throws JSONException, IOException {
         //判断adb连接状态
-        if (CmdTools.ADB_BREAK){
+        if (!AdbUtils.isAdbEnable()){
             logUtil.i("", "ADB 连接异常，跳过测试");
             return null;
         }
@@ -407,38 +414,74 @@ public class MyIntentService extends IntentService {
         if (Common.isScreenLocked()){
             Common.unlockScreen(Common.CONFIG().getString("SCREEN_LOCK_PW"));  //手机锁屏密码
         }
-//            Common.switchCardFocusEnable("true");
+        // 开启fc anr 检测
+        String fcAnrLogDir = CONST.REPORT_PATH + File.separator + timeTag;
+        if (System.currentTimeMillis() - sdTime > 10000){
+            ErrorDetect.startDetectCrashAnr(fcAnrLogDir);
+            sdTime = System.currentTimeMillis();
+        }
+
+        // 执行测试步骤
         if (!execute_xa(Step, waitTime)){
             return null;
         }
-        Object result;
+        Object result = true;
         Boolean refresh = true;
-        // skip condition
-        if (!testcase.isNull("skip_condition")){
-            JSONObject skipCondition = testcase.getJSONObject("skip_condition");
-            if (skipCondition.length() > 0) {
-                logUtil.i("skip condition:", skipCondition.toString());
-                String scope = skipCondition.getString("scope");
-                if (resultCheck(skipCondition, refresh)) {
-                    if (scope.equals("all")) {
-                        result = "break";
-                    } else {
-                        result = "continue";
-                    }
-                    return result;
-                } else {
-                    refresh = false;
-                }
+        // 判断检查类型 0:只检查fc anr ，1: 只检查界面 ， 2: 全部检查
+//        int checkType;
+//        try {
+//            checkType = CONFIG().getInt("CHECK_TYPE");
+//        } catch (Exception e){
+//            e.printStackTrace();
+//            checkType = 1;
+//        }
+        if (checkType == 0 || checkType == 2) {
+
+            // 检查fc anr
+            if (ErrorDetect.isDetectCrash(fcAnrLogDir) || ErrorDetect.isDetectAnr(fcAnrLogDir)) {
+                logUtil.i("", " ----------发现FC|ANR---------");
+                String savePath = fcAnrLogDir + File.separator + "error_" + dateFormat.format(new Date()) + ".txt";
+                MyFile.copyFile(new File(fcAnrLogDir + File.separator + "error.txt"), savePath);
+                logUtil.i("", savePath);
+                result = false;
+            } else {
+                logUtil.i("", "未发现FC/ANR");
+
             }
         }
 
-        logUtil.f("check_point", _check.toString()); //打印检测点
-        try {
-            result = resultCheck(_check, refresh);
-        } catch (Exception e){
-            logUtil.f("check_point", e.toString());
-            result = null;
+        if (checkType == 1 || checkType == 2) {
+            // skip condition
+            if (!testcase.isNull("skip_condition")) {
+                JSONObject skipCondition = testcase.getJSONObject("skip_condition");
+                if (skipCondition.length() > 0) {
+                    logUtil.i("skip condition:", skipCondition.toString());
+                    String scope = skipCondition.getString("scope");
+                    if (resultCheck(skipCondition, refresh, System.currentTimeMillis(), false)) {
+                        if (scope.equals("all")) {
+                            result = "break";
+                        } else {
+                            result = "continue";
+                        }
+                        return result;
+                    } else {
+                        refresh = false;
+                    }
+                }
+            }
+
+            logUtil.f("check_point", _check.toString()); //打印检测点
+            try {
+                result = resultCheck(_check, refresh, System.currentTimeMillis(), false);
+            } catch (Exception e) {
+                logUtil.f("check_point", e.toString());
+                result = null;
+            }
         }
+        LAST_WAIT_TIME = 0; // 初始化
+        String out = AdbUtils.runShellCommand("dumpsys meminfo|grep com.kevin.testool:MyIntentService", 0);
+        logUtil.i("-------", out.split(":")[0].trim());
+        MyFile.writeFile(CONST.LOGPATH + "mem.txt", out.split(":")[0].trim().replace(",","").replace("K", "") + "\n", true);
         return result;
     }
 
@@ -456,7 +499,7 @@ public class MyIntentService extends IntentService {
 
             SystemClock.sleep(5000);
 //            AdbUtils.runShellCommand("uiautomator dump\n", 0);
-            AdbUtils.runShellCommand("am instrument -w -r   -e debug false -e class 'com.github.uiautomator.GetDumpTest' com.github.uiautomator.test/android.support.test.runner.AndroidJUnitRunner\n", 0);
+            get_elements(true, "", "", 0);
             res = logUtil.readToString(Environment.getExternalStorageDirectory().getPath() + File.separator + "window_dump.xml");
             if (res != null){
                 return res.replace("<node", "\n\n<node");
@@ -471,13 +514,16 @@ public class MyIntentService extends IntentService {
         @Override
     protected void onHandleIntent(@Nullable Intent intent) {
 
-            try {
-                PKG = CONFIG().getJSONObject("APP").getString("package");
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+        // 判断检查类型 0:只检查fc anr ，1: 只检查界面 ， 2: 全部检查
 
-            String CASE_TAG;
+        try {
+            checkType = CONFIG().getInt("CHECK_TYPE");
+        } catch (Exception e){
+            e.printStackTrace();
+            checkType = 1;
+        }
+
+        String CASE_TAG;
         int LOOP;
         String timeTag;
         ArrayList<String> SELECTED_CASES;
@@ -487,7 +533,6 @@ public class MyIntentService extends IntentService {
             assert action != null;
             switch (action){
                 case ACTION_RUN:
-                    boolean isRoot = AdbUtils.hasRootPermission();
                     timeTag = MyFile.creatLogDir();
                     MyFile.createTempFile(CONST.TEMP_FILE, timeTag);
                     Common.killApp("com.github.uiautomator"); //kill uiautomator process (atx app)
@@ -495,7 +540,7 @@ public class MyIntentService extends IntentService {
                     ALIAS = Common.getDeviceAlias();
                     APPVER = Common.getVersionName(this, PKG);
                     TEST_ENV = intent.getStringExtra("TEST_ENV");
-                    logUtil.i(REPORT_TITLE, "测试机型：" + DEVICE +"("+ ALIAS + ") SN："+ Common.getSerialno()+" 应用版本：" + APPVER + " 测试环境：" + TEST_ENV);
+                    logUtil.i(REPORT_TITLE, ("测试机型：" + DEVICE +"("+ ALIAS + ") SN："+ Common.getSerialno()+" 应用版本：" + APPVER + " 测试环境：" + TEST_ENV).replace("\n", ""));
                     SELECTED_CASES = intent.getStringArrayListExtra("SELECTED_CASES");
                     CASE_TAG = intent.getStringExtra("CASE_TAG");
                     logUtil.i("","case_tag is :"+CASE_TAG);
@@ -504,7 +549,7 @@ public class MyIntentService extends IntentService {
                     System.out.println(SELECTED_CASES);
                     for(int i=0; i < SELECTED_CASES.size(); i++){
                         //判断adb连接状态
-                        if (!isRoot && CmdTools.ADB_BREAK){
+                        if (!AdbUtils.isAdbEnable()){
                             logUtil.i("", "ADB 连接异常，跳过测试");
                             break;
                         }
@@ -536,11 +581,11 @@ public class MyIntentService extends IntentService {
                         //删除报告文件
                         MyFile.RecursionDeleteFile(new File(CONST.REPORT_PATH));
                         //删除照片文件
-                        MyFile.RecursionDeleteFile(new File(Environment.getExternalStorageDirectory().getPath() + File.separator + "DCIM" + File.separator + "Camera" + File.separator));
+//                        MyFile.RecursionDeleteFile(new File(Environment.getExternalStorageDirectory().getPath() + File.separator + "DCIM" + File.separator + "Camera" + File.separator));
                     }
                     if (MemoryManager.getAvailableInternalMemorySize()/1000000000.00 < 2){
                         logUtil.i("", "设备可用存储过低，停止测试");
-                        ToastUtils.showShort(getApplicationContext(), "设备可用存储过低，停止测试");
+                        ToastUtils.showShortByHandler(getApplicationContext(), "设备可用存储过低，停止测试");
                         return;
                     }
                     //同步用例
@@ -554,7 +599,7 @@ public class MyIntentService extends IntentService {
                     if (TEST_ENV == null){
                         TEST_ENV = "production";
                     }
-                    logUtil.i(REPORT_TITLE, "测试机型：" + DEVICE +"("+ ALIAS + ") SN："+ Common.getSerialno()+" 小爱版本：" + APPVER + " 测试环境：" + TEST_ENV);
+                    logUtil.i(REPORT_TITLE, ("测试机型：" + DEVICE +"("+ ALIAS + ") SN："+ Common.getSerialno()+" 应用版本：" + APPVER + " 测试环境：" + TEST_ENV).replace("\n", ""));
                     String select_cases = intent.getStringExtra("SELECTED_CASES");
                     if (select_cases.toLowerCase().equals("all")){
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -571,7 +616,7 @@ public class MyIntentService extends IntentService {
                     LOOP = intent.getIntExtra("LOOP", 1);
                     for(int i=0; i < SELECTED_CASES.size(); i++){
                         //判断adb连接状态
-                        if (!AdbUtils.hasRootPermission()&&CmdTools.ADB_BREAK){
+                        if (!AdbUtils.isAdbEnable()){
                             logUtil.i("", "ADB 连接异常，跳过测试");
                             break;
                         }
@@ -667,14 +712,6 @@ public class MyIntentService extends IntentService {
                     break;
                 case ACTION_TESTCASES_SYC:
                     DBService.syncTestcases();
-                    //service 内通过handler发起toast
-                    Handler mHandler = new Handler(getMainLooper());
-                    mHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            ToastUtils.showShort(getApplicationContext(), "同步完成");
-                        }
-                    });
                     break;
                 case DEBUG:
                     //todo 调试代码
@@ -819,7 +856,7 @@ public class MyIntentService extends IntentService {
                     case "if":
                         if (value instanceof JSONObject) {
                             try {
-                                resultCheck((JSONObject) value, true);
+                                resultCheck((JSONObject) value, true, System.currentTimeMillis(), false);
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -837,7 +874,8 @@ public class MyIntentService extends IntentService {
         return success;
     }
 
-    public boolean resultCheck(JSONObject check_point, Boolean refresh) throws IOException, JSONException {
+    public boolean resultCheck(JSONObject check_point, Boolean refresh, long rTime, boolean showLog) throws IOException, JSONException {
+        logUtil.toShow(showLog); // 由于动态检测结果，默认不打印log
         ArrayList<Boolean> result = Checkpoint.muitiCheck(check_point, refresh);
         //sim 卡判断
         if (!check_point.isNull("sim_card")){
@@ -857,7 +895,7 @@ public class MyIntentService extends IntentService {
         if (!check_point.isNull("no_pkg")){
             String pkg = check_point.getString("no_pkg");
             if (pkg.length() > 0){
-                String res = AdbUtils.runShellCommand("pm list package | grep " +pkg + "\n", 10);
+                String res = AdbUtils.runShellCommand("pm list package | grep " +pkg, 0);
                 result.add(res.length() <= 0);
             }
         }
@@ -885,7 +923,7 @@ public class MyIntentService extends IntentService {
             String appPkg = appInfo.getString("pkg");
             if (!appInfo.isNull("version_name")) {
                 String appVersionName = appInfo.getString("version_name");
-                System.out.println(Common.getVersionName(getApplicationContext(), appPkg));
+                logUtil.i("", Common.getVersionName(getApplicationContext(), appPkg));
                 if (Common.getVersionName(getApplicationContext(), appPkg).equals(appVersionName)){
                     result.add(true);
                 } else {
@@ -910,16 +948,6 @@ public class MyIntentService extends IntentService {
 //                return result.contains(true);
             }
         }
-        // 测试后的必要处理
-        if (!check_point.isNull("teardown")){
-            JSONArray teardown = check_point.getJSONArray("teardown");
-            JSONArray waitTime = new JSONArray().put(3);
-//            String teardown = check_point.getString("teardown");
-            if (teardown.length() > 0) {
-                logUtil.i("", "teardown:");
-                execute_xa(teardown, waitTime);
-            }
-        }
         logUtil.i("", result.toString());
 
         boolean ret = !result.contains(false);
@@ -929,25 +957,47 @@ public class MyIntentService extends IntentService {
             ret = !ret;
 
         }
-
-        // 执行操作
-        if (!check_point.isNull("true") && ret){
-            JSONArray toDo = check_point.getJSONArray("true");
-            JSONArray waitTime = new JSONArray().put(3);
-//            String teardown = check_point.getString("teardown");
-            if (toDo.length() > 0) {
-                logUtil.i("", "do :");
-                execute_xa(toDo, waitTime);
+//      动态检测测试结果
+        boolean flag = (System.currentTimeMillis() - rTime) < LAST_WAIT_TIME * 1000;
+        if (!ret & refresh & flag) {
+            SystemClock.sleep(500);
+            ret = resultCheck(check_point, true, rTime, false);
+        } else {
+            if(!showLog) {
+                // 打印最后一次检测的结果
+                ret = resultCheck(check_point, false, rTime, true);
             }
         }
-
-        if (!check_point.isNull("false") && !ret){
-            JSONArray toDo = check_point.getJSONArray("false");
-            JSONArray waitTime = new JSONArray().put(3);
+//      通过showLog的状态判断是否为最终检测，并执行下面的操作逻辑
+        if(showLog) {
+            // 测试后的必要处理
+            if (!check_point.isNull("teardown")) {
+                JSONArray teardown = check_point.getJSONArray("teardown");
+                JSONArray waitTime = new JSONArray().put(3);
+                if (teardown.length() > 0) {
+                    logUtil.i("", "teardown:");
+                    execute_xa(teardown, waitTime);
+                }
+            }
+            // 对step中"if" 字段的执行结果，执行操作
+            if (!check_point.isNull("true") && ret) {
+                JSONArray toDo = check_point.getJSONArray("true");
+                JSONArray waitTime = new JSONArray().put(3);
 //            String teardown = check_point.getString("teardown");
-            if (toDo.length() > 0) {
-                logUtil.i("", "do :");
-                execute_xa(toDo, waitTime);
+                if (toDo.length() > 0) {
+                    logUtil.i("", "do :");
+                    execute_xa(toDo, waitTime);
+                }
+            }
+
+            if (!check_point.isNull("false") && !ret) {
+                JSONArray toDo = check_point.getJSONArray("false");
+                JSONArray waitTime = new JSONArray().put(3);
+//            String teardown = check_point.getString("teardown");
+                if (toDo.length() > 0) {
+                    logUtil.i("", "do :");
+                    execute_xa(toDo, waitTime);
+                }
             }
         }
         return ret;

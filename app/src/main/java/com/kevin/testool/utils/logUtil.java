@@ -40,14 +40,6 @@ public class logUtil {
     private static Date date = new Date();//因为log日志是使用日期命名的，使用静态成员变量主要是为了在整个程序运行期间只存在一个.log文件中;
 
 
-//    public static void init() {
-//        try {
-//            logPath = Environment.getExternalStorageDirectory() + File.separator + "AutoTest"+File.separator +readTempFile();//获得文件储存路径
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
-
     private static final char VERBOSE = 'v';
 
     private static final char DEBUG = 'd';
@@ -57,33 +49,57 @@ public class logUtil {
     private static final char WARN = 'w';
 
     private static final char ERROR = 'e';
+    private static final char UICRAWLER = 'u';
+
+    public static boolean isShow = true;
+
+    public static boolean toShow(boolean isshow){
+        isShow = isshow;
+        return isShow;
+    }
 
     public static void v(String tag, String msg) {
-        writeToFile(VERBOSE, tag, msg);
+        if(isShow) {
+            Log.v(TAG + tag, msg);
+        }
     }
 
     public static void d(String tag, String msg) {
-        Log.d(TAG+tag, msg);
+        if(isShow) {
+            Log.d(TAG + tag, msg);
+        }
 //        writeToFile(DEBUG, tag, msg);
     }
 
     public static void i(String tag, String msg) {
-        System.out.println(TAG + msg);
-        writeToFile(INFO, tag, msg);
+        if(isShow) {
+            Log.i(TAG + tag, msg);
+            writeToFile(INFO, tag, msg);
+        }
     }
 
     public static void f(String tag, String msg) {
-        writeToFile(INFO, tag, msg);
+        if (isShow) {
+            writeToFile(INFO, tag, msg);
+        }
     }
 
     public static void w(String tag, String msg) {
-        Log.w(tag, msg);
+        if(isShow) {
+            Log.w(TAG + tag, msg);
+        }
 //        writeToFile(WARN, tag, msg);
     }
 
     public static void e(String tag, String msg) {
-        Log.e(tag, msg);
-        writeToFile(ERROR, tag, msg);
+        if(isShow) {
+            Log.e(TAG + tag, msg);
+            writeToFile(ERROR, tag, msg);
+        }
+    }
+    public static void u(String tag, String msg) {
+        System.out.println(tag + ":" + msg);
+        writeToFile(UICRAWLER, tag, msg);
     }
 
     /**
@@ -95,7 +111,11 @@ public class logUtil {
      */
     private static void writeToFile(char type, String tag, String msg) {
         try {
-            logPath = CONST.REPORT_PATH + readTempFile();//获得文件储存路径
+            if (type == UICRAWLER){
+                logPath = CONST.LOGPATH + "UICrawler";//获得文件储存路径
+            } else {
+                logPath = CONST.REPORT_PATH + readTempFile();//获得文件储存路径
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

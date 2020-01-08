@@ -14,13 +14,14 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 
 import java.util.regex.*;
 
 public abstract class Checkpoint extends Common {
 
-    public static Boolean checkIfExist(Boolean refresh,String key, String value, int nex) {
+    public static Boolean checkIfExist(Boolean refresh, String key, String value, int nex) {
         if (value.contains("|")){
             ArrayList<Boolean> res_lst = new ArrayList<>();
             for (String item: value.split("\\|")){
@@ -37,10 +38,10 @@ public abstract class Checkpoint extends Common {
                 try {
                     String content = MyFile.readFile(Environment.getExternalStorageDirectory().getPath() + File.separator + "window_dump.xml");
                     if (content.contains(value)){
-                        logUtil.i(TAG, "Pass|当前界面存在元素:" + value);
+                        logUtil.i(TAG, "true|当前界面存在元素:" + value);
                         return true;
                     } else{
-                        logUtil.i(TAG, "Fail|当前界面不存在元素:" + value);
+                        logUtil.i(TAG, "false|当前界面不存在元素:" + value);
                         return false;
                     }
                 } catch (IOException e) {
@@ -49,11 +50,11 @@ public abstract class Checkpoint extends Common {
             } else {
 //
                 if (get_elements(refresh, key, value, nex) == null) {
-                    logUtil.i(TAG, "Fail|当前界面不存在元素 " + key + ":" + value);
-                    clickPopWindow();
+                    logUtil.i(TAG, "false|当前界面不存在元素 " + key + ":" + value);
+                    clickPopWindow(false);
                     return false;
                 } else {
-                    logUtil.i(TAG, "Pass|当前界面存在元素 " + key + ":" + value);
+                    logUtil.i(TAG, "true|当前界面存在元素 " + key + ":" + value);
                     return true;
                 }
             }
@@ -78,13 +79,14 @@ public abstract class Checkpoint extends Common {
 
     public static Boolean checkIfNotExist(Boolean refresh ,String key, String value, int nex){
         if (!checkIfExist(refresh, key, value, nex)){
-            logUtil.i(TAG,"Pass|当前界面不存在元素 "+ key + ":" +value);
+            logUtil.i(TAG,"true|当前界面不存在元素 "+ key + ":" +value);
             return true;
         }else {
-            logUtil.i(TAG,"Fail|当前界面存在元素 "+ key + ":" +value);
+            logUtil.i(TAG,"false|当前界面存在元素 "+ key + ":" +value);
             return false;
         }
     }
+
 
     public static boolean checkActivity(String targetAct){
         targetAct = targetAct.trim();
@@ -100,10 +102,10 @@ public abstract class Checkpoint extends Common {
             return res.contains(true);
         }
         if (currentAct.contains(targetAct)){
-            logUtil.i(TAG, "Pass|当前activity符合预期");
+            logUtil.i(TAG, "true|当前activity符合预期");
             return true;
         } else {
-            logUtil.i(TAG, "Fail|当前activity不符合预期");
+            logUtil.i(TAG, "false|当前activity不符合预期");
             return false;
 
         }
@@ -127,10 +129,10 @@ public abstract class Checkpoint extends Common {
             try {
                 status = element.get(index).attribute(exp_attr).getValue();
                 if (status.equals(exp_sts)) {
-                    logUtil.i(TAG, "Pass|控件状态：" + exp_sts + "|符合预期");
+                    logUtil.i(TAG, "true|控件状态：" + exp_sts + "|符合预期");
                     return true;
                 } else {
-                    logUtil.i(TAG, "Fail|控件状态：" + exp_sts + "|不符合预期");
+                    logUtil.i(TAG, "false|控件状态：" + exp_sts + "|不符合预期");
                     return false;
                 }
             } catch (IndexOutOfBoundsException e) {
@@ -141,7 +143,7 @@ public abstract class Checkpoint extends Common {
 
     }
 
-    public static ArrayList<Boolean> muitiCheck(JSONObject check_point, Boolean refresh) throws IOException, JSONException {
+    public static ArrayList<Boolean> muitiCheck(JSONObject check_point, boolean refresh) throws IOException, JSONException {
         ArrayList<Boolean> result=new ArrayList<>();
 //        if (checkNetwork()){
 //            return true;
@@ -175,7 +177,7 @@ public abstract class Checkpoint extends Common {
         if (!check_point.isNull("resource-id")){
             id = check_point.getString("resource-id");
             if (id.length()>0){
-                result.add(checkIfExist(refresh,"", id, 0));
+                result.add(checkIfExist(refresh,"resource-id", id, 0));
                 refresh = false;
             }
 
@@ -184,7 +186,7 @@ public abstract class Checkpoint extends Common {
         if (!check_point.isNull("id")){
             id = check_point.getString("id");
             if (id.length()>0){
-                result.add(checkIfExist(refresh,"", id, 0));
+                result.add(checkIfExist(refresh,"resource-id", id, 0));
                 refresh = false;
             }
 
@@ -293,20 +295,13 @@ public abstract class Checkpoint extends Common {
             String res = AdbUtils.runShellCommand("logcat -d | grep '" + logcat + "'", 0 );
             result.add(res.contains(logcat));
         }
-//        for (int i=0; i < result.size(); i++){
-//            if (!result.get(i)){
-//                return false;
-//            }
-//
-//        }
-//        return true;
+
         return result;
     }
 
-    public static void clickPopWindow() {
+    public static void clickPopWindow(boolean refresh) {
         String[] popList = new String[]{"同意并继续", "允许", "确定", "同意", "继续", "好", "暂不升级", "跳过", "立即体验", "知道了", "我知道了", "更新", "立即开通", "我同意",
                 "继续安装", "接受", "以后再说", "同意并使用", "您已阅读并同意", "同意并加入"};
-        boolean refresh = true;
         for (String pop: popList) {
             if (Common.get_elements(refresh, "text", pop, 0) != null) {
                 Common.click_element(false, "text", pop, 0, 0);
@@ -330,7 +325,8 @@ public abstract class Checkpoint extends Common {
             String res = AdbUtils.runShellCommand("pm list packages | grep " + pkg + "\n", 0);
             if (res.contains("package:")) {
                 System.out.println(res.replace("package:", "").trim().equals(pkg));
-                return res.replace("package:", "").trim().equals(pkg);
+                String[] _res = res.replace("package:", "").split("\n");
+                return Arrays.asList(_res).contains(pkg);
             } else {
                 return false;
             }
@@ -347,7 +343,7 @@ public abstract class Checkpoint extends Common {
         int cbt = delta.getInt("cbt");
         String regex = delta.getString("file_re");
 //        System.out.println(regex);
-        String res = AdbUtils.runShellCommand("ls "+delta.getString("path")+ "\n", 0);
+        String res = AdbUtils.runShellCommand("ls "+delta.getString("path"), 0);
 //        System.out.println(res);
         Pattern p = Pattern.compile(regex);
         Matcher matcher =p.matcher(res);
@@ -359,10 +355,10 @@ public abstract class Checkpoint extends Common {
         int diff = delta.getInt("diff");
         int _diff = cat - cbt;
         if (_diff == diff){
-            logUtil.i("", "Pass| diff=" + _diff + "符合预期");
+            logUtil.i("", "true| diff=" + _diff + "符合预期");
             return true;
         } else{
-            logUtil.i("", "Fail| diff=" + _diff + "不符合预期");
+            logUtil.i("", "false| diff=" + _diff + "不符合预期");
             return false;
         }
 

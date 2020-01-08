@@ -52,12 +52,12 @@ public class AdbUtils {
     public static boolean hasRootPermission() {
         Process process = null;
         DataOutputStream os = null;
-//        if (rooted != null){
-//            logUtil.d(TAG, "hasRootPermission: " + rooted);
-//            return rooted;
-//        }
+        if (rooted != null){
+            logUtil.d(TAG, "hasRootPermission: " + rooted);
+            return rooted;
+        }
         try {
-            process = Runtime.getRuntime().exec("su");
+            process = Runtime.getRuntime().exec(EXE_PREFIX+"su");
 //            process = Runtime.getRuntime().exec("echo hello");
             os = new DataOutputStream(process.getOutputStream());
             os.writeBytes("exit\n");
@@ -121,59 +121,61 @@ public class AdbUtils {
             if (command.endsWith("\n")){
                 command = command.split("\n")[0];
             }
+
             return CmdTools.execAdbCmd(command, timeout);
-        }
-        try {
-            process = Runtime.getRuntime().exec(EXE_PREFIX + "su");
-            os = new DataOutputStream(process.getOutputStream());
-            if (!command.endsWith("\n")){
-                command = command + "\n";
-            }
-            os.write(command.getBytes());
-            os.writeChars("exit\n");
-            os.flush();
-
-            if (timeout > 0){
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    process.waitFor(timeout, TimeUnit.MILLISECONDS);
-                } else {
-                    SystemClock.sleep(timeout);
-                }
-            } else if (timeout == 0){
-                process.waitFor();
-            } else {
-                waitResult = false;
-                SystemClock.sleep(Math.abs(timeout));
-
-            }
-
-            //输出结果
-            if (waitResult) {
-                BufferedReader successResult = new BufferedReader(
-                        new InputStreamReader(process.getInputStream()));
-                BufferedReader errorResult = new BufferedReader(
-                        new InputStreamReader(process.getErrorStream()));
-                String s;
-                while ((s = successResult.readLine()) != null) {
-                    successMsg.append(s);
-                }
-                while ((s = errorResult.readLine()) != null) {
-                    errorMsg.append(s);
-                    Log.i(TAG, errorMsg.toString());
-                }
-            }
-
-        } catch (Exception e) {
-            logUtil.e("AdbUtils.runShellCommand", e.getMessage());
-            return "-1";
-        } finally {
+        } else {
             try {
-                if (os != null) {
-                    os.close();
+                process = Runtime.getRuntime().exec(EXE_PREFIX + "su");
+                os = new DataOutputStream(process.getOutputStream());
+                if (!command.endsWith("\n")) {
+                    command = command + "\n";
                 }
-                process.destroy();
+                os.write(command.getBytes());
+                os.writeChars("exit\n");
+                os.flush();
+
+                if (timeout > 0) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        process.waitFor(timeout, TimeUnit.MILLISECONDS);
+                    } else {
+                        SystemClock.sleep(timeout);
+                    }
+                } else if (timeout == 0) {
+                    process.waitFor();
+                } else {
+                    waitResult = false;
+                    SystemClock.sleep(Math.abs(timeout));
+
+                }
+
+                //输出结果
+                if (waitResult) {
+                    BufferedReader successResult = new BufferedReader(
+                            new InputStreamReader(process.getInputStream()));
+                    BufferedReader errorResult = new BufferedReader(
+                            new InputStreamReader(process.getErrorStream()));
+                    String s;
+                    while ((s = successResult.readLine()) != null) {
+                        successMsg.append(s);
+                    }
+                    while ((s = errorResult.readLine()) != null) {
+                        errorMsg.append(s);
+                        Log.i(TAG, errorMsg.toString());
+                    }
+                }
+
             } catch (Exception e) {
                 logUtil.e("AdbUtils.runShellCommand", e.getMessage());
+                return "-1";
+            } finally {
+                try {
+                    if (os != null) {
+                        os.close();
+                    }
+                    process.destroy();
+                } catch (Exception e) {
+                    logUtil.e("AdbUtils.runShellCommand", e.getMessage());
+                }
             }
         }
 //        logUtil.d("debug", successMsg.toString());
