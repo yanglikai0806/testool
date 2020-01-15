@@ -337,7 +337,7 @@ public class CmdTools {
                     stream.close();
                 }
             } else {
-                Thread.sleep(100);
+                Thread.sleep(Math.abs(wait));
                 return "";
             }
 

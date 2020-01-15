@@ -1,6 +1,6 @@
 package com.kevin.testool.common;
 
-import com.kevin.testool.MyFile;
+import com.kevin.testool.utils.FileUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -183,7 +183,7 @@ public class DBService {
                 for (int i=0; i < _tables.length(); i++){
                     try {
                         JSONArray list_cases = DBService.selectAllCases(_tables.getString(i));
-                        MyFile.writeCaseJsonFile(_tables.getString(i), list_cases);
+                        FileUtils.writeCaseJsonFile(_tables.getString(i), list_cases);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }

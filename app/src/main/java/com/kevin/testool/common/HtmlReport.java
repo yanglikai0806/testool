@@ -2,7 +2,7 @@ package com.kevin.testool.common;
 
 import android.os.Build;
 
-import com.kevin.testool.MyFile;
+import com.kevin.testool.utils.FileUtils;
 import com.kevin.testool.utils.logUtil;
 
 import org.json.JSONArray;
@@ -424,7 +424,7 @@ public class HtmlReport {
         String output = String.format(HTML_TMPL, title, generator, STYLESHEET_TMPL, heading,report,ending);
 
         File reportFile = new File(logFile.replace("log.txt", "report.html"));
-        MyFile.writeFile(reportFile.toString(), output, false);
+        FileUtils.writeFile(reportFile.toString(), output, false);
         System.out.println(logFile.replace("log.txt", "report.html"));
         return logFile.replace("log.txt", "report.html");
     }
@@ -547,7 +547,15 @@ public class HtmlReport {
             String line = o.getString(i).trim();
             if (line.contains(".png")){
                 String image = "screenshot/"+line.split(":i")[1].trim();
-                line = String.format("<img src=\"%s\" alt=\"screen_shot\" height=\"320\" width=\"170\"></img>\n", image);
+                line = String.format("<img src=\"%s\" alt=\"screen_shot\" height=\"270\" width=\"130\"></img>\n", image);
+            }
+            if (line.contains(".gif")){
+                String image = "screenshot/"+line.split(":i")[1].trim();
+                line = String.format("<img src=\"%s\" alt=\"screen_shot\" height=\"270\" width=\"180\"></img>\n", image);
+            }
+            if (line.contains(".mp4")){
+                String screenRecord = "screenshot/"+line.split(":i")[1].trim();
+                line = String.format("<a href=\"%s\" >查看录屏</a>", screenRecord);
             }
             noutput.append(line).append("\n");
         }

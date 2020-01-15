@@ -21,12 +21,11 @@ import android.support.test.uiautomator.UiObject2;
 import android.telephony.TelephonyManager;
 import android.widget.Toast;
 
-import com.kevin.testool.adblib.CmdTools;
 import com.kevin.testool.stub.Automator;
 import com.kevin.testool.stub.DeviceInfo;
 import com.kevin.testool.utils.AppUtils;
 import com.kevin.testool.CONST;
-import com.kevin.testool.MyFile;
+import com.kevin.testool.utils.FileUtils;
 import com.kevin.testool.utils.logUtil;
 
 import org.dom4j.Document;
@@ -54,7 +53,6 @@ import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.FormBody;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
@@ -205,7 +203,7 @@ public abstract class Common2 extends Automator{
             screenSize = new JSONObject(String.valueOf(CONFIG()));
             screenSize.put(screen_size, x_y);
             try {
-                MyFile.writeFile(CONST.CONFIG_FILE, screenSize.toString().replace(",\"", ",\n\""), false);
+                FileUtils.writeFile(CONST.CONFIG_FILE, screenSize.toString().replace(",\"", ",\n\""), false);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -336,7 +334,7 @@ public abstract class Common2 extends Automator{
             JSONObject CONFIG_UPDATE = new JSONObject(String.valueOf(CONFIG()));
             CONFIG_UPDATE.put(_id, XY);
             // 坐标值缓存在配置文件，以提高执行效率
-            MyFile.writeFile(CONST.CONFIG_FILE, CONFIG_UPDATE.toString().replace(",\"", ",\n\""), false);
+            FileUtils.writeFile(CONST.CONFIG_FILE, CONFIG_UPDATE.toString().replace(",\"", ",\n\""), false);
         } catch (FileNotFoundException | JSONException e) {
             logUtil.d("", "config.json 文件不存在");
             click_element(true, "resource-id", _id, 0, 0);
@@ -345,7 +343,7 @@ public abstract class Common2 extends Automator{
 
     public static JSONObject CONFIG() throws JSONException {
 
-        return new JSONObject(MyFile.readJsonFile(CONST.CONFIG_FILE));
+        return new JSONObject(FileUtils.readJsonFile(CONST.CONFIG_FILE));
     }
 
     public static void click(double x, double y) {
@@ -617,8 +615,8 @@ public abstract class Common2 extends Automator{
             public void run() {
                 executeShellCommand("bugreport > " + bugreportFile + "\n");
                 try {
-                    MyFile.ZipFolder(logFileName, logFileName.replace(".txt", ".zip"));
-                    MyFile.deleteFile(logFileName);
+                    FileUtils.ZipFolder(logFileName, logFileName.replace(".txt", ".zip"));
+                    FileUtils.deleteFile(logFileName);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -712,7 +710,7 @@ public abstract class Common2 extends Automator{
         }
 //        String dt = dateFormat.format(date);
 //        String logDir = MONKEY_PATH + getVersionName2(pkg) + File.separator + dt + File.separator;
-        MyFile.creatDir(logDir);
+        FileUtils.creatDir(logDir);
         String _log = "2>" + logDir + "monkey_error.txt 1> " + logDir + "monkey_info.txt";
         String monkey_cmd = String.format("monkey -p %s --throttle %s --pct-nav 0 --pct-majornav 0 --ignore-crashes --ignore-security-exceptions --ignore-timeouts --monitor-native-crashes -v -v %s ", pkg, throttle, count) + _log + "\n";
         System.out.println(monkey_cmd);
@@ -958,7 +956,7 @@ public abstract class Common2 extends Automator{
         String filePath = Environment.getExternalStorageDirectory() + File.separator + "toast.txt";
         File file = new File(filePath);
         if (file.exists()){
-            return MyFile.readFile(filePath);
+            return FileUtils.readFile(filePath);
         }
         return "";
     }

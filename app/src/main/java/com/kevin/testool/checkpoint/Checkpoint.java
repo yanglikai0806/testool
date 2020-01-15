@@ -1,7 +1,7 @@
 package com.kevin.testool.checkpoint;
 import android.os.Environment;
 import com.kevin.testool.utils.AdbUtils;
-import com.kevin.testool.MyFile;
+import com.kevin.testool.utils.FileUtils;
 import com.kevin.testool.common.Common;
 import com.kevin.testool.utils.logUtil;
 import com.kevin.testool.ocr.Imagett;
@@ -19,7 +19,9 @@ import java.util.Iterator;
 
 import java.util.regex.*;
 
-public abstract class Checkpoint extends Common {
+public class Checkpoint extends Common {
+
+    public static boolean isCheckPageElem = false; // 检测点是否包含界面元素, 根据此参数判断是否需要动态检查
 
     public static Boolean checkIfExist(Boolean refresh, String key, String value, int nex) {
         if (value.contains("|")){
@@ -33,10 +35,10 @@ public abstract class Checkpoint extends Common {
         }
             if (key.length() == 0){
                 if (refresh) {
-                    get_elements(true, "", "", 0);
+                    get_elements(refresh, "", "", 0);
                 }
                 try {
-                    String content = MyFile.readFile(Environment.getExternalStorageDirectory().getPath() + File.separator + "window_dump.xml");
+                    String content = FileUtils.readFile(Environment.getExternalStorageDirectory().getPath() + File.separator + "window_dump.xml");
                     if (content.contains(value)){
                         logUtil.i(TAG, "true|当前界面存在元素:" + value);
                         return true;
@@ -156,7 +158,8 @@ public abstract class Checkpoint extends Common {
             try {
                 JSONArray text = check_point.getJSONArray("text");
                 if (text.length() > 0){
-                    result.add(checkIfExist(true,"", text.getString(0), 0));
+                    isCheckPageElem = true;
+                    result.add(checkIfExist(refresh,"", text.getString(0), 0));
                     for (int i = 1; i < text.length(); i++) {
                         result.add(checkIfExist(false,"", text.getString(i), 0));
                     }
@@ -167,7 +170,8 @@ public abstract class Checkpoint extends Common {
                 String text = check_point.getString("text");
 //                System.out.println(text);
                 if (text.length() > 0){
-                    result.add(checkIfExist(true,"", text, 0));
+                    isCheckPageElem = true;
+                    result.add(checkIfExist(refresh,"", text, 0));
                     refresh = false;
                 }
 
@@ -177,6 +181,7 @@ public abstract class Checkpoint extends Common {
         if (!check_point.isNull("resource-id")){
             id = check_point.getString("resource-id");
             if (id.length()>0){
+                isCheckPageElem = true;
                 result.add(checkIfExist(refresh,"resource-id", id, 0));
                 refresh = false;
             }
@@ -186,6 +191,7 @@ public abstract class Checkpoint extends Common {
         if (!check_point.isNull("id")){
             id = check_point.getString("id");
             if (id.length()>0){
+                isCheckPageElem = true;
                 result.add(checkIfExist(refresh,"resource-id", id, 0));
                 refresh = false;
             }
@@ -201,6 +207,7 @@ public abstract class Checkpoint extends Common {
         if (!check_point.isNull("nd")){
             String nd = check_point.getString("nd");
             if (nd.length() > 0){
+                isCheckPageElem = true;
                 result.add(checkIfNotExist(refresh,"", nd,  0));
                 refresh = false;
             }
@@ -209,10 +216,18 @@ public abstract class Checkpoint extends Common {
             String toast = check_point.getString("toast");
             result.add(checkToast(toast));
         }
+        if (!check_point.isNull("response")){
+            isCheckPageElem = true;
+            JSONObject resp = check_point.getJSONObject("response");
+            result.add(postResp(resp.getString("url"), resp.getJSONObject("data").toString()).equals(resp.getString("resp")));
+        }
+
         if (!check_point.isNull("status")){
             String sText = "";
             String sContent = "";
             JSONObject status = check_point.getJSONObject("status");
+            if(status.length() > 0){
+                isCheckPageElem = true;
             Iterator<String> itr = status.keys();
             ArrayList<String> keys = new ArrayList<>();
             while (itr.hasNext()){
@@ -246,15 +261,17 @@ public abstract class Checkpoint extends Common {
                 if (id.length() > 0) {
                     result.add(checkElementStatus(refresh, "resource-id", id, nex, index, key, value));
                 }
-                if (sText.length() > 0){
-                    result.add(checkElementStatus(true, "text", sText, nex, index, key, value));
+                if (sText.length() > 0) {
+                    result.add(checkElementStatus(refresh, "text", sText, nex, index, key, value));
                 }
-                if (sContent.length() > 0){
+                if (sContent.length() > 0) {
                     result.add(checkElementStatus(refresh, "content", sContent, nex, index, key, value));
                 }
                 refresh = false;
             }
+            }
         }
+
         if (!check_point.isNull("delta")){
             JSONObject delta = check_point.getJSONObject("delta");
             result.add(checkFileCountDiff(delta));
@@ -265,6 +282,8 @@ public abstract class Checkpoint extends Common {
         if (!check_point.isNull("img")) {
             String language = "chi_sim";
             JSONObject img = check_point.getJSONObject("img");
+            if(img.length() > 0){
+                isCheckPageElem = true;
             Iterator<String> itr = img.keys();
             ArrayList<String> keys = new ArrayList<>();
             while (itr.hasNext()) {
@@ -277,7 +296,7 @@ public abstract class Checkpoint extends Common {
                 try {
                     JSONArray text = img.getJSONArray("text");
                     result.add(checkIfExistByImage(text.getString(0), language, true));
-                    if (text.length() > 0){
+                    if (text.length() > 0) {
                         for (int i = 1; i < text.length(); i++) {
                             result.add(checkIfExistByImage(text.getString(i), language, false));
                         }
@@ -287,6 +306,7 @@ public abstract class Checkpoint extends Common {
                     String text = img.getString("text");
                     result.add(checkIfExistByImage(text, language, true));
                 }
+            }
             }
         }
         // 判断logcat内的打点

@@ -5,7 +5,7 @@ import android.content.pm.PackageManager;
 import android.os.Environment;
 
 import com.kevin.testool.MyApplication;
-import com.kevin.testool.MyFile;
+import com.kevin.testool.utils.FileUtils;
 import com.kevin.testool.ocr.Imagett;
 import com.kevin.testool.stub.Automator;
 import com.kevin.testool.utils.logUtil;
@@ -15,16 +15,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -47,7 +40,7 @@ public abstract class Checkpoint2 extends Common2 {
                     Automator.dumpWindowHierarchys(false);
                 }
                 try {
-                    String content = MyFile.readFile(Environment.getExternalStorageDirectory().getPath() + File.separator + "window_dump.xml");
+                    String content = FileUtils.readFile(Environment.getExternalStorageDirectory().getPath() + File.separator + "window_dump.xml");
                     if (content.contains(value)){
                         logUtil.i(TAG, "true|当前界面存在元素:" + value);
                         return true;

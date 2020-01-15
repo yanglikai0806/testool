@@ -7,7 +7,7 @@ import android.util.Log;
 
 import com.googlecode.tesseract.android.TessBaseAPI;
 import com.kevin.testool.CONST;
-import com.kevin.testool.MyFile;
+import com.kevin.testool.utils.FileUtils;
 import com.kevin.testool.utils.logUtil;
 
 import java.io.File;
@@ -34,7 +34,7 @@ public class Imagett {
      * 初始化必须的文件夹及训练数据
      */
     public static void init(String language){
-            MyFile.creatDir(CONST.TESSDATA);
+            FileUtils.creatDir(CONST.TESSDATA);
             final File languageFile = new File(CONST.TESSDATA + File.separator + language + ".traineddata");
             if (!languageFile.exists()){
                 logUtil.d("imagett", "下载训练数据包");
@@ -94,7 +94,7 @@ public class Imagett {
         init(language);
         if (!refresh){
             try {
-                return MyFile.readFile(CONST.TESSDATA + File.separator + "text.txt");
+                return FileUtils.readFile(CONST.TESSDATA + File.separator + "text.txt");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -110,7 +110,7 @@ public class Imagett {
 //                logUtil.i(TAG, "run: text " + System.currentTimeMillis() + text);
                 //识别的文本内容写入的文件中
                 try {
-                    MyFile.writeFile(CONST.TESSDATA + File.separator + "text.txt", text, false);
+                    FileUtils.writeFile(CONST.TESSDATA + File.separator + "text.txt", text, false);
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }

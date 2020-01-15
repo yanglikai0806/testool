@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.kevin.testool.utils.FileUtils;
 import com.kevin.testool.utils.ToastUtils;
 
 import java.io.File;
@@ -89,7 +90,7 @@ public class MonkeyTestActivity extends AppCompatActivity {
                     .setMessage("历史Monkey log将全部被清除")
                     .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
-                            MyFile.RecursionDeleteFile(new File(CONST.MONKEY_PATH));
+                            FileUtils.RecursionDeleteFile(new File(CONST.MONKEY_PATH));
                             ToastUtils.showShort(MonkeyTestActivity.this, "log清除完成");
                         }
                     })

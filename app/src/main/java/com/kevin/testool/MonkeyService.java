@@ -14,6 +14,7 @@ import android.util.Log;
 
 import com.kevin.testool.common.Common;
 import com.kevin.testool.UICrawler.UICrawler;
+import com.kevin.testool.utils.FileUtils;
 import com.kevin.testool.utils.logUtil;
 
 import org.json.JSONException;
@@ -103,7 +104,7 @@ public class MonkeyService extends IntentService {
         if (action != null) {
             switch (action) {
                 case ACTION_MONKEY:
-                    MyFile.creatDir(logDir);
+                    FileUtils.creatDir(logDir);
                     Log.i("Monkey", "开启monkey测试");
                     monkey(pkg, con, thro, seed, logDir);
                     if (pkg.contains("/")) {

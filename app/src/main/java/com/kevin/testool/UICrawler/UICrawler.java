@@ -4,7 +4,7 @@ import android.os.SystemClock;
 
 import com.kevin.testool.utils.AdbUtils;
 import com.kevin.testool.CONST;
-import com.kevin.testool.MyFile;
+import com.kevin.testool.utils.FileUtils;
 import com.kevin.testool.common.Common;
 import com.kevin.testool.utils.logUtil;
 
@@ -47,7 +47,7 @@ public class UICrawler extends Common {
         ArrayList<Element> pageElements = new ArrayList<>();
         ArrayList<Element> elements = get_elements(true, "", "", 0);
         if (elements != null) {
-            MyFile.copyFile(new File(CONST.DUMP_PATH), CONST.LOGPATH + "UICrawler" + File.separator + "page"+index+".xml");
+            FileUtils.copyFile(new File(CONST.DUMP_PATH), CONST.LOGPATH + "UICrawler" + File.separator + "page"+index+".xml");
             AdbUtils.runShellCommand("screencap -p " + CONST.LOGPATH + "UICrawler" + File.separator + "page"+index+".png", 0);
             for (Element e : elements) {
                 if (e.attribute("package").getValue().equals(PKG)){
@@ -123,7 +123,7 @@ public class UICrawler extends Common {
     }
 
     public JSONObject UICrawlerConfig() throws JSONException {
-        return new JSONObject(MyFile.readJsonFile(CONST.UICRAWLWER_CONFIG_FILE));
+        return new JSONObject(FileUtils.readJsonFile(CONST.UICRAWLWER_CONFIG_FILE));
     }
 
     private JSONArray elemBlackList(){
@@ -263,26 +263,26 @@ public class UICrawler extends Common {
                     if (!new File(logFolder).exists()){
                         new File(logFolder).mkdirs();
                     }
-                    MyFile.copyFile(new File(UICRAWLER_PATH + File.separator + "error.txt"), logFolder + File.separator + "error.txt");
+                    FileUtils.copyFile(new File(UICRAWLER_PATH + File.separator + "error.txt"), logFolder + File.separator + "error.txt");
 
                     generateBugreport(logFolder + File.separator + bugreportFile);
                     for (int i=0; i<pageIndex+1; i++){
-                        MyFile.copyFile(new File(UICRAWLER_PATH + File.separator + "page" + i + ".png"), logFolder + File.separator + "page" + i + ".png");
+                        FileUtils.copyFile(new File(UICRAWLER_PATH + File.separator + "page" + i + ".png"), logFolder + File.separator + "page" + i + ".png");
                     }
                 } else if (ErrorDetect.isDetectAnr(UICRAWLER_PATH)){
                     if (!new File(logFolder).exists()){
                         new File(logFolder).mkdirs();
                     }
-                    MyFile.copyFile(new File(UICRAWLER_PATH + File.separator + "error.txt"), logFolder + File.separator + "error.txt");
+                    FileUtils.copyFile(new File(UICRAWLER_PATH + File.separator + "error.txt"), logFolder + File.separator + "error.txt");
                     generateBugreport(logFolder + File.separator + bugreportFile);
                     for (int i=0; i<pageIndex+1; i++){
-                        MyFile.copyFile(new File(UICRAWLER_PATH + File.separator + "page" + i + ".png"), logFolder + File.separator + "page" + i + ".png");
+                        FileUtils.copyFile(new File(UICRAWLER_PATH + File.separator + "page" + i + ".png"), logFolder + File.separator + "page" + i + ".png");
                     }
                 }
 
                 // 记录点击坐标
                 try {
-                    MyFile.writeFile(CONST.LOGPATH + "record.txt", pageIndex + ":" +x+","+y+"\n", true);
+                    FileUtils.writeFile(CONST.LOGPATH + "record.txt", pageIndex + ":" +x+","+y+"\n", true);
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
@@ -296,10 +296,10 @@ public class UICrawler extends Common {
                         if (!new File(logFolder).exists()){
                             new File(logFolder).mkdirs();
                         }
-                        MyFile.copyFile(new File(UICRAWLER_PATH + File.separator + "error.txt"), logFolder + File.separator + "error.txt");
+                        FileUtils.copyFile(new File(UICRAWLER_PATH + File.separator + "error.txt"), logFolder + File.separator + "error.txt");
                         generateBugreport(logFolder + File.separator + bugreportFile);
                         for (int i=0; i<pageIndex+1; i++){
-                            MyFile.copyFile(new File(UICRAWLER_PATH + File.separator + "page" + i + ".png"), logFolder + File.separator + "page" + i + ".png");
+                            FileUtils.copyFile(new File(UICRAWLER_PATH + File.separator + "page" + i + ".png"), logFolder + File.separator + "page" + i + ".png");
                         }
                     }
                     //
@@ -312,10 +312,10 @@ public class UICrawler extends Common {
                         if (!new File(logFolder).exists()){
                             new File(logFolder).mkdirs();
                         }
-                        MyFile.copyFile(new File(UICRAWLER_PATH + File.separator + "error.txt"), logFolder + File.separator + "error.txt");
+                        FileUtils.copyFile(new File(UICRAWLER_PATH + File.separator + "error.txt"), logFolder + File.separator + "error.txt");
                         generateBugreport(logFolder + File.separator + bugreportFile);
                         for (int i=0; i<pageIndex+1; i++){
-                            MyFile.copyFile(new File(UICRAWLER_PATH + File.separator + "page" + i + ".png"), logFolder + File.separator + "page" + i + ".png");
+                            FileUtils.copyFile(new File(UICRAWLER_PATH + File.separator + "page" + i + ".png"), logFolder + File.separator + "page" + i + ".png");
                         }
                         goBackPrePage(pageIndex--);
                         continue;

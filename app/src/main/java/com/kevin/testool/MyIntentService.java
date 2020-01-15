@@ -10,21 +10,21 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Build;
 import android.os.Environment;
-import android.os.Handler;
 import android.os.SystemClock;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 
 import com.kevin.testool.UICrawler.ErrorDetect;
-import com.kevin.testool.adblib.CmdTools;
 import com.kevin.testool.checkpoint.Checkpoint;
 import com.kevin.testool.common.Common;
 import com.kevin.testool.common.DBService;
 import com.kevin.testool.common.HtmlReport;
 import com.kevin.testool.common.MemoryManager;
 import com.kevin.testool.common.WifiHelper;
+import com.kevin.testool.utils.AVUtils;
 import com.kevin.testool.utils.AdbUtils;
+import com.kevin.testool.utils.FileUtils;
 import com.kevin.testool.utils.ToastUtils;
 import com.kevin.testool.utils.logUtil;
 
@@ -84,6 +84,10 @@ public class MyIntentService extends IntentService {
     private static String APPVER;
     private static String TEST_ENV = "";
     private static String SCREENIMG;
+    private static String SCREEN_GIF;
+    private static String SCREEN_MP4;
+    private static String mp4File;
+    private static long startRecordTime;
     private static int LAST_WAIT_TIME = 0;
     private static int checkType = 1;
 
@@ -93,6 +97,7 @@ public class MyIntentService extends IntentService {
     //配置
     private static Boolean LOG_FLAG = false;
     private static Boolean SCREENSHOT_FLAG = false;
+    private static Boolean SCREENRECORD_FLAG = false;
     private static Boolean ALARM_FLAG = false;
     private static Boolean POST_FLAG = false;
 
@@ -159,17 +164,20 @@ public class MyIntentService extends IntentService {
 
     public void startActionRun(String caseName, String case_tag, Boolean offline, int loop) throws JSONException, IOException {
         // 读取配置
-        if (CONFIG().getString("LOG").equals("true")){
+        if (!CONFIG().isNull("LOG") && CONFIG().getString("LOG").equals("true")){
             LOG_FLAG = true;
         }
-        if (CONFIG().getString("SCREENSHOT").equals("true")){
+        if (!CONFIG().isNull("SCREENSHOT") && CONFIG().getString("SCREENSHOT").equals("true")){
             SCREENSHOT_FLAG = true;
         }
-        if (CONFIG().getString("ALARM_MSG").equals("true")){
+        if (!CONFIG().isNull("ALARM_MSG") && CONFIG().getString("ALARM_MSG").equals("true")){
             ALARM_FLAG = true;
         }
-        if (CONFIG().getString("POST_RESULT").equals("true")){
+        if (!CONFIG().isNull("POST_RESULT") && CONFIG().getString("POST_RESULT").equals("true")){
             POST_FLAG = true;
+        }
+        if (!CONFIG().isNull("SCREEN_RECORD") && CONFIG().getString("SCREEN_RECORD").equals("true")){
+            SCREENRECORD_FLAG = true;
         }
         //result 命名
         JSONObject resultDic = new JSONObject("{\"true\":\"Pass\",\"false\":\"Fail\",\"null\":\"None\", \"break\":\"None\", \"continue\":\"None\"}");
@@ -286,12 +294,20 @@ public class MyIntentService extends IntentService {
             if (result == "continue"){
                 continue;
             }
+            boolean record_flag = true;
             while (Objects.equals(result, false) & (retryTime < Integer.valueOf(CONFIG().getString("RETRY")))) {
                 Checkpoint.clickPopWindow(false);
 //                Common.switchCardFocusEnable("false");
                 Common.clearRecentApp();
                 retryTime++;
                 logUtil.i("", "----------------------retry------------------------");
+                if(SCREENRECORD_FLAG && record_flag) {
+                    mp4File = Common.screenRecorder(0); //录制屏幕
+                    SCREEN_MP4 = new File(mp4File).getName();
+                    SCREEN_GIF = SCREEN_MP4.replace(".mp4", ".gif");
+                    startRecordTime = System.currentTimeMillis();
+                    record_flag = false;
+                }
                 if (case_tag.equals("ignore")) {
                     result = action(testcase, retryTime, "ignore");
                 } else {
@@ -301,6 +317,21 @@ public class MyIntentService extends IntentService {
                     SCREENIMG = Common.screenShot();
                 }
             }
+            if (!record_flag){
+                logUtil.i("", SCREEN_GIF);
+                new Thread(new Runnable() { // MP4 转 gif
+                    @Override
+                    public void run() {
+                        Common.killProcess("screenrecord");
+                        AVUtils.mp4ToGif(mp4File, (int)(System.currentTimeMillis()-startRecordTime)/1000, true);
+                        if (!new File(mp4File.replace(".mp4", ".gif")).exists()){
+                            logUtil.i("", SCREEN_MP4);
+                        }
+                    }
+                }).start();
+
+            }
+
             String res;
             if (result instanceof Boolean) {
                 res = resultDic.getString(result.toString());
@@ -313,7 +344,7 @@ public class MyIntentService extends IntentService {
                     }
                     //实现报警
                     String alarm_tag = "alarm message";
-                    MyFile.writeFile(CONST.REPORT_PATH + logUtil.readTempFile() + File.separator + "alarm.txt", alarm_tag, true);
+                    FileUtils.writeFile(CONST.REPORT_PATH + logUtil.readTempFile() + File.separator + "alarm.txt", alarm_tag, true);
                     if (ALARM_FLAG) {
                         Checkpoint.sendAlarm(alarm_tag);
                     }
@@ -441,7 +472,7 @@ public class MyIntentService extends IntentService {
             if (ErrorDetect.isDetectCrash(fcAnrLogDir) || ErrorDetect.isDetectAnr(fcAnrLogDir)) {
                 logUtil.i("", " ----------发现FC|ANR---------");
                 String savePath = fcAnrLogDir + File.separator + "error_" + dateFormat.format(new Date()) + ".txt";
-                MyFile.copyFile(new File(fcAnrLogDir + File.separator + "error.txt"), savePath);
+                FileUtils.copyFile(new File(fcAnrLogDir + File.separator + "error.txt"), savePath);
                 logUtil.i("", savePath);
                 result = false;
             } else {
@@ -530,8 +561,8 @@ public class MyIntentService extends IntentService {
             assert action != null;
             switch (action){
                 case ACTION_RUN:
-                    timeTag = MyFile.creatLogDir();
-                    MyFile.createTempFile(CONST.TEMP_FILE, timeTag);
+                    timeTag = FileUtils.creatLogDir();
+                    FileUtils.createTempFile(CONST.TEMP_FILE, timeTag);
                     Common.killApp("com.github.uiautomator"); //kill uiautomator process (atx app)
                     DEVICE = Common.getDeviceName();//.replace(" ", "");
                     ALIAS = Common.getDeviceAlias();
@@ -570,13 +601,13 @@ public class MyIntentService extends IntentService {
                     break;
 
                 case ACTION_RUN_ADB:
-                    timeTag = MyFile.creatLogDir();
-                    MyFile.createTempFile(CONST.TEMP_FILE, timeTag);
+                    timeTag = FileUtils.creatLogDir();
+                    FileUtils.createTempFile(CONST.TEMP_FILE, timeTag);
                     // 判断手机存储状态
                     double leftMenory = MemoryManager.getAvailableInternalMemorySize()/1000000000.00;
                     if (leftMenory < 2){
                         //删除报告文件
-                        MyFile.RecursionDeleteFile(new File(CONST.REPORT_PATH));
+                        FileUtils.RecursionDeleteFile(new File(CONST.REPORT_PATH));
                         //删除照片文件
 //                        MyFile.RecursionDeleteFile(new File(Environment.getExternalStorageDirectory().getPath() + File.separator + "DCIM" + File.separator + "Camera" + File.separator));
                     }
@@ -634,7 +665,7 @@ public class MyIntentService extends IntentService {
                     }
                     logUtil.i("FINISH", "测试完成～");
                     try {
-                        MyFile.writeFile(CONST.TEMP_FILE, "::finished", true); //测试结束标志
+                        FileUtils.writeFile(CONST.TEMP_FILE, "::finished", true); //测试结束标志
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
@@ -862,7 +893,11 @@ public class MyIntentService extends IntentService {
 
                 }
 //                logUtil.i(TAG, "action: " + key + ":" + value);
-                SystemClock.sleep(wait_time *1000);
+                if (i == waitTime.length()-1){
+                    LAST_WAIT_TIME = waitTime.getInt(i);
+                } else {
+                    SystemClock.sleep(wait_time * 1000);
+                }
             }else{
                 SystemClock.sleep(wait_time *1000);
             }
@@ -956,7 +991,7 @@ public class MyIntentService extends IntentService {
         }
 //      动态检测测试结果
         boolean flag = (System.currentTimeMillis() - rTime) < LAST_WAIT_TIME * 1000;
-        if (!ret & refresh & flag) {
+        if (!ret & flag & Checkpoint.isCheckPageElem) {
             SystemClock.sleep(500);
             ret = resultCheck(check_point, true, rTime, false);
         } else {

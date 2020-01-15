@@ -40,7 +40,6 @@ import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
@@ -48,6 +47,7 @@ import com.kevin.testool.common.Common;
 import com.kevin.testool.utils.AdbUtils;
 import com.kevin.testool.utils.AppUtils;
 import com.kevin.testool.utils.DateTimeUtils;
+import com.kevin.testool.utils.FileUtils;
 import com.kevin.testool.utils.ToastUtils;
 import com.kevin.testool.utils.logUtil;
 
@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity
     private MyAdapter mAdapter;
     private BufferedWriter bw;
     private SimpleDateFormat sdf;
-    private MyFile myFile;
+    private FileUtils myFile;
     private JSONArray fileList;
     private dlReceiver dl;
     private sycReceiver syc;
@@ -167,6 +167,7 @@ public class MainActivity extends AppCompatActivity
                     " \"CASE_TAG\": \"\",\n" +
                     " \"LOG\": \"true\",\n" +
                     " \"SCREENSHOT\": \"true\",\n" +
+                    " \"SCREEN_RECORD\": \"true\",\n" +
                     " \"ALARM_MSG\": \"false\",\n" +
                     " \"SCREEN_LOCK_PW\": \"0000\",\n" +
                     " \"CHECK_TYPE\"：1,\n" +
@@ -178,7 +179,7 @@ public class MainActivity extends AppCompatActivity
                     "  }  \n" +
                     "}";
             try {
-                MyFile.writeFile(CONFIG_FILE, content,false);
+                FileUtils.writeFile(CONFIG_FILE, content,false);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -391,7 +392,7 @@ public class MainActivity extends AppCompatActivity
                     .setMessage("历史LOG文件将全部被清除")
                     .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
-                            MyFile.RecursionDeleteFile(new File(CONST.REPORT_PATH));
+                            FileUtils.RecursionDeleteFile(new File(CONST.REPORT_PATH));
                             ToastUtils.showShort(MainActivity.this, "log清除完成");
                         }
                     })
@@ -465,7 +466,7 @@ public class MainActivity extends AppCompatActivity
 //        System.out.println(Uri.parse(url));
         String fileName =  url.substring(url.lastIndexOf("/") + 1);
         request.setDestinationInExternalPublicDir(AUTOTEST, fileName);
-        MyFile.deleteFile(CONST.LOGPATH + fileName );
+        FileUtils.deleteFile(CONST.LOGPATH + fileName );
         request.setNotificationVisibility(VISIBILITY_VISIBLE);
         request.setTitle("下载");
         request.setDescription("正在下载资源");
@@ -537,7 +538,7 @@ public class MainActivity extends AppCompatActivity
                 }
 
                 try {
-                    MyFile.editJsonFile(CONFIG_FILE, new JSONObject().put("TEST_ENV", test_env));
+                    FileUtils.editJsonFile(CONFIG_FILE, new JSONObject().put("TEST_ENV", test_env));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -549,8 +550,9 @@ public class MainActivity extends AppCompatActivity
         final Switch screenshot_switch =  dialogView.findViewById(R.id.screenshot);
         final Switch post_switch = dialogView.findViewById(R.id.post_result);
         final Switch alarm_msg = dialogView.findViewById(R.id.alarm_msg);
+        final Switch screen_record = dialogView.findViewById(R.id.screenRecord);
 
-        if (Common.CONFIG().getString("LOG").equals("true")) {
+        if (!Common.CONFIG().isNull("LOG") && Common.CONFIG().getString("LOG").equals("true")) {
             bugreport_switch.setChecked(true);
         } else{
             bugreport_switch.setChecked(false);
@@ -560,16 +562,16 @@ public class MainActivity extends AppCompatActivity
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 try {
                     if (isChecked) {
-                        MyFile.editJsonFile(CONFIG_FILE, new JSONObject().put("LOG", "true"));
+                        FileUtils.editJsonFile(CONFIG_FILE, new JSONObject().put("LOG", "true"));
                     } else {
-                        MyFile.editJsonFile(CONFIG_FILE, new JSONObject().put("LOG", "false"));
+                        FileUtils.editJsonFile(CONFIG_FILE, new JSONObject().put("LOG", "false"));
                     }
                 } catch (Exception ignored){
 
                 }
             }
         });
-        if (Common.CONFIG().getString("SCREENSHOT").equals("true")) {
+        if (!Common.CONFIG().isNull("SCREENSHOT") && Common.CONFIG().getString("SCREENSHOT").equals("true")) {
             screenshot_switch.setChecked(true);
         } else{
             screenshot_switch.setChecked(false);
@@ -579,16 +581,37 @@ public class MainActivity extends AppCompatActivity
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 try {
                     if (isChecked) {
-                        MyFile.editJsonFile(CONFIG_FILE, new JSONObject().put("SCREENSHOT", "true"));
+                        FileUtils.editJsonFile(CONFIG_FILE, new JSONObject().put("SCREENSHOT", "true"));
                     } else {
-                        MyFile.editJsonFile(CONFIG_FILE, new JSONObject().put("SCREENSHOT", "false"));
+                        FileUtils.editJsonFile(CONFIG_FILE, new JSONObject().put("SCREENSHOT", "false"));
                     }
                 } catch (Exception ignored){
 
                 }
             }
         });
-        if (Common.CONFIG().getString("POST_RESULT").equals("true")) {
+
+        if (!Common.CONFIG().isNull("SCREEN_RECORD") && Common.CONFIG().getString("SCREEN_RECORD").equals("true")) {
+            screen_record.setChecked(true);
+        } else{
+            screen_record.setChecked(false);
+        }
+        screen_record.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                try {
+                    if (isChecked) {
+                        FileUtils.editJsonFile(CONFIG_FILE, new JSONObject().put("SCREEN_RECORD", "true"));
+                    } else {
+                        FileUtils.editJsonFile(CONFIG_FILE, new JSONObject().put("SCREEN_RECORD", "false"));
+                    }
+                } catch (Exception ignored){
+
+                }
+            }
+        });
+
+        if (!Common.CONFIG().isNull("POST_RESULT") && Common.CONFIG().getString("POST_RESULT").equals("true")) {
             post_switch.setChecked(true);
         } else{
             post_switch.setChecked(false);
@@ -598,16 +621,16 @@ public class MainActivity extends AppCompatActivity
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 try {
                     if (isChecked) {
-                        MyFile.editJsonFile(CONFIG_FILE, new JSONObject().put("POST_RESULT", "true"));
+                        FileUtils.editJsonFile(CONFIG_FILE, new JSONObject().put("POST_RESULT", "true"));
                     } else {
-                        MyFile.editJsonFile(CONFIG_FILE, new JSONObject().put("POST_RESULT", "false"));
+                        FileUtils.editJsonFile(CONFIG_FILE, new JSONObject().put("POST_RESULT", "false"));
                     }
                 } catch (Exception ignored){
 
                 }
             }
         });
-        if (Common.CONFIG().getString("ALARM_MSG").equals("true")) {
+        if (!Common.CONFIG().isNull("ALARM_MSG") && Common.CONFIG().getString("ALARM_MSG").equals("true")) {
             alarm_msg.setChecked(true);
         } else{
             alarm_msg.setChecked(false);
@@ -617,15 +640,48 @@ public class MainActivity extends AppCompatActivity
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 try {
                     if (isChecked) {
-                        MyFile.editJsonFile(CONFIG_FILE, new JSONObject().put("ALARM_MSG", "true"));
+                        FileUtils.editJsonFile(CONFIG_FILE, new JSONObject().put("ALARM_MSG", "true"));
                     } else {
-                        MyFile.editJsonFile(CONFIG_FILE, new JSONObject().put("ALARM_MSG", "false"));
+                        FileUtils.editJsonFile(CONFIG_FILE, new JSONObject().put("ALARM_MSG", "false"));
                     }
                 } catch (Exception ignored){
 
                 }
             }
         });
+        // 目标应用 设置
+        final EditText branch = dialogView.findViewById(R.id.input_test_app);
+        if (!Common.CONFIG().isNull("TARGET_APP")) {
+            branch.setText(Common.CONFIG().getString("TARGET_APP"));
+        }
+        branch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                try {
+                    FileUtils.editJsonFile(CONFIG_FILE, new JSONObject().put("TARGET_APP", s));
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        });
+//        branch.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+//            @Override
+//            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+//                System.out.println(v.getText());
+//                return false;
+//            }
+//        });
         final EditText retry = dialogView.findViewById(R.id.input_retry);
         if (!Common.CONFIG().isNull("RETRY")) {
             retry.setText(Common.CONFIG().getString("RETRY"));
@@ -644,7 +700,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void afterTextChanged(Editable s) {
                 try {
-                    MyFile.editJsonFile(CONST.CONFIG_FILE, new JSONObject().put("RETRY", s));
+                    FileUtils.editJsonFile(CONST.CONFIG_FILE, new JSONObject().put("RETRY", s));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -670,7 +726,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void afterTextChanged(Editable s) {
                 try {
-                    MyFile.editJsonFile(CONST.CONFIG_FILE, new JSONObject().put("CASE_TAG", s));
+                    FileUtils.editJsonFile(CONST.CONFIG_FILE, new JSONObject().put("CASE_TAG", s));
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

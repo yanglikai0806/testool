@@ -2,7 +2,7 @@ package com.kevin.testool.UICrawler;
 
 import com.kevin.testool.utils.AdbUtils;
 import com.kevin.testool.CONST;
-import com.kevin.testool.MyFile;
+import com.kevin.testool.utils.FileUtils;
 import com.kevin.testool.checkpoint.Checkpoint;
 import com.kevin.testool.utils.logUtil;
 
@@ -16,7 +16,7 @@ public class ErrorDetect extends Checkpoint {
 
     public static long startDetectCrashAnr(String logDir){
 
-        MyFile.creatDir(logDir);
+        FileUtils.creatDir(logDir);
         String _log = "2>" + logDir +File.separator+ ERROR_FILE +" 1> " + logDir + File.separator +"info.txt";
         String mksFile = CONST.LOGPATH + "UICrawler" + File.separator + "uicrawler.mks";
         if (!new File(mksFile).exists()){
@@ -26,7 +26,7 @@ public class ErrorDetect extends Checkpoint {
                     "start data >>\n" +
                     "UserWait (15000)";
             try {
-                MyFile.writeFile(mksFile, content, false);
+                FileUtils.writeFile(mksFile, content, false);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -39,7 +39,7 @@ public class ErrorDetect extends Checkpoint {
 
     public static boolean isDetectCrash(String logDir){
         try {
-            String logContent = MyFile.readFile(logDir + File.separator + ERROR_FILE);
+            String logContent = FileUtils.readFile(logDir + File.separator + ERROR_FILE);
             if (logContent.contains("// CRASH")){
                 logUtil.d("ErrorDetect", "-------------发现crash--------------");
                 return true;
@@ -52,7 +52,7 @@ public class ErrorDetect extends Checkpoint {
 
     public static boolean isDetectAnr(String logDir){
         try {
-            String logContent = MyFile.readFile(logDir + File.separator + ERROR_FILE);
+            String logContent = FileUtils.readFile(logDir + File.separator + ERROR_FILE);
             if (logContent.contains("NOT RESPONDING:")){
                 logUtil.d("ErrorDetect", "-------------发现anr--------------");
                 return true;

@@ -1,15 +1,12 @@
 package com.kevin.testool;
 
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
-import android.os.Build;
 import android.os.SystemClock;
 import android.support.test.runner.AndroidJUnit4;
 import android.support.v4.app.NotificationCompat;
-import android.view.KeyCharacterMap;
 
 import com.kevin.testool.aw.Checkpoint2;
 import com.kevin.testool.aw.Common2;
@@ -18,6 +15,7 @@ import com.kevin.testool.adblib.CmdTools;
 import com.kevin.testool.common.DBService;
 import com.kevin.testool.common.HtmlReport;
 import com.kevin.testool.common.WifiHelper;
+import com.kevin.testool.utils.FileUtils;
 import com.kevin.testool.utils.logUtil;
 
 import org.json.JSONArray;
@@ -39,7 +37,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -115,7 +112,7 @@ public class Run {
         }
         logUtil.i("FINISH", "测试完成～");
         try {
-            MyFile.writeFile(CONST.TEMP_FILE, "::finished", true); //测试结束标志
+            FileUtils.writeFile(CONST.TEMP_FILE, "::finished", true); //测试结束标志
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -301,7 +298,7 @@ public class Run {
                     }
                     //实现报警
                     String alarm_tag = String.format("app=xiaoaiApp,device=%s,result=Failed,env=%s,xiaoai=%s,query=%s,screenshot=%s\n", DEVICE.replace(" ", ""), TEST_ENV, XIAOAIVER, QUERY, SCREENIMG);
-                    MyFile.writeFile(CONST.REPORT_PATH + logUtil.readTempFile() + File.separator + "alarm.txt", alarm_tag, true);
+                    FileUtils.writeFile(CONST.REPORT_PATH + logUtil.readTempFile() + File.separator + "alarm.txt", alarm_tag, true);
                     if (ALARM_FLAG) {
 //                    String alarm_tag = String.format("app=xiaoaiApp,device=%s,result=Failed,env=%s,xiaoai=%s,query=%s\n", DEVICE, TEST_ENV, XIAOAIVER, QUERY);
 //                        Checkpoint2.sendAlarm(alarm_tag);

@@ -19,6 +19,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.kevin.testool.utils.FileUtils;
 import com.kevin.testool.utils.ToastUtils;
 import com.kevin.testool.utils.logUtil;
 
@@ -86,7 +87,7 @@ public class EditCaseActivity extends AppCompatActivity {
                     intent_debug.putExtra("DEBUG_CASE", generate_case());
                     startService(intent_debug);
                     String tempFile = Environment.getExternalStorageDirectory() + File.separator + "AutoTest" +  File.separator +"temp.txt";
-                    MyFile myFile = new MyFile();
+                    FileUtils myFile = new FileUtils();
                     myFile.createTempFile(tempFile, myFile.creatLogDir());
                 } catch (Exception e) {
                     e.printStackTrace();

@@ -1,7 +1,10 @@
-package com.kevin.testool;
+package com.kevin.testool.utils;
 
 import android.annotation.SuppressLint;
+import android.text.TextUtils;
+import android.util.Base64;
 
+import com.kevin.testool.CONST;
 import com.kevin.testool.utils.logUtil;
 
 import org.json.JSONArray;
@@ -18,6 +21,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
@@ -31,7 +35,7 @@ import java.util.zip.ZipOutputStream;
  * Created by Administrator on 2018/2/2.
  */
 
-public class MyFile {
+public class FileUtils {
     private static BufferedWriter bw;
     private static SimpleDateFormat sdf;
 
@@ -390,6 +394,41 @@ public class MyFile {
         }
 
     }
+
+    /**
+     * 将图片转换成Base64编码的字符串
+     */
+    public static String xToBase64(String path){
+        if(TextUtils.isEmpty(path)){
+            return null;
+        }
+        InputStream is = null;
+        byte[] data = null;
+        String result = null;
+        try{
+            is = new FileInputStream(path);
+            //创建一个字符流大小的数组。
+            data = new byte[is.available()];
+            //写入数组
+            is.read(data);
+            //用默认的编码格式进行编码
+            result = Base64.encodeToString(data,Base64.NO_WRAP); //Base64.DEFAULT 带\n， Base64.NO_WRAP不带\n
+        }catch (Exception e){
+            e.printStackTrace();
+        }finally {
+            if(null !=is){
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+        System.out.println(result);
+        return result;
+    }
+
 
 
 

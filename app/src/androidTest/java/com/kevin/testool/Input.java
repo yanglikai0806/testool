@@ -6,8 +6,7 @@ import android.support.test.uiautomator.By;
 import android.support.test.uiautomator.UiDevice;
 import android.support.test.uiautomator.UiObject2;
 
-import com.kevin.testool.stub.NotImplementedException;
-import com.kevin.testool.MyFile;
+import com.kevin.testool.utils.FileUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -29,7 +28,7 @@ public class Input {
         final String content;
         JSONObject inputObj = new JSONObject();
         UiObject2 minput = null;
-        content = MyFile.readJsonFile(CONST.INPUT_FILE);
+        content = FileUtils.readJsonFile(CONST.INPUT_FILE);
         try {
             inputObj = new JSONObject(content);
         } catch (JSONException e) {

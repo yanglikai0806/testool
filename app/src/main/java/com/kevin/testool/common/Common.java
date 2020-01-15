@@ -6,6 +6,7 @@ import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.ConnectivityManager;
@@ -21,11 +22,11 @@ import android.telephony.TelephonyManager;
 import android.widget.Toast;
 
 import com.kevin.testool.MyApplication;
-import com.kevin.testool.checkpoint.Checkpoint;
 import com.kevin.testool.utils.AdbUtils;
 import com.kevin.testool.utils.AppUtils;
 import com.kevin.testool.CONST;
-import com.kevin.testool.MyFile;
+import com.kevin.testool.utils.FileUtils;
+import com.kevin.testool.utils.ToastUtils;
 import com.kevin.testool.utils.logUtil;
 import com.tananaev.adblib.AdbBase64;
 import com.tananaev.adblib.AdbConnection;
@@ -67,6 +68,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
+import static android.content.Context.MODE_WORLD_WRITEABLE;
 import static com.kevin.testool.CONST.REPORT_PATH;
 import static com.kevin.testool.CONST.TESSDATA;
 
@@ -84,10 +86,9 @@ public abstract class Common {
 
     public static void goBackHome(int back) {
         for (int i = 0; i < back; i++) {
-            AdbUtils.runShellCommand("input keyevent 4\n", 0);
-            SystemClock.sleep(300);
+            AdbUtils.runShellCommand("input keyevent 4", 0);
         }
-        AdbUtils.runShellCommand("input keyevent 3\n", 0);
+        AdbUtils.runShellCommand("input keyevent 3", 0);
 
     }
 
@@ -164,6 +165,7 @@ public abstract class Common {
     }
 
     public static Boolean isScreenOn() {
+
         PowerManager pm = (PowerManager) MyApplication.getContext().getSystemService(Service.POWER_SERVICE);
         logUtil.i(TAG, "是否亮屏：" + pm.isScreenOn());
         return pm.isScreenOn();
@@ -171,6 +173,7 @@ public abstract class Common {
     }
 
     public static Boolean isScreenLocked() {
+
         KeyguardManager mKeyguardManager = (KeyguardManager) MyApplication.getContext().getSystemService (Context. KEYGUARD_SERVICE);
         boolean flag = mKeyguardManager.inKeyguardRestrictedInputMode();
         logUtil.i(TAG, "是否锁屏：" + flag);
@@ -215,7 +218,7 @@ public abstract class Common {
             screenSize = new JSONObject(String.valueOf(CONFIG()));
             screenSize.put(screen_size, x_y);
             try {
-                MyFile.writeFile(CONST.CONFIG_FILE, screenSize.toString().replace(",\"", ",\n\""), false);
+                FileUtils.writeFile(CONST.CONFIG_FILE, screenSize.toString().replace(",\"", ",\n\""), false);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
@@ -347,6 +350,28 @@ public abstract class Common {
         SystemClock.sleep(1000);
     }
 
+    public static void killProcess(String process){
+        String pid = "";
+        pid = AdbUtils.runShellCommand(String.format("ps -A| grep %s |awk '{print $2}'", process), 0);
+        if (pid.length()==0) {
+            pid = AdbUtils.runShellCommand(String.format("ps -A| grep %s", process), 0);
+            String[] item = pid.split(" ");
+            for (int i = 1; i < item.length; i++){
+                if (item[i].length() > 0){
+                    pid = item[i];
+                    break;
+                }
+            }
+        }
+        if (pid.length()==0) {
+            logUtil.d("", "killProcess: "+process + "失败, 未找到该进程pid");
+            return;
+        }
+        logUtil.d("", "killProcess: "+pid);
+        AdbUtils.runShellCommand("kill -2 "+ pid, 0);
+        SystemClock.sleep(100);
+    }
+
     public static void clearRecentApp() {
         press("home");
         press("recent");
@@ -365,7 +390,7 @@ public abstract class Common {
             JSONObject CONFIG_UPDATE = new JSONObject(String.valueOf(CONFIG()));
             CONFIG_UPDATE.put(_id, XY);
             // 坐标值缓存在配置文件，以提高执行效率
-            MyFile.writeFile(CONST.CONFIG_FILE, CONFIG_UPDATE.toString().replace(",\"", ",\n\""), false);
+            FileUtils.writeFile(CONST.CONFIG_FILE, CONFIG_UPDATE.toString().replace(",\"", ",\n\""), false);
         } catch (FileNotFoundException | JSONException e) {
             logUtil.d("", "config.json 文件不存在");
             click_element(true, "resource-id", _id, 0, 0);
@@ -374,7 +399,7 @@ public abstract class Common {
 
     public static JSONObject CONFIG() throws JSONException {
 
-        return new JSONObject(MyFile.readJsonFile(CONST.CONFIG_FILE));
+        return new JSONObject(FileUtils.readJsonFile(CONST.CONFIG_FILE));
     }
 
     public static void click(double x, double y) {
@@ -432,7 +457,7 @@ public abstract class Common {
                 boolean complete = false;
                 int wait = 0;
                 while (!complete){
-                    if (MyFile.readFile(filePath.toString()).contains("</hierarchy>")){
+                    if (FileUtils.readFile(filePath.toString()).contains("</hierarchy>")){
                         complete = true;
                     } else {
                         SystemClock.sleep(100);
@@ -500,7 +525,7 @@ public abstract class Common {
             inputObj.put("msg", msg);
             inputObj.put("mode", mode);
             try {
-                MyFile.writeFile(CONST.INPUT_FILE, inputObj.toString(), false);
+                FileUtils.writeFile(CONST.INPUT_FILE, inputObj.toString(), false);
                 AdbUtils.runShellCommand("am instrument -w -r   -e debug false -e class 'com.github.uiautomator.Input#input' com.github.uiautomator.test/android.support.test.runner.AndroidJUnitRunner", 0);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
@@ -603,7 +628,7 @@ public abstract class Common {
 //        String res = AdbUtils.runShellCommand("dumpsys input | grep FocusedApplication\n", 0);
 //        String[] act = res.trim().split("name=")[1].split("u0")[1].trim().split(" ");
         String res = AdbUtils.runShellCommand("dumpsys activity top | grep ACTIVITY | tail -n 1", 0);
-        String act = res.trim().split("ACTIVITY ")[1].split(" ")[0];
+        String act = res.replace("ACTIVITY", "").trim().split(" ")[0];
         return act.trim();
     }
 
@@ -614,8 +639,8 @@ public abstract class Common {
             public void run() {
                 AdbUtils.runShellCommand("bugreport > " + bugreportFile, 600000);
                 try {
-                    MyFile.ZipFolder(logFileName, logFileName.replace(".txt", ".zip"));
-                    MyFile.deleteFile(logFileName);
+                    FileUtils.ZipFolder(logFileName, logFileName.replace(".txt", ".zip"));
+                    FileUtils.deleteFile(logFileName);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -638,8 +663,21 @@ public abstract class Common {
         }
     }
 
-    public static void screenRecorder(String time, String file){
-        AdbUtils.runShellCommand(String.format("screenrecord  --time-limit %s %s", time, file), -15000);
+    public static String screenRecorder(int seconds){
+        String mp4 = dateFormat.format(new Date()) + ".mp4";
+        try {
+            String mp4File = REPORT_PATH + logUtil.readTempFile() + File.separator + SCREENSHOT + File.separator + mp4;
+            if (seconds > 0) {
+                AdbUtils.runShellCommand(String.format("screenrecord --size 720x1080  --time-limit %s %s", seconds, mp4File), -seconds*1000);
+            } else {
+                AdbUtils.runShellCommand(String.format("screenrecord --size 720x1080 %s", mp4File), -50);
+            }
+            return mp4File;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "";
+        }
+
     }
 
     public static String screenImage(boolean refresh) {
@@ -702,7 +740,7 @@ public abstract class Common {
         }
 //        String dt = dateFormat.format(date);
 //        String logDir = MONKEY_PATH + getVersionName2(pkg) + File.separator + dt + File.separator;
-        MyFile.creatDir(logDir);
+        FileUtils.creatDir(logDir);
         String _log = "2>" + logDir + "monkey_error.txt 1> " + logDir + "monkey_info.txt";
         String monkey_cmd = String.format("monkey -p %s --throttle %s --pct-nav 0 --pct-majornav 0 --ignore-crashes --ignore-security-exceptions --ignore-timeouts --monitor-native-crashes -v -v %s ", pkg, throttle, count) + _log + "\n";
 
@@ -871,6 +909,24 @@ public abstract class Common {
         });
     }
 
+    public static String postResp(String url, String data){
+        final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+        RequestBody body = RequestBody.create(JSON, data);
+        Request request = new Request.Builder()
+                .url(url)
+                .post(body)
+                .build();
+        try {
+            Response response = new OkHttpClient().newCall(request).execute();
+            String msg = response.body().string();
+            ToastUtils.showLongByHandler(MyApplication.getContext(), msg);
+            return msg.toLowerCase().trim();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
     public static int postFile(String url, String filePath, String filename) throws IOException{
         int responeCode;
         File file = new File(filePath);
@@ -947,7 +1003,7 @@ public abstract class Common {
             } else {
                 try {
                     logUtil.d("shell", cmd);
-                    MyFile.writeFile(CONST.TEMP_FILE, "::"+dateFormat.format(new Date())+">"+e.toString(), true); //测试异常标志
+                    FileUtils.writeFile(CONST.TEMP_FILE, "::"+dateFormat.format(new Date())+">"+e.toString(), true); //测试异常标志
                 } catch (IOException e1) {
                     logUtil.d("shell", e1.toString());
                 }
@@ -1011,7 +1067,7 @@ public abstract class Common {
         String filePath = Environment.getExternalStorageDirectory() + File.separator + "toast.txt";
         File file = new File(filePath);
         if (file.exists()){
-            return MyFile.readFile(filePath);
+            return FileUtils.readFile(filePath);
         }
         return "";
     }
@@ -1043,6 +1099,32 @@ public abstract class Common {
                     index = (int) Step.getJSONObject(i).get("index");
                 }
                 switch (key) {
+                    case "uiautomator":
+                        if (value instanceof JSONObject) {
+                            @SuppressLint("WrongConstant") SharedPreferences shuttle = MyApplication.getContext().getSharedPreferences("shuttle", MODE_WORLD_WRITEABLE);
+                            if (!((JSONObject) value).isNull("method")) {
+                                shuttle.edit().putString("method", ((JSONObject) value).getString("method")).apply();
+                            } else {
+                                logUtil.d("MyIntentService", "dismiss method");
+                            }
+                            if (!((JSONObject) value).isNull("args")){
+                                if (((JSONObject) value).get("args") instanceof String){
+                                    shuttle.edit().putString("args", ((JSONObject) value).getString("args")).apply();
+                                }
+                                else if (((JSONObject) value).get("args") instanceof Integer){
+                                    shuttle.edit().putInt("args", ((JSONObject) value).getInt("args")).apply();
+                                }
+                                else if (((JSONObject) value).get("args") instanceof Boolean){
+                                    shuttle.edit().putBoolean("args", ((JSONObject) value).getBoolean("args")).apply();
+                                }
+
+                            } else {
+                                shuttle.edit().putString("args", "null").apply();
+                            }
+                            AdbUtils.runShellCommand("am instrument -w -r   -e debug false -e class 'com.github.uiautomator.Shuttle' com.github.uiautomator.test/android.support.test.runner.AndroidJUnitRunner", 0);
+                        }
+                        logUtil.d("dd", value.toString());
+                        break;
                     case "click":
                         if (value instanceof JSONArray) {
                             Common.click(((JSONArray) value).getDouble(0), ((JSONArray) value).getDouble(1));

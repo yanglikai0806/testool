@@ -1,7 +1,8 @@
 package com.kevin.testool;
 
 import android.os.Environment;
-import com.kevin.testool.common.Common;
+
+import com.kevin.testool.utils.FileUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,7 +35,7 @@ public final class CONST {
 
     static {
         try {
-            CONFIG = new JSONObject(MyFile.readJsonFile(CONFIG_FILE));
+            CONFIG = new JSONObject(FileUtils.readJsonFile(CONFIG_FILE));
         } catch (JSONException e) {
             e.printStackTrace();
         }

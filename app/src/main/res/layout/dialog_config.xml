@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
     android:gravity="center_horizontal"
     android:orientation="vertical">
 
@@ -63,8 +63,8 @@
         android:textSize="18sp" />
 
     <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="122dp"
+        android:layout_width="255dp"
+        android:layout_height="152dp"
         android:orientation="vertical">
 
         <Switch
@@ -80,6 +80,12 @@
             android:text="screenshot" />
 
         <Switch
+            android:id="@+id/screenRecord"
+            android:layout_width="245dp"
+            android:layout_height="wrap_content"
+            android:text="screen record" />
+
+        <Switch
             android:id="@+id/post_result"
             android:layout_width="245dp"
             android:layout_height="wrap_content"
@@ -87,7 +93,7 @@
 
         <Switch
             android:id="@+id/alarm_msg"
-            android:layout_width="match_parent"
+            android:layout_width="245dp"
             android:layout_height="wrap_content"
             android:text="alarm msg" />
 
@@ -105,7 +111,7 @@
 
         <EditText
             android:id="@+id/input_retry"
-            android:layout_width="30dp"
+            android:layout_width="60dp"
             android:layout_height="wrap_content"
             android:ems="10"
             android:inputType="number"
@@ -128,7 +134,7 @@
     </TableRow>
 
     <TableRow
-        android:layout_width="251dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content">
 
         <TextView
@@ -144,6 +150,26 @@
             android:ems="10"
             android:inputType="number"
             android:text="1"
+            android:textAlignment="center"
+            android:textSize="14sp" />
+    </TableRow>
+    <TableRow
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/test_app"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="目标应用" />
+
+        <EditText
+            android:id="@+id/input_test_app"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="text"
+            android:text=""
             android:textAlignment="center"
             android:textSize="14sp" />
     </TableRow>
