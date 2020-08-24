@@ -6,8 +6,8 @@ android {
         applicationId "com.kevin.testool"
         minSdkVersion 23
         targetSdkVersion 28
-        versionCode 104009
-        versionName "4.9.0"
+        versionCode 100002
+        versionName "1.0.2"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
         ndk {
