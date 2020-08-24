@@ -224,9 +224,9 @@ skip\_condition 字段的用法继承了check\_point 的用法，check\_point的
 
 四. 使用方法
 ---
-* 将写好的testDemon.json文件存储到手机跟目录下/autotest/testcases/路径下，或者 点击左侧导航栏 “同步用例” 会自动同步目前自动化测试实现的测试case（需数据库配置正确）   
-* 在工具左侧导航栏里选择“重新导入”，用例会显示在主界面，长按每个item会显示 用例详情。   
-* 选中要执行的用例集合 点击 “开始” 测试开始执行，选择相应的测试环境，用例配置，case_tag 等参数   
+* 将写好的testDemo.json文件存储到手机跟目录下/autotest/testcases/路径下  
+* 在工具左侧导航栏里选择“重新导入”，用例会显示在主界面，点击每个item会显示 用例详情。   
+* 选中要执行的用例集合 点击 “开始” 测试开始执行，选择相应的测试环境，用例配置，目标应用，case_tag，等参数，点击确定即开始测试   
 * 测试完成后 点击导航栏 “日志报告” 可以查看测试报告    
 
   <img src="https://raw.githubusercontent.com/yanglikai0806/testool/master/resource/0.gif" width="300" height="570" alt="展示"/>
