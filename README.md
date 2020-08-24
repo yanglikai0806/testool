@@ -83,6 +83,7 @@ case 是测试用例的主体，执行测试用例的核心部分。
 {"class":"string"} 根据界面元素class属性点击界面控件，"nex","index"用法同上。
 {"click": [x, y]} 根据x，y坐标点击操作。
 {"swipe":[xs, ys, xe, ye, step]} 根据起始点 xs, ys 滑动界面到 xe，ye；step 为滑动步数，控制滑动快慢。
+{"drag":[{元素1},{元素2}]}，根据元素位置拖动例如{"drag":[{"text":"设置"},{"text":"相册"}]}表示从元素"设置"拖动到元素"相册的位置"
 {"activity":"string"/list} 支持string/list两种数据类型，list内多个activity 会随机启动一个，实现方式为adb命令。
 {"launchApp":"string"} 支持activity启动，支持package name 启动应用，Android方法实现。
 {"kill":"string"} 根据应用package name 结束应用进程。
@@ -95,6 +96,8 @@ case 是测试用例的主体，执行测试用例的核心部分。
 {"shell":"string"} 执行shell命令。
 {"wifi":"string"} on/off 开关wifi。
 {"if": {}} 执行过程判断，参数与check_point 用法一致。通过"true","false" 字段执行相应操作【参考check_point用法】
+{"check_point":{}} 用法同check_point, 用于重写(覆盖)原检测点
+{"check_add":{}} 用法同check_point, 根据条件增加检测点。
 
 ```
 * 其他字段均为描述性字段可缺省
