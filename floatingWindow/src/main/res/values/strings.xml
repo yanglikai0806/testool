@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">fw</string>
+    <string name="step">step</string>
+    <string name="ui">UI++</string>
+    <string name="accessibility">acs</string>
+    <string name="activity">activity</string>
+    <string name="shell">shell</string>
+    <string name="key">press</string>
+    <string name="input">input</string>
+    <string name="ifelse">if</string>
+    <string name="check_point">check</string>
+    <string name="caseid">用例id</string>
+</resources>

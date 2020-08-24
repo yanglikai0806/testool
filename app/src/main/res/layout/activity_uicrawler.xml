@@ -4,89 +4,151 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MonkeyTestActivity">
+    tools:context=".activity.MonkeyTestActivity">
 
-    <RelativeLayout
-        android:id="@+id/relativeLayout"
-        android:layout_width="407dp"
-        android:layout_height="243dp"
+    <TableLayout
+        android:id="@+id/tableLayout"
+        android:layout_width="395dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
         tools:ignore="MissingConstraints"
         tools:layout_editor_absoluteX="9dp"
         tools:layout_editor_absoluteY="65dp">
 
-        <LinearLayout
-            android:layout_width="395dp"
-            android:layout_height="229dp"
-            android:orientation="vertical">
+        <TableRow
+            android:layout_width="365dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
-            <LinearLayout
-                android:layout_width="369dp"
-                android:layout_height="82dp"
-                android:orientation="horizontal">
+            <TextView
+                android:id="@+id/m_package"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.5"
+                android:text="Package:"
+                android:textSize="18sp" />
 
-                <TextView
-                    android:id="@+id/m_package"
-                    android:layout_width="44dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.5"
-                    android:text="Package:"
-                    android:textSize="18sp" />
-
-                <EditText
-                    android:id="@+id/c_package"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:cursorVisible="true"
-                    android:ems="10"
-                    android:inputType="textPersonName"
-                    android:textAlignment="viewStart"
-                    android:textColor="@color/colorAccent"
-                    android:visibility="visible" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="370dp"
-                android:layout_height="84dp"
+            <EditText
+                android:id="@+id/c_package"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="horizontal">
+                android:cursorVisible="true"
+                android:ems="10"
+                android:inputType="textPersonName"
+                android:text=""
+                android:textAlignment="viewStart"
+                android:textColor="@color/colorAccent"
+                android:visibility="visible" />
 
-                <TextView
-                    android:id="@+id/m_deepth"
-                    android:layout_width="2dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0.5"
-                    android:text="Deepth:"
-                    android:textSize="18sp" />
+        </TableRow>
 
-                <EditText
-                    android:id="@+id/c_deepth"
-                    android:layout_width="128dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:ems="10"
-                    android:inputType="number" />
+        <TableRow
+            android:layout_width="365dp"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
 
-            </LinearLayout>
+            <TextView
+                android:id="@+id/m_deepth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.5"
+                android:text="Deepth:"
+                android:textSize="18sp" />
 
-        </LinearLayout>
+            <EditText
+                android:id="@+id/c_deepth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ems="10"
+                android:inputType="number"
+                android:text="1"
+                android:textColor="@color/colorAccent" />
 
-    </RelativeLayout>
+        </TableRow>
+
+        <TableRow
+            android:layout_width="365dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/m_page"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.5"
+                android:text="Page:"
+                android:textSize="18sp" />
+
+            <EditText
+                android:id="@+id/c_page"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:cursorVisible="true"
+                android:ems="10"
+                android:inputType="textPersonName"
+                android:text=""
+                android:textAlignment="viewStart"
+                android:textColor="@color/colorAccent"
+                android:visibility="visible" />
+
+        </TableRow>
+
+    </TableLayout>
 
     <Button
-        android:id="@+id/startButton"
-        android:layout_width="112dp"
-        android:layout_height="58dp"
+        android:id="@+id/m_start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:text="开始遍历"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tableLayout" />
+
+    <Button
+        android:id="@+id/m_param"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="参数设置"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/m_start" />
+
+    <ScrollView
+        android:layout_width="366dp"
+        android:layout_height="420dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
-        android:text="开始遍历"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/relativeLayout"
-        app:layout_constraintVertical_bias="0.448" />
+        app:layout_constraintTop_toBottomOf="@+id/m_param"
+        app:layout_constraintVertical_bias="0.0">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            tools:ignore="MissingConstraints">
+
+            <TextView
+                android:id="@+id/param_dis"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:scrollbars="vertical"
+                android:singleLine="false"
+                android:text="参数配置" />
+        </LinearLayout>
+    </ScrollView>
+
 </android.support.constraint.ConstraintLayout>

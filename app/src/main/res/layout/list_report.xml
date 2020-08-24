@@ -17,6 +17,13 @@
         android:layout_width="2dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="查看" />
+        android:text="报告" />
+
+    <Button
+        android:id="@+id/logBtn"
+        android:layout_width="2dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="LOG" />
 
 </LinearLayout>

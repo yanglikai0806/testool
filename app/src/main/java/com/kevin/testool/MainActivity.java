@@ -2,20 +2,21 @@ package com.kevin.testool;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.DownloadManager;
-import android.app.TimePickerDialog;
 import android.content.BroadcastReceiver;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -28,7 +29,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -40,16 +40,28 @@ import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Switch;
-import android.widget.TimePicker;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import com.kevin.testool.common.Common;
-import com.kevin.testool.utils.AdbUtils;
-import com.kevin.testool.utils.AppUtils;
+import com.kevin.fw.FloatingWindowService;
+import com.kevin.fw.TextDisplayWindowService;
+import com.kevin.share.CONST;
+import com.kevin.share.accessibility.AccessibilityHelper;
+import com.kevin.share.Common;
+import com.kevin.testool.activity.EditCaseActivity;
+import com.kevin.testool.activity.MonkeyTestActivity;
+import com.kevin.testool.activity.RecordCaseActivity;
+import com.kevin.testool.activity.ReportActivity;
+import com.kevin.testool.activity.UICrawlerActivity;
+import com.kevin.testool.activity.WirelessAdb;
+import com.kevin.testool.service.InstallService;
+import com.kevin.testool.service.MonitorService;
+import com.kevin.share.utils.AdbUtils;
+import com.kevin.share.utils.AppUtils;
 import com.kevin.testool.utils.DateTimeUtils;
-import com.kevin.testool.utils.FileUtils;
-import com.kevin.testool.utils.ToastUtils;
-import com.kevin.testool.utils.logUtil;
+import com.kevin.share.utils.FileUtils;
+import com.kevin.share.utils.ToastUtils;
+import com.kevin.share.utils.logUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -63,11 +75,15 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static android.app.DownloadManager.ACTION_DOWNLOAD_COMPLETE;
 import static android.app.DownloadManager.Request.VISIBILITY_VISIBLE;
 import static android.os.Process.killProcess;
-import static com.kevin.testool.CONST.AUTOTEST;
-import static com.kevin.testool.CONST.CONFIG_FILE;
+import static com.kevin.share.CONST.AUTOTEST;
+import static com.kevin.share.CONST.CONFIG_FILE;
+import static com.kevin.share.CONST.LOGPATH;
+import static com.kevin.share.CONST.NEED_REMIND_ACCESSIBILITY;
+import static com.kevin.share.CONST.TESTOOL_SETTING;
+import static com.kevin.share.Common.CONFIG;
+import static com.kevin.share.accessibility.AccessibilityHelper.goAccess;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -79,11 +95,11 @@ public class MainActivity extends AppCompatActivity
     private FileUtils myFile;
     private JSONArray fileList;
     private dlReceiver dl;
-    private sycReceiver syc;
-    private String test_env="";
+    private String test_env="production";
     private String casetag = "";
     private int loopNum = 1;
-
+    // 申明代码覆盖测试状态
+    public static Boolean isCoverageTestStart = false;
 
     int year = 2016;
     int month = 10;
@@ -123,6 +139,133 @@ public class MainActivity extends AppCompatActivity
                 ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CHANGE_WIFI_STATE}, 1);
             }
         }
+        //注册广播接收器
+        UpdateCaseListReceiver updateCaseListReceiver = new UpdateCaseListReceiver();
+        IntentFilter filter=new IntentFilter();
+        filter.addAction(CONST.ACTION_UPDATECASELIST);
+        registerReceiver(updateCaseListReceiver, filter);
+        //
+
+        SharedPreferences ts = getSharedPreferences(TESTOOL_SETTING, 0);
+        boolean remindAccess = true;
+        if (ts != null) {
+            remindAccess = ts.getBoolean(NEED_REMIND_ACCESSIBILITY, true);
+        }
+
+        if (!AccessibilityHelper.checkAccessibilityEnabled() && remindAccess){
+            new AlertDialog.Builder(MainActivity.this)
+                    .setTitle("提示：")
+                    .setMessage("是否为“测试工具”开启辅助功能？")
+                    .setPositiveButton("前往开启", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            goAccess();
+                        }
+                    })
+                    .setNegativeButton("不再提醒", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            ts.edit().putBoolean(NEED_REMIND_ACCESSIBILITY, false).apply();
+                        }
+                    })
+                    .show();
+        }
+
+        if (!new File(LOGPATH).exists()){
+            new File(LOGPATH).mkdirs();
+        }
+        //config文件加载
+        if (!new File(CONST.CONFIG_FILE).exists()) {
+            String configContent = "\"APP\" : {\"微信\": \"com.tencent.mm\"},\n" +
+                    "  \"TEST_ENV\": \"production\",\n" +
+                    "  \"RETRY\": \"2\",\n" +
+                    "  \"CASE_TAG\": \"\",\n" +
+                    "  \"LOG\": \"false\",\n" +
+                    "  \"SCREENSHOT\": \"true\",\n" +
+                    "  \"SCREEN_RECORD\": \"true\",\n" +
+                    "  \"MP42GIF\": \"false\",\n" +
+                    "  \"ALARM_MSG\": \"false\",\n" +
+                    "  \"SCREEN_LOCK_PW\": \"0000\",\n" +
+                    "  \"OFFLINE\": \"false\",\n" +
+                    "  \"SERVER_IP\":\"127.0.0.1\",\n" +
+                    "  \"SERVER_PORT\":\"9999\",\n" +
+                    "  \"TABLE\": \"test_cases\",\n" +
+                    "  \"POST_RESULT\": \"true\",\n" +
+                    "  \"TARGET_APP\": \"\",\n" +
+                    "  \"RECORD_MEMINFO\":\"true\",\n" +
+                    "  \"RECORD_CURRENT\":\"true\",\n" +
+                    "  \"POP_WINDOW_LIST\":[\"同意并继续\", \"允许\", \"确定\", \"同意\", \"继续\", \"好\", \"暂不升级\", \"跳过\", \"立即体验\", \"知道了\", \"我知道了\", \"更新\", \"立即开通\", \"我同意\", \"继续安装\", \"接受\", \"以后再说\", \"同意并使用\", \"您已阅读并同意\", \"同意并加入\"],\n" +
+                    "  \"DEBUG\":\"true\",\n" +
+                    "  \"CHECK_TYPE\": 1,\n" +
+                    "  \"MYSQL\": {\n" +
+                    "    \"server_ip\":\"127.0.0.1\",\n" +
+                    "    \"port\":\"3306\",\n" +
+                    "    \"database\":\"\",\n" +
+                    "    \"table\":\"\",\n" +
+                    "    \"url\": \"jdbc:mysql://127.0.0.1:3306/test_mp?useUnicode=true&characterEncoding=UTF-8\",\n" +
+                    "    \"user\": \"user\",\n" +
+                    "    \"password\": \"pwd\"\n" +
+                    "  }\n" +
+                    "}";
+            try {
+                FileUtils.writeFile(CONFIG_FILE, configContent, false);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        //检查测试辅助应用是否安装
+        if (!AppUtils.isApkInstalled(this, "com.kevin.testassist")||!AppUtils.isApkInstalled(this, "com.kevin.testassist.test")){
+
+            AlertDialog.Builder installDialog =
+                    new AlertDialog.Builder(MainActivity.this);
+            final View dialogView = LayoutInflater.from(MainActivity.this)
+                    .inflate(R.layout.dialog_layout1,null);
+
+            installDialog.setTitle("提示：");
+            installDialog.setView(dialogView);
+            installDialog.setPositiveButton("我已安装", null);
+            installDialog.setNegativeButton("取消", null);
+            installDialog.show();
+            Button ins1 = dialogView.findViewById(R.id.btn1);
+            Button ins2 = dialogView.findViewById(R.id.btn2);
+            if (!AppUtils.isApkInstalled(MainActivity.this, "com.kevin.testassist")){
+                ins1.setText("点击安装“测试辅助”应用");
+                ins1.setTextColor(Color.parseColor("#FFF44336"));
+            } else {
+                ins1.setText("已安装“测试辅助”应用，点击重装");
+                ins1.setTextColor(Color.parseColor("#FF4CAF50"));
+            }
+            if (!AppUtils.isApkInstalled(MainActivity.this, "com.kevin.testassist.test")){
+                ins2.setText("点击安装“测试辅助-test”");
+                ins2.setTextColor(Color.parseColor("#FFF44336"));
+            } else {
+                ins2.setText("已安装“测试辅助-test”，点击重装");
+                ins2.setTextColor(Color.parseColor("#FF4CAF50"));
+            }
+            ins1.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent ins = new Intent(MainActivity.this, InstallService.class);
+                    ins.putExtra("APK_URL", "https://raw.githubusercontent.com/yanglikai0806/testool/master/resource/testassist.apk");
+                    startService(ins);
+                }
+            });
+
+            ins2.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent ins = new Intent(MainActivity.this, InstallService.class);
+                    ins.putExtra("APK_URL", "https://raw.githubusercontent.com/yanglikai0806/testool/master/resource/testassist-test.apk");
+                    startService(ins);
+                }
+            });
+
+
+        }
+
+
         if (!AdbUtils.isAdbEnable()){
             new AlertDialog.Builder(MainActivity.this)
                     .setTitle("提示：")
@@ -144,123 +287,138 @@ public class MainActivity extends AppCompatActivity
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
         Button selectAll = findViewById(R.id.selectAll);
-        Button conSelect = findViewById(R.id.conSelect);
-        Button setTime = findViewById(R.id.set_time);
+//        Button conSelect = findViewById(R.id.conSelect);
+        Button monitorTask = findViewById(R.id.startMonitor);
+        Button debugTask = findViewById(R.id.startDebug);
 
         final Button startTest = findViewById(R.id.startTest);
 
-        //config文件加载
-        if (!new File(CONST.CONFIG_FILE).exists()) {
-            //todo 自动加载config文件
-//            downloadResource("");
-            //初始化config文件
-            String content = "{  \n" +
-                    "  \"APP\" : {\n" +
-                    "    \"微信\": \"com.tencent.mm\",\n" +
-                    "},  \n" +
-                    " \"TEST_ENV\": \"production\",\n" +
-                    " \"RETRY\": 2, \n" +
-                    " \"CASE_TAG\": \"\",\n" +
-                    " \"LOG\": \"true\",\n" +
-                    " \"SCREENSHOT\": \"true\",\n" +
-                    " \"SCREEN_RECORD\": \"true\",\n" +
-                    " \"ALARM_MSG\": \"false\",\n" +
-                    " \"SCREEN_LOCK_PW\": \"0000\",\n" +
-                    " \"CHECK_TYPE\"：1,\n" +
-                    " \"POST_RESULT\": \"false\",\n" +
-                    " \"MYSQL\": {\n" +
-                    "    \"url\": \"jdbc:mysql://your.mysql.ip/your_table?useUnicode=true&characterEncoding=UTF-8\",  \n" +
-                    " \"user\": \"user_name\",  \n" +
-                    " \"password\": \"your_pw\"  \n" +
-                    "  }  \n" +
-                    "}";
-            try {
-                FileUtils.writeFile(CONFIG_FILE, content,false);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
-
         //加载测试用例
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-
-            ArrayList<String> cases_list = Common.getCaseList(MainActivity.this);
-            if (cases_list != null) {
-                list_item = new ArrayList<String>();
-                for (int i = 0; i < cases_list.size(); i++) {
-                    list_item.add((i + 1) + ". " + cases_list.get(i));
-                }
-                ListView list_view = findViewById(R.id.list_test);
-                mAdapter = new MyAdapter(list_item, this);
-                list_view.setAdapter(mAdapter);
-            }
-
+            updateCaseList();
             selectAll.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    for (int i = 0; i < list_item.size(); i++) {
-                        MyAdapter.getIsSelected().put(i, true);
+                    if (selectAll.getText().toString().equals("全选")) {
+                        for (int i = 0; i < list_item.size(); i++) {
+                            MyAdapter.getIsSelected().put(i, true);
+                        }
+                        // 数量设为list的长度
+                        checkNum = list_item.size();
+                        // 刷新listview和TextView的显示
+//                dataChanged();
+                        mAdapter.notifyDataSetChanged();
+                        selectAll.setText("取消");
+                    } else {
+                        for (int i = 0; i < list_item.size(); i++) {
+                            if (MyAdapter.getIsSelected().get(i)) {
+                                MyAdapter.getIsSelected().put(i, false);
+//                        checkNum--;
+                            } else {
+                                MyAdapter.getIsSelected().put(i, true);
+                            }
+
+                        }
+                        selectAll.setText("全选");
+                        // 刷新listview和TextView的显示
+//                dataChanged();
+                        mAdapter.notifyDataSetChanged();
                     }
-                    // 数量设为list的长度
-                    checkNum = list_item.size();
-                    Log.d("KEVIN", "checkNum: " + checkNum);
-                    // 刷新listview和TextView的显示
-                    mAdapter.notifyDataSetChanged();
                 }
             });
         }
-        conSelect.setOnClickListener(new View.OnClickListener() {
+//        conSelect.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                // 遍历list的长度，将已选的设为未选，未选的设为已选
+//                for (int i = 0; i < list_item.size(); i++) {
+//                    if (MyAdapter.getIsSelected().get(i)) {
+//                        MyAdapter.getIsSelected().put(i, false);
+////                        checkNum--;
+//                    } else {
+//                        MyAdapter.getIsSelected().put(i, true);
+//                    }
+//
+//                }
+//                // 刷新listview和TextView的显示
+////                dataChanged();
+//                mAdapter.notifyDataSetChanged();
+//            }
+//        });
+
+        monitorTask.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // 遍历list的长度，将已选的设为未选，未选的设为已选
-                for (int i = 0; i < list_item.size(); i++) {
-                    System.out.println(MyAdapter.getIsSelected().get(i));
-                    if (MyAdapter.getIsSelected().get(i)) {
-                        MyAdapter.getIsSelected().put(i, false);
+                if (monitorTask.getText().toString().equals("监控任务")) {
+                    if (!Settings.canDrawOverlays(MainActivity.this)) {
+                        startActivityForResult(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName())), 0);
                     } else {
-                        MyAdapter.getIsSelected().put(i, true);
-                    }
 
+                        startService(new Intent(MainActivity.this, FloatingWindowService.class));
+                        Intent intent_monitor = new Intent(MainActivity.this, MonitorService.class);
+                        intent_monitor.setAction("com.kevin.testool.task");
+                        intent_monitor.putExtra("IS_MONITOR", true);
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            startForegroundService(intent_monitor);
+                        } else {
+                            startService(intent_monitor);
+                        }
+                        monitorTask.setText("监控中");
+                        monitorTask.setTextColor(Color.parseColor("#FF0000"));
+                        //注册广播接收器
+                        MonitorReceiver monitorReceiver = new MonitorReceiver();
+                        IntentFilter filter=new IntentFilter();
+                        filter.addAction("com.kevin.testool.action.monitor.finish");
+                        registerReceiver(monitorReceiver, filter);
+                    }
                 }
-                // 刷新listview和TextView的显示
-                mAdapter.notifyDataSetChanged();
             }
         });
 
-        setTime.setOnClickListener(new View.OnClickListener() {
+        debugTask.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                new TimePickerDialog(MainActivity.this, new TimePickerDialog.OnTimeSetListener() {
-
-                    @Override
-                    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                        houre = hourOfDay;
-                        MainActivity.this.minute = minute;
+                if (debugTask.getText().toString().equals("调试任务")) {
+                    Intent intent_debug = new Intent(MainActivity.this, MonitorService.class);
+                    intent_debug.setAction("com.kevin.testool.task");
+                    intent_debug.putExtra("IS_MONITOR", true);
+                    intent_debug.putExtra("IS_DEBUG", true);
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        startForegroundService(intent_debug);
+                    } else {
+                        startService(intent_debug);
                     }
-                }, 15, 20, true).show();
+                    debugTask.setText("执行中");
+                    debugTask.setTextColor(Color.parseColor("#FF0000"));
 
+                    DebugFinishReceiver dfr = new DebugFinishReceiver();
+                    IntentFilter filter = new IntentFilter();
+                    filter.addAction("com.kevin.testool.action.debug.finish");
+                    registerReceiver(dfr, filter);
+                } else {
+                    ActivityManager am = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+                    List<ActivityManager.RunningAppProcessInfo> runningAppProcesses = am.getRunningAppProcesses();
+                    Iterator<ActivityManager.RunningAppProcessInfo> iter = runningAppProcesses.iterator();
+                    while(iter.hasNext()){
+                        ActivityManager.RunningAppProcessInfo next = iter.next();
+                        String pricessName = getPackageName() + ":MonitorService"; //需要在manifest文件内定义android:process=":MyIntentService"
+                        if(next.processName.equals(pricessName)){
+                            killProcess(next.pid);
+                            Intent intent_monitor = new Intent();
+                            intent_monitor.setAction("com.kevin.testool.action.monitor.finish");
+                            sendBroadcast(intent_monitor);
+                            break;
+                        }
+                    }
+
+                    debugTask.setText("调试任务");
+                    debugTask.setTextColor(Color.parseColor("#000000"));
+                }
             }
-//                new DatePickerDialog(MainActivity.this, new DatePickerDialog.OnDateSetListener() {
-//
-//
-//                    @Override
-//                    public void onDateSet(DatePicker view, int year, int monthOfYear,
-//                                          int dayOfMonth) {
-//                        MainActivity.this.year = year;
-//                        month = monthOfYear;
-//                        day = dayOfMonth;
-//
-//                    }
-//                }, 2016, 10, 8).show();
-////                showDate();
-//
-//            }
-
         });
 
 
@@ -305,9 +463,20 @@ public class MainActivity extends AppCompatActivity
                                     } else {
                                         startService(intent_start);
                                     }
-                                    //创建log文件夹
                                     moveTaskToBack(true); //隐藏activity到后台
                                 } else {
+                                    String TARGET_APP = "";
+                                    try {
+                                        TARGET_APP = CONFIG().getString("TARGET_APP");
+                                    } catch (JSONException e) {
+                                        e.printStackTrace();
+                                    }
+                                    try {
+                                        Common.switchTestEnv(TARGET_APP, test_env);
+                                    } catch (Exception ignore) {
+                                        ActivityManager am = (ActivityManager) getSystemService(Activity.ACTIVITY_SERVICE);
+                                        am.killBackgroundProcesses(TARGET_APP);
+                                    }
                                     Toast.makeText(getApplicationContext(), "请选择测试用例！", Toast.LENGTH_SHORT).show();
                                 }
 
@@ -320,13 +489,50 @@ public class MainActivity extends AppCompatActivity
         });
 
     }
-
-    public static class MainReceiver extends BroadcastReceiver{
+//================ 广播接收器们===================================
+    public class MonitorReceiver extends BroadcastReceiver{
         @Override
         public void onReceive(Context context, Intent intent) {
-
+            Button monitorTask = findViewById(R.id.startMonitor);
+            monitorTask.setText("监控任务");
+            monitorTask.setTextColor(Color.parseColor("#000000"));
         }
     }
+
+    public class UpdateCaseListReceiver extends BroadcastReceiver{
+        @Override
+        public void onReceive(Context context, Intent intent){
+            updateCaseList();
+        }
+    }
+
+    public static class dlReceiver extends BroadcastReceiver {
+        @SuppressLint("SetTextI18n")
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            try {
+//                MyFile.unzip(LOGPATH + "testcases.zip", LOGPATH+"/"+"testcases");
+                ToastUtils.showShort(context,"文件下载完成~");
+            } catch (Exception e) {
+                e.printStackTrace();
+                ToastUtils.showShort(context,"文件下载失败！！！");
+            }
+        }
+    }
+
+    public class DebugFinishReceiver extends BroadcastReceiver {
+        @SuppressLint("SetTextI18n")
+        @Override
+        public void onReceive(Context context, Intent intent_debug) {
+            if (intent_debug.hasExtra("RESULT")) {
+                Intent textDisplayIntent = new Intent(getApplicationContext(), TextDisplayWindowService.class);
+                textDisplayIntent.putExtra("TEXT", intent_debug.getStringExtra("DEBUG_LOG"));
+                startService(textDisplayIntent);
+                unregisterReceiver(this);
+            }
+        }
+    }
+    //=======================================================================
 
     private void exit() {
         AlertDialog.Builder popWindow = new AlertDialog.Builder(MainActivity.this);
@@ -342,13 +548,11 @@ public class MainActivity extends AppCompatActivity
                 //结束测试服务（结束intentservice）
                 ActivityManager am = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
                 List<ActivityManager.RunningAppProcessInfo> runningAppProcesses = am.getRunningAppProcesses();
-
                 Iterator<ActivityManager.RunningAppProcessInfo> iter = runningAppProcesses.iterator();
-
                 while(iter.hasNext()){
                     ActivityManager.RunningAppProcessInfo next = iter.next();
-                    String pricessName = getPackageName() + ":MyIntentService"; //需要在manifest文件内定义android:process=":MyIntentService"
-                    if(next.processName.equals(pricessName)){
+                    String mProcess = getPackageName() + ":MyIntentService"; //需要在manifest文件内定义android:process=":MyIntentService"
+                    if(next.processName.equals(mProcess)){
                         killProcess(next.pid);
                         break;
                     }
@@ -380,10 +584,14 @@ public class MainActivity extends AppCompatActivity
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
+
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
@@ -398,7 +606,13 @@ public class MainActivity extends AppCompatActivity
                     })
                     .setNegativeButton("取消", null)
                     .show();
-            return true;
+        }
+        if (id == R.id.action_start_accessibility){
+            if (AccessibilityHelper.checkAccessibilityEnabled()){
+                ToastUtils.showShort(MainActivity.this, "辅助功能已开启");
+            } else {
+                goAccess();
+            }
         }
 
         return super.onOptionsItemSelected(item);
@@ -406,40 +620,39 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        // Handle navigation view item clicks here.
         int id = item.getItemId();
         if (id == R.id.nav_syc) {
             Intent intent = new Intent(this, MyIntentService.class);
             intent.setAction("com.kevin.testool.action.testcases.syc");
             startService(intent);
 
-        } else if (id == R.id.nav_update) {
-            ArrayList<String> cases_list = Common.getCaseList(MainActivity.this);
-            list_item = new ArrayList<String>();
-            if (cases_list != null) {
-                for (int i = 0; i < cases_list.size(); i++) {
-                    list_item.add((i + 1) + ". " + cases_list.get(i));
-                }
-                ListView list_test = findViewById(R.id.list_test);
-                mAdapter = new MyAdapter(list_item, this);
-                list_test.setAdapter(mAdapter);
+        } else if (id == R.id.record_case){
+            startActivity(new Intent(MainActivity.this, RecordCaseActivity.class));
 
-                ToastUtils.showShort(this, "导入成功");
-            }
+        } else if (id == R.id.nav_update) {
+            updateCaseList();
+
         } else if (id == R.id.nav_report) {
             startActivity(new Intent(MainActivity.this, ReportActivity.class));
-        } else if (id == R.id.nav_share) {
-            about();
+//            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+//            Uri uri = Uri.parse(CONST.LOGPATH);
+//            intent.setDataAndType(uri, "*/*");
+//            intent.addCategory(Intent.CATEGORY_OPENABLE);
+//            startActivity(intent);
+
+        } else if (id == R.id.nav_uicrawler) {
+            startActivity(new Intent(MainActivity.this, UICrawlerActivity.class));
+
         } else if (id == R.id.nav_adb) {
             startActivity(new Intent(MainActivity.this, WirelessAdb.class));
         } else if (id == R.id.add_new){
             startActivity(new Intent(MainActivity.this, EditCaseActivity.class));
-        } else if (id == R.id.nav_monkey){
+        }else if (id == R.id.nav_monkey){
             startActivity(new Intent(MainActivity.this, MonkeyTestActivity.class));
-        } else if (id == R.id.nav_log){
+        }else if (id == R.id.nav_log){
             Common.generateBugreport(CONST.LOGPATH + "bugreport_" + DateTimeUtils.getCurrentDateTimeString() + ".txt");
             ToastUtils.showShort(MainActivity.this, "正在抓取...，稍后请在autotest文件夹下查看");
-        } else if (id == R.id.nav_uicrawler) {
-            startActivity(new Intent(MainActivity.this, UICrawlerActivity.class));
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -452,7 +665,9 @@ public class MainActivity extends AppCompatActivity
             case 1: {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // 权限被用户同意，可以去放肆了。
                 } else {
+                    // 权限被用户拒绝了，洗洗睡吧。
                 }
                 return;
             }
@@ -471,11 +686,6 @@ public class MainActivity extends AppCompatActivity
         request.setTitle("下载");
         request.setDescription("正在下载资源");
 //        request.setAllowedOverRoaming(false);
-        //注册广播 接收下载完成的广播
-        dl = new dlReceiver();
-        IntentFilter filter=new IntentFilter();
-        filter.addAction(ACTION_DOWNLOAD_COMPLETE);
-        registerReceiver(dl, filter);
 
         //获取下载管理器
         DownloadManager downloadManager= (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
@@ -483,30 +693,11 @@ public class MainActivity extends AppCompatActivity
         downloadManager.enqueue(request);
     }
 
-    public static class dlReceiver extends BroadcastReceiver {
-        @SuppressLint("SetTextI18n")
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            try {
-//                MyFile.unzip(LOGPATH + "testcases.zip", LOGPATH+"/"+"testcases");
-                ToastUtils.showShort(context,"文件下载完成~");
-            } catch (Exception e) {
-                e.printStackTrace();
-                ToastUtils.showShort(context,"文件下载失败！！！");
-            }
-
-        }
-    }
-
-    public static class sycReceiver extends BroadcastReceiver {
-        @SuppressLint("SetTextI18n")
-        @Override
-        public void onReceive(Context context, Intent intent) {
-                ToastUtils.showShort(context,"用例同步成功~");
-
-        }
-    }
-
+    /**
+     * 展示&修改 配置参数对话框
+     * @return
+     * @throws JSONException
+     */
     @SuppressLint("ResourceType")
     private AlertDialog.Builder configDialog() throws JSONException {
         AlertDialog.Builder configDialog = new AlertDialog.Builder(MainActivity.this);
@@ -551,6 +742,8 @@ public class MainActivity extends AppCompatActivity
         final Switch post_switch = dialogView.findViewById(R.id.post_result);
         final Switch alarm_msg = dialogView.findViewById(R.id.alarm_msg);
         final Switch screen_record = dialogView.findViewById(R.id.screenRecord);
+        final Switch recordMemInfo = dialogView.findViewById(R.id.recordMemInfo);
+        final Switch recordCurrent = dialogView.findViewById(R.id.recordCurrent);
 
         if (!Common.CONFIG().isNull("LOG") && Common.CONFIG().getString("LOG").equals("true")) {
             bugreport_switch.setChecked(true);
@@ -643,6 +836,44 @@ public class MainActivity extends AppCompatActivity
                         FileUtils.editJsonFile(CONFIG_FILE, new JSONObject().put("ALARM_MSG", "true"));
                     } else {
                         FileUtils.editJsonFile(CONFIG_FILE, new JSONObject().put("ALARM_MSG", "false"));
+                    }
+                } catch (Exception ignored){
+
+                }
+            }
+        });
+        if (!Common.CONFIG().isNull("RECORD_MEMINFO") && Common.CONFIG().getString("RECORD_MEMINFO").equals("true")) {
+            recordMemInfo.setChecked(true);
+        } else{
+            recordMemInfo.setChecked(false);
+        }
+        recordMemInfo.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                try {
+                    if (isChecked) {
+                        FileUtils.editJsonFile(CONFIG_FILE, new JSONObject().put("RECORD_MEMINFO", "true"));
+                    } else {
+                        FileUtils.editJsonFile(CONFIG_FILE, new JSONObject().put("RECORD_MEMINFO", "false"));
+                    }
+                } catch (Exception ignored){
+
+                }
+            }
+        });
+        if (!Common.CONFIG().isNull("RECORD_CURRENT") && Common.CONFIG().getString("RECORD_CURRENT").equals("true")) {
+            recordCurrent.setChecked(true);
+        } else{
+            recordCurrent.setChecked(false);
+        }
+        recordCurrent.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                try {
+                    if (isChecked) {
+                        FileUtils.editJsonFile(CONFIG_FILE, new JSONObject().put("RECORD_CURRENT", "true"));
+                    } else {
+                        FileUtils.editJsonFile(CONFIG_FILE, new JSONObject().put("RECORD_CURRENT", "false"));
                     }
                 } catch (Exception ignored){
 
@@ -758,43 +989,90 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        //Mysql数据库配置
-        EditText dbUrl = dialogView.findViewById(R.id.dbUrl);
-        EditText dbUser = dialogView.findViewById(R.id.dbUser);
-        EditText dbPassword = dialogView.findViewById(R.id.dbPassword);
-        JSONObject mysql = null;
-        try {
-            mysql = Common.CONFIG().getJSONObject("MYSQL");
-            dbUrl.setText(String.format("url: %s", mysql.getString("url")));
-            dbUser.setText(String.format("username: %s", mysql.getString("user")));
-//            dbPassword.setText(String.format("password:%s",mysql.getString("password")));
-            dbPassword.setText(String.format("password: %s","*******"));
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+//        //Mysql数据库配置
+//        EditText dbUrl = dialogView.findViewById(R.id.dbUrl);
+//        EditText dbName = dialogView.findViewById(R.id.dbName);
+//        EditText dbUser = dialogView.findViewById(R.id.dbUser);
+//        EditText dbPassword = dialogView.findViewById(R.id.dbPassword);
+//        JSONObject mysql = null;
+//        try {
+//            mysql = Common.CONFIG().getJSONObject("MYSQL");
+//            dbUrl.setText(String.format("%s: %s", mysql.getString("server_ip"), mysql.getString("port")));
+//            dbName.setText(mysql.getString("database"));
+//            dbUser.setText(mysql.getString("user"));
+//            dbPassword.setText(mysql.getString("password"));
+//        } catch (JSONException e) {
+//            ToastUtils.showLong(MainActivity.this, "请检查config.json文件中的MYSQL配置");
+//        }
+
+        final Button configDetail = dialogView.findViewById(R.id.configDetail);
+        configDetail.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AlertDialog.Builder popWindow = new AlertDialog.Builder(MainActivity.this);
+                View dialogView = LayoutInflater.from(MainActivity.this).inflate(R.layout.case_detail,null);
+                //设置对话框标题
+                popWindow.setTitle("配置文件");
+//                设置对话框消息
+                popWindow.setView(dialogView);
+                String fp = LOGPATH + "config.json";
+                String res = FileUtils.readJsonFile(fp);
+                final TextView case_detail = dialogView.findViewById(R.id.case_detail);
+                case_detail.setText(res.replace("}},","}},\n").replace("\",", "\",\n").replace("\n\n", "\n"));
+                case_detail.setTextIsSelectable(true);
+
+//                 添加选择按钮并注册监听
+                popWindow.setPositiveButton("编辑", (dialog, which) -> {
+                    AlertDialog.Builder editWindow = new AlertDialog.Builder(MainActivity.this);
+                    View editWindowView = LayoutInflater.from(MyApplication.getContext()).inflate(R.layout.case_edit,null);
+//                    editWindow.setTitle("编辑用例");
+                    editWindow.setView(editWindowView);
+                    final EditText et = editWindowView.findViewById(R.id.caseEdit);
+                    et.setText(res.replace("}},","}},\n").replace("\",", "\",\n").replace("\n\n", "\n"));
+                    editWindow.setPositiveButton("保存", (dialog1, which1) -> {
+                        try {
+                            FileUtils.writeFile(fp, et.getText().toString(), false);
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                    editWindow.setNegativeButton("取消", null);
+                    editWindow.show();
+                });
+                popWindow.setNegativeButton("关闭", null);
+                //对话框显示
+                popWindow.show();
+            }
+        });
         return configDialog;
     }
 
-    private void about(){
-        final String githubUrl = "https://github.com/yanglikai0806/testool.git";
-        new android.app.AlertDialog.Builder(MainActivity.this).setTitle("关于")
-                .setMessage("当前版本：" + AppUtils.getVersionName(MainActivity.this, getPackageName()) +"\n" + githubUrl)
-                .setPositiveButton("分享", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-
-                        ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                        // 创建普通字符型ClipData
-                        ClipData mClipData = ClipData.newPlainText("Label", githubUrl);
-                        // 将ClipData内容放到系统剪贴板里。
-                        cm.setPrimaryClip(mClipData);
-                        ToastUtils.showLong(MainActivity.this, "已复制github连接到剪贴板");
-
-                    }
-                })
-                .setNegativeButton("取消", null)
-                .show();
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 0) {
+            if (Settings.canDrawOverlays(this)) {
+                startService(new Intent(MainActivity.this, FloatingWindowService.class));
+            }
+        }
     }
 
+    /**
+     * 更新界面显示的测试用例列表
+     */
+    public void updateCaseList(){
+        ArrayList<String> cases_list = Common.getCaseList();
+        list_item = new ArrayList<String>();
+        if (cases_list != null) {
+            for (int i = 0; i < cases_list.size(); i++) {
+                list_item.add((i + 1) + ". " + cases_list.get(i));
+            }
+            ListView list_test = findViewById(R.id.list_test);
+            mAdapter = new MyAdapter(list_item, this);
+            list_test.setAdapter(mAdapter);
+
+//            ToastUtils.showShort(this, "完成");
+        }
+    }
 
     @Override
     protected void onDestroy() {
@@ -802,7 +1080,6 @@ public class MainActivity extends AppCompatActivity
         if (dl != null) {
             unregisterReceiver(dl);
         }
-
     }
 
 }

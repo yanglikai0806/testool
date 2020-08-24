@@ -2,8 +2,10 @@ package com.kevin.testool.common;
 
 import android.os.Build;
 
-import com.kevin.testool.utils.FileUtils;
-import com.kevin.testool.utils.logUtil;
+import com.kevin.testool.MyApplication;
+import com.kevin.share.utils.FileUtils;
+import com.kevin.share.utils.ToastUtils;
+import com.kevin.share.utils.logUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -295,14 +297,14 @@ public class HtmlReport {
     static int failure_count = 0;
     static int error_count = 0;
     static JSONObject result = new JSONObject();
-    String device = "";
-    String env = "";
     static String _domain;
     static String _caseid;
     static String _error;
     static String _result;
     static int start_i;
     static int end_i;
+
+    static String logFolderPath;
 
 
     public static JSONObject sortResult(String logFile) throws IOException, JSONException {
@@ -318,6 +320,7 @@ public class HtmlReport {
         JSONObject r = new JSONObject();
 
         File file = new File(logFile);
+        logFolderPath = file.getParent();
         if (!file.exists()) {
             logUtil.d("logFile", "文件不存在");
         }
@@ -329,14 +332,17 @@ public class HtmlReport {
         while((line = br.readLine()) != null){
             i++;
             content.put(line);
-            if (line.contains(TITLE)){
+            if (line.contains(TITLE) && title.length() == 0){
                 startTime = line.split(":")[0];
                 title = line.split(TITLE)[1].trim();
             }
 
             if (line.contains(START)){
                 _domain = line.split(START)[1].trim();
-                r.put(_domain, new JSONArray());
+                if (r.isNull(_domain)){
+                    r.put(_domain, new JSONArray());
+                }
+
             }
 
             if (line.contains(CASEID)){
@@ -547,15 +553,22 @@ public class HtmlReport {
             String line = o.getString(i).trim();
             if (line.contains(".png")){
                 String image = "screenshot/"+line.split(":i")[1].trim();
-                line = String.format("<img src=\"%s\" alt=\"screen_shot\" height=\"270\" width=\"130\"></img>\n", image);
+                if (new File(logFolderPath + File.separator + image).exists()) {
+                    line = String.format("<img src=\"%s\" alt=\"screen_shot\" height=\"270\" width=\"130\"></img>\n", image);
+                }
             }
             if (line.contains(".gif")){
-                String image = "screenshot/"+line.split(":i")[1].trim();
-                line = String.format("<img src=\"%s\" alt=\"screen_shot\" height=\"270\" width=\"180\"></img>\n", image);
+                String gif = "screenshot/"+line.split(":i")[1].trim();
+                if (new File(logFolderPath + File.separator + gif).exists()) {
+                    line = String.format("<img src=\"%s\" alt=\"screen_gif\" height=\"270\" width=\"180\"></img>\n", gif);
+                }
             }
             if (line.contains(".mp4")){
                 String screenRecord = "screenshot/"+line.split(":i")[1].trim();
-                line = String.format("<a href=\"%s\" >查看录屏</a>", screenRecord);
+                if (new File(logFolderPath + File.separator + screenRecord).exists()) {
+//                    line = String.format("<a href=\"%s\" target=\"_blank\">查看录屏</a>", screenRecord);
+                    line = String.format("<video id=\"screen_record\" controls=\"controls\" width=\"360\" height=\"540\" src=\"%s\" >录屏文件</video>", screenRecord);
+                }
             }
             noutput.append(line).append("\n");
         }

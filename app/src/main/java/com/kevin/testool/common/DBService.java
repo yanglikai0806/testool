@@ -1,6 +1,10 @@
 package com.kevin.testool.common;
 
-import com.kevin.testool.utils.FileUtils;
+import com.kevin.share.Common;
+import com.kevin.share.utils.logUtil;
+import com.kevin.testool.MyApplication;
+import com.kevin.share.utils.FileUtils;
+import com.kevin.share.utils.ToastUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -12,6 +16,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+//import net.sf.json.JSONObject;
 
 public class DBService {
 
@@ -98,7 +103,106 @@ public class DBService {
         return result;
     }
 
-    public static void updateCaseResult(String table, JSONObject result, int case_id) throws JSONException {
+    public static boolean createTable(String table){
+        String sql = String.format("CREATE TABLE IF NOT EXISTS `%s` (`case_id` INT NOT NULL, `id` VARCHAR(255), `case` VARCHAR(1024) NOT NULL, `check_point` VARCHAR(600) NOT NULL, `skip_condition` VARCHAR(600) NOT NULL,`submission_date` DATETIME, `result` VARCHAR(1024) NOT NULL,PRIMARY KEY (`case_id`)) ENGINE= InnoDB CHARSET=utf8", table);
+        conn = MysqlHelper.getConn();
+        try{
+            if(conn!=null&&(!conn.isClosed())){
+                ps = (PreparedStatement) conn.prepareStatement(sql);
+                if(ps!=null){
+                    ps.executeUpdate();
+                }
+            } else {
+                return false;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+        MysqlHelper.closeAll(conn,ps,rs);
+        return true;
+    }
+
+    public static boolean dropTable(String table){
+        String sql = String.format("DROP TABLE `%s`", table);
+        conn = MysqlHelper.getConn();
+        try{
+            if(conn!=null&&(!conn.isClosed())){
+                ps = (PreparedStatement) conn.prepareStatement(sql);
+                if(ps!=null){
+                    ps.executeUpdate();
+                }
+
+            } else {
+                return false;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+        MysqlHelper.closeAll(conn,ps,null);
+        return true;
+    }
+
+    public static boolean insertCase(String table, JSONObject testcase, int case_id) throws JSONException {
+        logUtil.d("上传case", testcase.toString());
+        String id = "";
+        if (!testcase.isNull("id")){
+            id = testcase.getString("id");
+        }
+        JSONObject caseInfo = new JSONObject();
+        if (!testcase.isNull("case")){
+            caseInfo = testcase.getJSONObject("case");
+        }
+        JSONObject check_point = new JSONObject();
+        if (!testcase.isNull("check_point")){
+            check_point = testcase.getJSONObject("check_point");
+        }
+        JSONObject skip_condition = new JSONObject();
+        if (!testcase.isNull("skip_condition")){
+            skip_condition = testcase.getJSONObject("skip_condition");
+        }
+
+        String sql = String.format("INSERT IGNORE INTO `%s` (`case_id`,`id`,`case`,`check_point`,`skip_condition`,`submission_date`) VALUES ('%s','%s', '%s', '%s', '%s',NOW())",
+                table, case_id, id, caseInfo, check_point, skip_condition);
+        conn = MysqlHelper.getConn();
+        try{
+            if(conn!=null&&(!conn.isClosed())){
+                ps = (PreparedStatement) conn.prepareStatement(sql);
+                if(ps!=null){
+                    ps.executeUpdate();
+                }
+
+            } else {
+                return false;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            logUtil.d("insert case", e.toString());
+            return false;
+        }
+        MysqlHelper.closeAll(conn,ps,null);
+        return true;
+    }
+
+    public static void updateCase(String table, JSONObject testcase, int case_id) throws JSONException {
+        String sql = String.format("UPDATE `%s` SET `id`='%s',`case`='%s',`check_point`='%s',`skip_condition`='%s',`submission_date`=NOW() WHERE `case_id`=%s",
+        table, testcase.getString("id"), testcase.getJSONObject("case"),testcase.getJSONObject("check_point"), testcase.getJSONObject("skip_condition"), case_id);
+        conn = MysqlHelper.getConn();
+        try{
+            if (conn!=null&&(!conn.isClosed())){
+                ps = (PreparedStatement) conn.prepareStatement(sql);
+                if(ps!=null) {
+                    ps.executeUpdate();
+                }
+            }
+        }catch (SQLException e) {
+            e.printStackTrace();
+        }
+        MysqlHelper.closeAll(conn,ps,rs);
+    }
+
+    public static void updateCaseResult(String table, JSONObject result, int case_id){
 //        String sql = String.format("UPDATE `%s` SET `id`='%s',`case`='%s',`check_point`='%s',`skip_condition`='%s',`submission_date`=NOW(),`result`='%s' WHERE `case_id`=%s",
 //                table, testcase.getString("id"), testcase.getJSONObject("case"),
         String sql = String.format("UPDATE `%s` SET `result`='%s' WHERE `case_id`=%s",
@@ -117,6 +221,7 @@ public class DBService {
         }
         MysqlHelper.closeAll(conn,ps,rs);
     }
+
 
     public static JSONArray selectAllCases(String table){
 
@@ -151,7 +256,7 @@ public class DBService {
     }
 
 
-    public static JSONArray showTables(){
+    public static JSONArray showTables(String database){
 
         JSONArray tables = new JSONArray();
         String sql = "SHOW TABLES";
@@ -163,7 +268,7 @@ public class DBService {
                     rs= ps.executeQuery();
                     if(rs!=null){
                         while (rs.next()){
-                            tables.put(rs.getString("Tables_in_test_mp"));
+                            tables.put(rs.getString("Tables_in_"+database));
                         }
                     }
 
@@ -177,9 +282,19 @@ public class DBService {
         return tables;
     }
 
+    /**
+     * 同步数据库全部用例
+     */
     public static void syncTestcases(){
-
-        JSONArray _tables = DBService.showTables();
+        String database = "test_mp";
+        try {
+            JSONObject mysql = Common.CONFIG().getJSONObject("MYSQL");
+            database = mysql.getString("database");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        JSONArray _tables = DBService.showTables(database);
+//        ToastUtils.showLongByHandler(MyApplication.getContext(), _tables.toString());
                 for (int i=0; i < _tables.length(); i++){
                     try {
                         JSONArray list_cases = DBService.selectAllCases(_tables.getString(i));
@@ -188,8 +303,16 @@ public class DBService {
                         e.printStackTrace();
                     }
                 }
+        ToastUtils.showShortByHandler(MyApplication.getContext(), "用例同步完成");
             }
 
-
-
+    public static void syncTestcase(String table){
+        JSONArray list_cases = DBService.selectAllCases(table);
+        if (list_cases.length() > 0) {
+            FileUtils.writeCaseJsonFile(table, list_cases);
+            ToastUtils.showShortByHandler(MyApplication.getContext(), "用例更新完成");
+        } else {
+            ToastUtils.showShortByHandler(MyApplication.getContext(), "用例更新失败");
+        }
+    }
 }

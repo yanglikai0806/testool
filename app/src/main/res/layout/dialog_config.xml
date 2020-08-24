@@ -1,220 +1,299 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:gravity="center_horizontal"
-    android:orientation="vertical">
+    android:fadingEdge="vertical"
+    android:scrollbars="vertical">
 
-    <TextView
-        android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/test_env"
-        android:textSize="18sp" />
-
-    <TableLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="39dp">
+        android:layout_height="wrap_content"
+        android:gravity="center|center_horizontal"
+        android:orientation="vertical">
 
-        <TableRow
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal">
+            android:text="@string/test_env"
+            android:textSize="18sp" />
 
-            <RadioGroup
-                android:id="@+id/RdGroup"
-                android:layout_width="wrap_content"
+        <TableLayout
+            android:layout_width="match_parent"
+            android:layout_height="39dp">
+
+            <TableRow
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:checkedButton="@+id/proRb"
-                android:orientation="horizontal">
+                android:gravity="center_horizontal">
 
-                <RadioButton
-                    android:id="@+id/proRb"
+                <RadioGroup
+                    android:id="@+id/RdGroup"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/production" />
+                    android:checkedButton="@+id/proRb"
+                    android:orientation="horizontal">
 
-                <RadioButton
-                    android:id="@+id/preRb"
+                    <RadioButton
+                        android:id="@+id/proRb"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/production" />
+
+                    <RadioButton
+                        android:id="@+id/preRb"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/preview" />
+
+                    <RadioButton
+                        android:id="@+id/stgRb"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/pre4test" />
+                </RadioGroup>
+            </TableRow>
+
+        </TableLayout>
+
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:text="测试设置："
+            android:textSize="18sp" />
+
+        <LinearLayout
+            android:layout_width="245dp"
+            android:layout_height="211dp"
+            android:orientation="vertical">
+
+            <Switch
+                android:id="@+id/log"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="bugreport" />
+
+            <Switch
+                android:id="@+id/screenshot"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="screenshot" />
+
+            <Switch
+                android:id="@+id/screenRecord"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="screen record" />
+
+            <Switch
+                android:id="@+id/post_result"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="post result" />
+
+            <Switch
+                android:id="@+id/alarm_msg"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="alarm msg" />
+
+            <Switch
+                android:id="@+id/recordMemInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="记录内存" />
+
+            <Switch
+                android:id="@+id/recordCurrent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="记录电流" />
+
+        </LinearLayout>
+
+        <TableLayout
+            android:layout_width="245dp"
+            android:layout_height="wrap_content">
+
+            <TableRow
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/retry"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/preview" />
+                    android:text="@string/retryTimes" />
 
-                <RadioButton
-                    android:id="@+id/stgRb"
+                <EditText
+                    android:id="@+id/input_retry"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/staging" />
-            </RadioGroup>
-        </TableRow>
+                    android:ems="10"
+                    android:inputType="number"
+                    android:textAlignment="textStart" />
 
-    </TableLayout>
+            </TableRow>
 
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:text="测试设置："
-        android:textSize="18sp" />
+            <TableRow
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
 
-    <LinearLayout
-        android:layout_width="255dp"
-        android:layout_height="152dp"
-        android:orientation="vertical">
+                <TextView
+                    android:id="@+id/loop"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/loops" />
 
-        <Switch
-            android:id="@+id/log"
-            android:layout_width="245dp"
+                <EditText
+                    android:id="@+id/input_loop"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="number"
+                    android:text="1"
+                    android:textAlignment="textStart"
+                    android:textSize="14sp" />
+            </TableRow>
+
+            <TableRow
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/caseTag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/caseTag" />
+
+                <EditText
+                    android:id="@+id/input_case_tag"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="text"
+                    android:textAlignment="textStart" />
+            </TableRow>
+
+            <TableRow
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/test_app"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/testApp" />
+
+                <EditText
+                    android:id="@+id/input_test_app"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ems="10"
+                    android:inputType="text"
+                    android:text=""
+                    android:textAlignment="textStart"
+                    android:textSize="14sp" />
+            </TableRow>
+
+        </TableLayout>
+
+        <!--<TextView-->
+            <!--android:id="@+id/textView2"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:gravity="center_horizontal"-->
+            <!--android:text="服务配置："-->
+            <!--android:textSize="18sp" />-->
+
+        <!--<TableLayout-->
+            <!--android:layout_width="245dp"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:orientation="vertical">-->
+
+            <!--<TableRow>-->
+
+                <!--<TextView-->
+                    <!--android:id="@+id/ip_port"-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:text="IP:PORT" />-->
+
+                <!--<EditText-->
+                    <!--android:id="@+id/dbUrl"-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:ems="10"-->
+                    <!--android:inputType="text"-->
+                    <!--android:textSize="14sp"-->
+                    <!--tools:ignore="TextFields" />-->
+            <!--</TableRow>-->
+
+            <!--<TableRow>-->
+
+                <!--<TextView-->
+                    <!--android:id="@+id/database"-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:text="DB" />-->
+
+                <!--<EditText-->
+                    <!--android:id="@+id/dbName"-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:ems="10"-->
+                    <!--android:inputType="text"-->
+                    <!--android:textSize="14sp"-->
+                    <!--tools:ignore="TextFields" />-->
+            <!--</TableRow>-->
+
+            <!--<TableRow>-->
+
+                <!--<TextView-->
+                    <!--android:id="@+id/user"-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:text="USER" />-->
+
+                <!--<EditText-->
+                    <!--android:id="@+id/dbUser"-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:ems="10"-->
+                    <!--android:inputType="textPersonName"-->
+                    <!--android:textSize="14sp" />-->
+            <!--</TableRow>-->
+
+            <!--<TableRow>-->
+
+                <!--<TextView-->
+                    <!--android:id="@+id/password"-->
+                    <!--android:layout_width="wrap_content"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:text="PWD" />-->
+
+                <!--<EditText-->
+                    <!--android:id="@+id/dbPassword"-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="wrap_content"-->
+                    <!--android:ems="10"-->
+                    <!--android:inputType="textPassword"-->
+                    <!--android:textSize="14sp"-->
+                    <!--tools:ignore="LabelFor,TextFields" />-->
+            <!--</TableRow>-->
+        <!--</TableLayout>-->
+
+        <Button
+            android:id="@+id/configDetail"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="bugreport" />
-
-        <Switch
-            android:id="@+id/screenshot"
-            android:layout_width="245dp"
-            android:layout_height="wrap_content"
-            android:text="screenshot" />
-
-        <Switch
-            android:id="@+id/screenRecord"
-            android:layout_width="245dp"
-            android:layout_height="wrap_content"
-            android:text="screen record" />
-
-        <Switch
-            android:id="@+id/post_result"
-            android:layout_width="245dp"
-            android:layout_height="wrap_content"
-            android:text="post result" />
-
-        <Switch
-            android:id="@+id/alarm_msg"
-            android:layout_width="245dp"
-            android:layout_height="wrap_content"
-            android:text="alarm msg" />
+            android:text="查看配置详情" />
 
     </LinearLayout>
-
-    <TableRow
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:id="@+id/retry"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="重试次数：" />
-
-        <EditText
-            android:id="@+id/input_retry"
-            android:layout_width="60dp"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="number"
-            android:textAlignment="center" />
-
-        <TextView
-            android:id="@+id/caseTag"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="casetag：" />
-
-        <EditText
-            android:id="@+id/input_case_tag"
-            android:layout_width="82dp"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="text"
-            android:textAlignment="textStart" />
-
-    </TableRow>
-
-    <TableRow
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:id="@+id/loop"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="循环次数：" />
-
-        <EditText
-            android:id="@+id/input_loop"
-            android:layout_width="80dp"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="number"
-            android:text="1"
-            android:textAlignment="center"
-            android:textSize="14sp" />
-    </TableRow>
-    <TableRow
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:id="@+id/test_app"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="目标应用" />
-
-        <EditText
-            android:id="@+id/input_test_app"
-            android:layout_width="150dp"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="text"
-            android:text=""
-            android:textAlignment="center"
-            android:textSize="14sp" />
-    </TableRow>
-
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
-        android:text="Mysql数据库配置："
-        android:textSize="18sp" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="128dp"
-        android:orientation="vertical">
-
-        <EditText
-            android:id="@+id/dbUrl"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="text"
-            android:text="url:"
-            android:textSize="14sp"
-            tools:ignore="TextFields" />
-
-        <EditText
-            android:id="@+id/dbUser"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textPersonName"
-            android:text="user:"
-            android:textSize="14sp" />
-
-        <EditText
-            android:id="@+id/dbPassword"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="text"
-            android:text="password:"
-            android:textSize="14sp"
-            tools:ignore="LabelFor,TextFields" />
-    </LinearLayout>
-
-</LinearLayout>
+</ScrollView>

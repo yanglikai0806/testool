@@ -1,0 +1,211 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/record_step"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/background_light"
+    android:orientation="vertical">
+
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/constraintLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorAccent"
+        tools:ignore="MissingConstraints">
+
+        <ImageView
+            android:id="@+id/recordIcon"
+            android:layout_width="30dp"
+            android:layout_height="29dp"
+            android:layout_marginStart="4dp"
+            android:background="@drawable/record_idle"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="MissingConstraints" />
+
+        <TextView
+            android:id="@+id/case_id"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/caseid"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/recordIcon"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.538"
+            tools:ignore="MissingConstraints" />
+
+        <ImageButton
+            android:id="@+id/start"
+            android:layout_width="33dp"
+            android:layout_height="33dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/ic_media_play"
+            app:layout_constraintEnd_toStartOf="@+id/replay"
+            tools:ignore="MissingConstraints"
+            tools:layout_editor_absoluteY="0dp" />
+
+        <ImageButton
+            android:id="@+id/replay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:background="@android:drawable/ic_menu_rotate"
+            android:rotation="180"
+            app:layout_constraintEnd_toStartOf="@+id/close"
+            tools:ignore="MissingConstraints"
+            tools:layout_editor_absoluteY="0dp" />
+
+        <ImageButton
+            android:id="@+id/close"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="8dp"
+            android:background="@android:drawable/ic_menu_close_clear_cancel"
+            app:layout_constraintEnd_toStartOf="@+id/add"
+            tools:ignore="MissingConstraints"
+            tools:layout_editor_absoluteY="0dp" />
+
+        <ImageButton
+            android:id="@+id/add"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:background="@android:drawable/ic_menu_save"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:ignore="MissingConstraints" />
+
+    </android.support.constraint.ConstraintLayout>
+
+    <HorizontalScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        tools:ignore="MissingConstraints">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/boder"
+            android:divider="@drawable/divider_line"
+            android:orientation="horizontal"
+            android:showDividers="middle|end"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/constraintLayout"
+            tools:ignore="MissingConstraints">
+
+            <TextView
+                android:id="@+id/select_item_step"
+                android:layout_width="45dp"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="@string/step"
+                android:textColor="#FFA3A1A1"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/select_item_ui"
+                android:layout_width="45dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/ui"
+                android:textColor="#FFA3A1A1"
+                android:textSize="14sp"
+                tools:ignore="DuplicateIds" />
+            <TextView
+                android:id="@+id/select_item_access"
+                android:layout_width="45dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/accessibility"
+                android:textColor="#FFA3A1A1"
+                android:textSize="14sp"
+                tools:ignore="DuplicateIds" />
+
+            <TextView
+                android:id="@+id/select_item_act"
+                android:layout_width="52dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/activity"
+                android:textColor="#FFA3A1A1"
+                android:textSize="14sp"
+                tools:ignore="DuplicateIds" />
+
+            <TextView
+                android:id="@+id/select_item_shell"
+                android:layout_width="45dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/shell"
+                android:textColor="#FFA3A1A1"
+                android:textSize="14sp"
+                tools:ignore="DuplicateIds" />
+
+            <TextView
+                android:id="@+id/select_item_key"
+                android:layout_width="45dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/key"
+                android:textColor="#FFA3A1A1"
+                android:textSize="14sp"
+                tools:ignore="DuplicateIds" />
+
+            <TextView
+                android:id="@+id/select_item_input"
+                android:layout_width="45dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/input"
+                android:textColor="#FFA3A1A1"
+                android:textSize="14sp"
+                tools:ignore="DuplicateIds" />
+
+            <TextView
+                android:id="@+id/select_item_if"
+                android:layout_width="45dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/ifelse"
+                android:textColor="#FFA3A1A1"
+                android:textSize="14sp"
+                tools:ignore="DuplicateIds" />
+
+            <TextView
+                android:id="@+id/select_item_check"
+                android:layout_width="45dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="@string/check_point"
+                android:textColor="#FFA3A1A1"
+                android:textSize="14sp"
+                tools:ignore="DuplicateIds" />
+
+            <TextView
+                android:id="@+id/select_item_more"
+                android:layout_width="45dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="more"
+                android:textColor="#FFA3A1A1"
+                android:textSize="14sp" />
+
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+</LinearLayout>

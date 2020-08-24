@@ -9,6 +9,10 @@
             android:icon="@android:drawable/ic_menu_edit"
             android:title="@string/add_new" />
         <item
+            android:id="@+id/record_case"
+            android:icon="@android:drawable/ic_menu_camera"
+            android:title="@string/record_case" />
+        <item
             android:id="@+id/nav_syc"
             android:icon="@drawable/ic_menu_edit"
             android:title="@string/syncCases" />
@@ -20,23 +24,18 @@
             android:id="@+id/nav_report"
             android:icon="@drawable/ic_menu_report"
             android:title="@string/logAndReport" />
-
         <item
             android:id="@+id/nav_monkey"
             android:icon="@drawable/ic_menu_memTest"
             android:title="@string/monkeyTest" />
         <item
             android:id="@+id/nav_uicrawler"
-            android:icon="@drawable/ic_menu_memTest"
-            android:title="@string/uicrawler" />
+            android:icon="@android:drawable/ic_media_play"
+            android:title="@string/uicrawlerTest" />
     </group>
 
     <item android:title="@string/more">
         <menu>
-            <item
-                android:id="@+id/nav_share"
-                android:icon="@drawable/ic_menu_share"
-                android:title="@string/upgrade" />
             <item
                 android:id="@+id/nav_adb"
                 android:icon="@drawable/ic_menu_send"

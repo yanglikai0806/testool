@@ -1,20 +1,37 @@
 package com.kevin.testool;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.view.ContextThemeWrapper;
+import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.TextView;
 
-import com.kevin.testool.utils.ToastUtils;
-import com.kevin.testool.utils.logUtil;
+import com.kevin.share.CONST;
+import com.kevin.share.Common;
+import com.kevin.share.MainActivity;
+import com.kevin.share.utils.FileUtils;
+import com.kevin.share.utils.ToastUtils;
+import com.kevin.testool.common.DBService;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import static com.kevin.testool.CONST.TESTCASES_PATH;
+import static com.kevin.share.CONST.TESTCASES_PATH;
 
 public class MyAdapter extends BaseAdapter{
     // 填充数据的list
@@ -25,6 +42,9 @@ public class MyAdapter extends BaseAdapter{
     private Context context;
     // 用来导入布局
     private LayoutInflater inflater = null;
+
+    int touchX;
+    int touchY;
 
     // 构造器
     public MyAdapter(ArrayList<String> list, Context context) {
@@ -77,35 +97,142 @@ public class MyAdapter extends BaseAdapter{
 
         // 设置list中TextView的显示
         holder.tv.setText(list.get(position));
-        holder.tv.setOnLongClickListener(new View.OnLongClickListener() {
+        //记录触摸坐标
+        convertView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch(event.getAction()){
+                    case MotionEvent.ACTION_DOWN:
+                        touchX = (int) event.getRawX();
+                        touchY = (int) event.getRawY();
+                        break;
+                }
+                return false;
+            }
+        });
+        convertView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                ToastUtils.showShort(context, list.get(position));
-                android.support.v7.app.AlertDialog.Builder popWindow = new android.support.v7.app.AlertDialog.Builder(context);
+                AlertDialog.Builder builder=new AlertDialog.Builder(context);
+//                builder.setIcon(R.mipmap.ic_launcher);
+//                builder.setTitle(R.string.simple_list_dialog);
+                final String[] Items={"删除","同步","上传"};
+                builder.setItems(Items, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        String caseFileName = list.get(position).split("\\.")[1].trim();
+                        String fp = TESTCASES_PATH + caseFileName + ".json";
+                        switch(Items[i]){
+                            case "删除":
+                                FileUtils.deleteFile(fp);
+                                context.sendBroadcast(new Intent(CONST.ACTION_UPDATECASELIST));
+                                break;
+                            case "同步":
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Common.syncTestcase(caseFileName);
+                                    }
+                                }).start();
+
+                                break;
+                            case "上传":
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+//                                        DBService.dropTable(caseFileName);
+//                                        if (!DBService.createTable(caseFileName)){
+//                                            ToastUtils.showShortByHandler(context, "上传失败: create table failed");
+//                                            return;
+//                                        }
+//                                        try {
+//                                            JSONArray testCaseList = new JSONArray(FileUtils.readJsonFile(fp));
+//                                            for (int j=0; j<testCaseList.length(); j++){
+//                                                boolean isOk = DBService.insertCase(caseFileName,testCaseList.getJSONObject(j), j);
+//                                                if (!isOk){
+//                                                    ToastUtils.showShortByHandler(context, "上传失败: insert data failed");
+//                                                    return;
+//                                                }
+//                                            }
+//                                        } catch (JSONException e) {
+//                                            e.printStackTrace();
+//                                            ToastUtils.showLongByHandler(context, "Error:" + e);
+//                                        }
+
+                                        Common.updateTestCases(FileUtils.readJsonFile(fp));
+                                        ToastUtils.showShortByHandler(context, "上传完成");
+                                    }
+                                }).start();
+                                break;
+
+                        }
+                    }
+                });
+                builder.setCancelable(true);
+                AlertDialog dialog=builder.create();
+                dialog.show();
+                Window window = dialog.getWindow();
+                //重新设置
+                WindowManager.LayoutParams lp = window.getAttributes();
+                window .setGravity(Gravity.START | Gravity.TOP);
+                lp.x = touchX; // 新位置X坐标
+                lp.y = touchY-100; // 新位置Y坐标
+                lp.width = 500; // 宽度
+                lp.height = 500; // 高度
+//                lp.alpha = 0.7f; // 透明度
+
+//                dialog.onWindowAttributesChanged(lp);
+//                (当Window的Attributes改变时系统会调用此函数)
+                window.setAttributes(lp);
+//                dialog.show();
+                dialog.setView(v,0,0,0,0);
+                return false;
+            }
+        });
+        holder.tv.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                ToastUtils.showShort(context, list.get(position));
+                String caseFileName = list.get(position).split("\\.")[1].trim();
+                AlertDialog.Builder popWindow = new AlertDialog.Builder(context);
+                View dialogView = LayoutInflater.from(MyApplication.getContext()).inflate(R.layout.case_detail,null);
                 //设置对话框标题
-                popWindow.setTitle("用例详情：");
+                popWindow.setTitle(caseFileName);
 //                设置对话框消息
-                String res = logUtil.readToString(TESTCASES_PATH + list.get(position).split("\\.")[1].trim() + ".json");
+                popWindow.setView(dialogView);
+                String fp = TESTCASES_PATH + caseFileName + ".json";
+                String res = FileUtils.readJsonFile(fp);
+                final TextView case_detail = dialogView.findViewById(R.id.case_detail);
+                case_detail.setText(res.replace("}},","}},\n").replace("\",", "\",\n").replace("\n\n", "\n"));
+                case_detail.setTextIsSelectable(true);
+//                TextView showText = new TextView(context);
+//                showText.setTextSize(18);
+//                assert res != null;
+//                showText.setText(res.replace("}},","}},\n").replace(",", ",\n"));
+//                popWindow.setView(showText);
 
-                TextView showText = new TextView(context);
-                showText.setTextSize(18);
-                assert res != null;
-                showText.setText(res.replace("}},","}},\n").replace(",", ",\n"));
-
-                showText.setTextIsSelectable(true);
-                popWindow.setView(showText);
-
-                // 添加选择按钮并注册监听
-//                popWindow.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which) {
-////                        finish();
-//                    }
-//                });
+//                 添加选择按钮并注册监听
+                popWindow.setPositiveButton("编辑", (dialog, which) -> {
+                    AlertDialog.Builder editWindow = new AlertDialog.Builder(context);
+                    View editWindowView = LayoutInflater.from(MyApplication.getContext()).inflate(R.layout.case_edit,null);
+//                    editWindow.setTitle("编辑用例");
+                    editWindow.setView(editWindowView);
+                    final EditText et = editWindowView.findViewById(R.id.caseEdit);
+                    et.setText(res.replace("}},","}},\n").replace("\",", "\",\n").replace("\n\n", "\n"));
+                    editWindow.setPositiveButton("保存", (dialog1, which1) -> {
+                        try {
+                            FileUtils.writeFile(fp, et.getText().toString(), false);
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                            });
+                    editWindow.setNegativeButton("取消", null);
+                    editWindow.show();
+                });
                 popWindow.setNegativeButton("关闭", null);
                 //对话框显示
                 popWindow.show();
-                return true;
+//                return true;
 
             }
         });
