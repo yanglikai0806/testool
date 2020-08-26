@@ -9,7 +9,7 @@
 
 二. 配置文件
 ---
-apk 安装完成后，首次启动apk会自动同步config.json文件（文件路径：/sdcard/autotest/config.json）.
+apk 安装完成后，首次启动apk会生成config.json文件（文件路径：/sdcard/autotest/config.json）.
 配置文件内容及功能如下：
 ```json
 {  
