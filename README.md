@@ -233,7 +233,7 @@ skip\_condition 字段的用法继承了check\_point 的用法，check\_point的
   
  五. 加入交流群
  ---
-  <img src="https://github.com/yanglikai0806/testool/blob/master/resource/testool%E7%BE%A4%E4%BA%8C%E7%BB%B4%E7%A0%81.png" width="200" height="300" alt="展示"/>
+  <img src="https://github.com/yanglikai0806/testool/blob/master/resource/testool%E7%BE%A4%E4%BA%8C%E7%BB%B4%E7%A0%81.png" width="230" height="300" alt="展示"/>
 
 
 Thank to
