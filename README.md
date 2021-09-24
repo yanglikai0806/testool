@@ -230,11 +230,13 @@ skip\_condition 字段的用法继承了check\_point 的用法，check\_point的
 * 测试完成后 点击导航栏 “日志报告” 可以查看测试报告    
 
   <img src="https://raw.githubusercontent.com/yanglikai0806/testool/master/resource/0.gif" width="300" height="570" alt="展示"/>
+  
+ 五. 加入交流群
+ ---
+  <img src="https://github.com/yanglikai0806/testool/blob/master/resource/testool%E7%BE%A4%E4%BA%8C%E7%BB%B4%E7%A0%81.png" width="100" height="100" alt="展示"/>
 
 
 Thank to
 ---
 * [https://github.com/openatx/android-uiautomator-server](https://github.com/openatx/android-uiautomator-server) 
-* [https://github.com/openatx/uiautomator2](https://github.com/openatx/uiautomator2)
 * [https://github.com/cgutman/AdbLib](https://github.com/cgutman/AdbLib)
-* [https://github.com/alipay/SoloPi](https://github.com/alipay/SoloPi)
