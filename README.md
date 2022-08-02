@@ -233,20 +233,21 @@ image_id 为图像库中的图像id,image_tag 为图像库中图像tag名,bounds
 
 #### __逻辑实现__
 ```
-{"if": {}} 执行过程判断，参数与check_point 用法一致。通过增加"true":[],"false":[] 执行相应操作用法同"query"字段
+{"if": {}} 执行过程判断，参数与check_point 用法一致。通过增加"true":[],"false":[] 执行相应操作用法同"step"字段
 {"check_point":{}} 用法同check_point, 用于重写(覆盖)原检测点
 {"check_add":{}} 用法同check_point, 根据条件增加检测点。
 {"$var":{"txt/img":{}} 获取界面内容设置为参数，用于对比检查，配合check_point中 "$var"配合使用，例如 {"$var":{"txt":{"text":"换个话题","nex":-4}}}
-{"loop":10, "break":{}, "do":[] }  loop为最大循环次数， break为循环截止条件与check_point用法一致， "do"为循环中执行的操作与query字段用法一致 
+{"loop":10, "break":{}, "do":[] }  loop为最大循环次数， break为循环截止条件与check_point用法一致， "do"为循环中执行的操作与step字段用法一致 
 ```
 ## 3. check_point
 > 对测试执行后的结果进行断言, 支持的断言方法如下：
 
-#### __UI检查__
+#### __界面内容检查__
 
 ###### 界面元素检查
+> 通过对window_dump.xml文件进行内容匹配来进行判断，所以文件里的属性皆可用text字段进行判断
 ```
-{"text":[]} 检测当前界面**(xml布局文件)**是否存在文本属性（text 、content-desc、recource-id...），list 元素之间为 _与_ 的关系，元素中 "|" 分割 为 _或_ 的关系
+{"text":[]} 检测当前界面**(xml布局文件)**是否存在文本内容，list 元素之间为 _与_ 的关系，元素中 "|" 分割 为 _或_ 的关系
 示例：
 {"text":["今天天气|空气","度"]}
 ```
@@ -262,94 +263,71 @@ image_id 为图像库中的图像id,image_tag 为图像库中图像tag名,bounds
 
 ###### 检查某个元素的状态属性
 ```
-{"status":{"s_text":"开关","nex":0, "index":1, "checked":"false"}} 检查某个元素的状态，"s_text", "s_id", "s_content", "nex", "index" 通过这几个元素定位要判断的元素，然后判断要检查的属性及其预期的值  
+{"status":{"s_text":"xxx","nex":0, "index":1, "checked":"false"}} 检查某个元素的状态，"s_text", "s_id", "s_content", "nex", "index" 通过这几个元素定位要判断的元素，然后判断要检查的属性及其预期的值  
 示例：
-{"status":{"s_text":"开关","nex":0, "index":1, "checked":"false"}} 表示定位id为id/button, text属性为”开关“ 的第二个元素，"check"属性是否为”false"
+{"status":{"s_text":"开关","s_id":"id/button", "nex":0, "index":1, "checked":"false"}} 表示定位id为id/button, text为"开关" 的第二个元素，"check"属性是否为"false"
 ```
-* __"nd"__  
+###### 图像检查
 ```
-    {"nd": [ ]/ "string"} 
-```
-
-* __"delta"__
-{"delta":{"path": "you/folder/", "file\_re": "文件匹配的正则表达式", "cbt":0, "diff": 1}} 检测某路径下的文件增减情况 "cbt" 为 "count before test"    
-例如：
-```
-    "delta":{"path": "/sdcard/DCIM/Camera", "file_re": "IMG_\\d{8}_\\d{6}\\.jpg", "cbt":0, "diff": 1} 
-    表示测试后相机目录下新增1个jpg文件
+{"image":{"src":"图像id/图像tag","resource-id/text/content/class":"xxxxxx", "nex":0, "index":0}} 识别src图像是否存在，支持根据 "resource-id/text/content/class","nex", "index" 对图像进行截取/通过"bounds"限制范围， limit 可缺省，表示匹配精度，similarity 可缺省，表示匹配相似度，判断颜色等
+{"image":{"text":"String","resource-id/text/content/class":"xxxxxx", "nex":0, "index":0}} 识别src图像中是否存在文本内容，支持根据 "resource-id/text/content/class","nex", "index" 对图像进行截取/通过"bounds"限制范围
+{"video":{"src":"图像id/图像tag","gap": 500, "bounds":"[][]"}} 通过视频识别src图像是否存在，"gap"控制视频截图时间，单位ms，缺省默认500ms
+{"video":{"text":"string","gap": 500, "bounds":"[][]","language":"chi_sim"}} 通过视频识别text文本是否存在，"gap"控制视频截图时间，单位ms，缺省默认500ms，"language" 默认为中文
+{"bounds":"[0,0][500,500]"} 用于对image，ocr，video 字段所判断的图片范围进行限定，以提高识别准确性，支持相对值例如：{"bounds":"[0.2, 0.5][0.6,0.8]"}
 ```
 
-* __"img"__  
+#### 其他检查项
+###### 检查activity
 ```
-    {"img":{"text":"string", "language":"chi_sim"}} 
+{"activity":"string"} 检查当前activity,元素中 "|" 分割 为 或 的关系
 ```
-通过ocr识别当前界面是否存在目标文本，"language" 可缺省，默认为中文简体"chi_sim", 可支持英文"eng".
+###### 检查文件个数变化
+```
+{"delta":{"path": "your/folder/path/", "file\_re": "文件匹配的正则表达式", "cbt":0, "diff": 1}} 检测某路径下的文件增减情况 "cbt" 为 "count before test"，值为固定数0，执行中会根据正则自动赋值。
+示例：
+{"delta":{"path": "/sdcard/DCIM/Camera", "file_re": "IMG_\\d{8}_\\d{6}\\.jpg", "cbt":0, "diff": 1}} 表示测试后相机目录下新增1个jpg文件
+```
+###### 检查shell结果
+```
+{"shell":"string"|{"cmd":"your shell command", "result":"your expext result", "mode":""}} 检测该指令得到的结果是否符合预期，如果只有第一个string则只校验shell结果是否为空; 严格写法： {"cmd":"", "result":"", "mode":""} cmd指定执行的shell指令，result指定预期的结果，mode指定判断模式支持三种： ==（相等）,!=（不等）, contain(包含，默认缺省值) 
+```
+###### 检查logcat
+```
+{"logcat":"string"} 检测logcat中是否存在目标log
+```
+###### 检查网络请求
+```
+{"response":{}/string} 对 post/get 请求的结果进行判断，判断规则为包含预期字段或文本
+```
 
-* __"logcat"__
+#### 断言逻辑
+###### 或
 ```
-    {"logcat":"string"}
+ {"or":"true"} 多个检查项的结果取或
 ```
-检测logcat中是否存在目标log。
-
-* __"or"__
+###### 反
 ```
-    {"or":"true"} 
+ {"reverse":"true"} 最终结果取反
 ```
-"true" 
-表示对以上判断结果取 _或_
-
-* __"reverse"__
+#### 断言后的操作
 ```
-    {"reverse":"true"} 
+{"teardown":[]} 执行消除测试影响的步骤，使用方法与 case 中的 "step" 字段一致
+{"true":[]} 检测结果为true时，执行相关操作，使用方法与 case 中的 "step" 字段一致
+{"false":[]} 检测结果为false时，执行相关操作，使用方法与 case 中的 "step" 字段一致
 ```
-"true" 
-表示对以上判断结果取 _反_
-
-**check_point 中的执行操作字段如下：**
-
-* __"teardown"__
-执行消除测试影响的步骤，使用方法与 case 中的 "step" 字段一致
-
-* __"true"__
-检测结果为true时，执行相关操作，使用方法与 case 中的 "step" 字段一致
-* __"false"__
-检测结果为false时，执行相关操作，使用方法与 case 中的 "step" 字段一致
 
 ## 4. skip_condition
-skip\_condition 字段的用法继承了check\_point 的用法，check\_point的字段都是支持的。   
+> 用法继承了check\_point 的用法，check\_point的字段都是支持的。   
 
-* __"scope"__ 
 ```
-    "scope":"all/single"
+{"scope":"all/single"} 表示跳过条件的影响范围，"all" 表示跳过条件成立时，json文件内当前case后面的所有case都会跳过，"single" 表示只跳过当前case
+{"app": {"pkg": "com.android.camera", "version_name": "3.0", "version_code": [100, 300]}} 判断 app的version name 或 version code 是否符合条件, app不存在时执行跳过
+{"sim_card":"true/false"} 判断设备是否有sim卡安装
+{"nfc":"true/false" } 判断是否支持nfc功能
+{"dev_white_lst": []} 设备白名单，参数为设备代号，例如：{"dev_white_lst": ["xxx"]}
+{"dev_black_lst": []} 设备黑名单，参数为设备代号，例如：{"dev_white_lst": ["xxx"]}
 ```
-表示跳过条件的影响范围，"all" 表示跳过条件成立时，json文件内当前case后面的所有case都会跳过，"single" 表示只跳过当前case
-
-* __"app"__
-```
-    "app": {"pkg": "com.android.camera", "version_name": "3.0", "version_code": [100, 300]}
-```
-判断 app的version name 或 version code 是否符合条件
-* __"sim_card"__  
-```
-    "sim_card":"true/false" 
-```
-判断设备是否有sim卡安装
-
-* __"nfc"__   
-```
-     "nfc":"true/false" 
-```
-判断是否支持nfc功能
-
-* __"dev_white_lst"__   
-设备白名单，参数为设备代号，例如：
-```
-     "dev_white_lst": ["mido"]
-```
-* __"dev_black_lst"__   
-设备黑名单，用法同上   
-
-四. 使用方法
+使用方法
 ---
 * 将写好的testDemo.json文件存储到手机跟目录下/autotest/testcases/路径下  
 * 在工具左侧导航栏里选择“重新导入”，用例会显示在主界面，点击每个item会显示 用例详情。   
