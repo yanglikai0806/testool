@@ -1,40 +1,50 @@
-一. 工具介绍
+Testool 介绍
 ---
+[![GitHub stars](https://img.shields.io/github/stars/yanglikai0806/testool.svg)](https://github.com/yanglikai0806/testool/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/yanglikai0806/testool.svg)](https://github.com/yanglikai0806/testool/forkgazers)
+[![GitHub release](https://img.shields.io/github/release/yanglikai0806/testool.svg)](https://github.com/yanglikai0806/testool/releases)
+>* Testool主要适用于Android端应用的UI自动化测试
+>* Testool可直接安装在Android设备中，无需通过USB连接adb，所以Testool可以在完全**脱机**的情况下使用
+>* Testool的测试用例实现是通过Json的形式来实现的
 
-* 适用于Android app ui 自动化测试
-* 无需连接usb，**脱机执行**自动化测试
-* 测试用例需按照指定数据结构实现方可执行
-* app执行需要root权限，如果无法获取root权限需要pc连接usb后执行“adb tcpip 5555”后方可执行测试（手机重启后需重新开启5555端口）
-* 需安装 testool.apk, testassist.apk, testassi-test.apk 三个应用并允许读写存储等权限
-
-二. 配置文件
+开发环境
 ---
-apk 安装完成后，首次启动apk会生成config.json文件（文件路径：/sdcard/autotest/config.json）.
-配置文件内容及功能如下：
-```json
+* Android Studio Bumblebee | 2021.1.1 Patch 3
+* Gradle 6.5
+* CMake 3.10
+* minSdkVersion 18
+* targetSdkVersion 28
+
+首次使用
+---
+  - 安装Testool后, 确保网络连接，初次使用会自动下载依赖并提示用户安装，根据提示安装即可。
+  - 进入App权限管理页面，将开启WLAN：始终允许，自启动：开启，获取手机信息:始终允许（最好将能给的权限全部赋予始终允许）
+  - 进入设备的电池管理功能（如有）->省电优化->锁屏后断开数据：从不；锁屏后清理内存：从不；应用智能省电：无限制
+  - 配置shell执行模式
+
+**[Installation](#用例格式)**
+
+配置文件
+---
+> * 为方便Testool应对不同的使用场景，很多功能给予配置文件进行设置
+> * Testool安装完成后，首次启动会自动生成config.json文件（文件路径：/sdcard/autotest/config.json）
+
+配置文件说明
+```text
 {  
-  "APP" : {
-    "微信": "com.tencent.mm",
-},  
- "TEST_ENV": "production",  #测试环境
- "RETRY": 2, # 重试次数，表示case失败后的重试次数
- "CASE_TAG": "monitor", # 用例标签, 如例，代表执行case_tag为“monitor”的测试case 
- "LOG": "true", # log开关，表示失败case是否抓取bugreprot
- "SCREENSHOT": "true", # 截图开关，表示失败用例是否截图
- "ALARM_MSG": "false", # 报警开关，表示是否发送报警短信
- "SCREEN_LOCK_PW": "0000", # 锁屏密码，表示执行设备的解锁密码
+ "RETRY": 2,             # 重试次数，表示case失败后的重试次数
+ "CASE_TAG": "monitor",  # 用例标签, 如例，代表执行case_tag为“monitor”的测试case 
+ "LOG": "true",          # log开关，表示失败case是否抓取bugreprot
+ "SCREENSHOT": "true",   # 截图开关，表示失败用例是否截图
+ "ALARM_MSG": "false",   # 报警开关，表示是否发送报警短信
+ "SCREEN_LOCK_PW": "",   # 锁屏密码，表示执行设备的解锁密码
  "OFFLINE": "false",   
- "CHECK_TYPE"：1， # 设置三种检测级别，0：fc & anr，1 : 界面检查 , 2： 0 & 1
- "POST_RESULT": "true", # 数据上传开关 
- "MYSQL": { # 数据库信息
-    "url": "jdbc:mysql://your.mysql.ip/your_table?useUnicode=true&characterEncoding=UTF-8",  
- "user": "user_name",  
- "password": "your_pw"  
-  }  
+ "CHECK_TYPE"：1,        # 设置三种检测级别，0：检查稳定性问题fc & anr，1 : 界面检查元素 , 2： 0 & 1
+ "POST_RESULT": "true",  # 数据上传开关 
 }
 ```    
 
-三. 用例格式
+用例格式
 ---
 测试case以json文件的格式执行： 如：文件名 testDemon.json 文件，用例主要包括四个部分    
 id,  case,  check_point,  skip_condition 
