@@ -5,7 +5,7 @@ Testool 介绍
 [![GitHub release](https://img.shields.io/github/release/yanglikai0806/testool.svg)](https://github.com/yanglikai0806/testool/releases)
 >* Testool主要适用于Android端应用的UI自动化测试
 >* Testool可直接安装在Android设备中，无需通过USB连接adb，所以Testool可以在完全**脱机**的情况下使用
->* Testool的测试用例实现是通过Json的形式来实现的
+>* Testool的测试用例是通过Json的形式来实现的
 
 开发环境
 ---
@@ -33,43 +33,63 @@ Testool 介绍
 ```text
 {  
  "RETRY": 2,             # 重试次数，表示case失败后的重试次数
- "CASE_TAG": "monitor",  # 用例标签, 如例，代表执行case_tag为“monitor”的测试case 
+ "CASE_TAG": "",         # 用例标签, 在本地测试执行时可根据标签过滤case
  "LOG": "true",          # log开关，表示失败case是否抓取bugreprot
- "SCREENSHOT": "true",   # 截图开关，表示失败用例是否截图
+ "SCREENSHOT": "true",   # 截图开关，表示用例失败用例是否截图
+ "SCREEN_RECORD":"false",# 录屏开关，表示用例失败时进行屏幕录制
  "ALARM_MSG": "false",   # 报警开关，表示是否发送报警短信
- "SCREEN_LOCK_PW": "",   # 锁屏密码，表示执行设备的解锁密码
- "OFFLINE": "false",   
- "CHECK_TYPE"：1,        # 设置三种检测级别，0：检查稳定性问题fc & anr，1 : 界面检查元素 , 2： 0 & 1
- "POST_RESULT": "true",  # 数据上传开关 
+ "SCREEN_LOCK_PW": "",   # 锁屏密码，设置执行设备的解锁数字密码
+ "CHECK_TYPE"：1,        # 支持三种检测级别，0：只检查稳定性问题crash & anr，忽略检查点check_point; 1: 根据check_point内容检查; 2: 综合0&1
+ "GET_ELEMENT_BY": -1,   # 界面元素获取方式设置。 -1：自动判断获取方式；0：通过adb命令获取；1：通过UIautomator获取；2：通过Accessibility获取
+ "POST_RESULT": "true",  # 数据上传开关，关闭后测试数据保存在本地不进行上传 
+ "MUTE":"false",         # 测试执行中是否自动静音
+ "MP42GIF":"false",      # 是否将测试视频转为gif
+ "POP_WINDOW_LIST":[     # 测试过程中自动点击的弹窗列表
+      "同意并继续",
+      "允许",
+      "始终允许"
+  ],
+"RECORD_CURRENT":"false",   # 是否记录电流消耗
+"RECORD_MEMINFO":"false",   # 是否记录内存消耗
+"SERVER_BASE_URL":"",       # 测试平台服务url
+"TABLE":"test_cases",       # 测试用例存储表格
+"TARGET_APP":"",            # 被测应用包名
+"TEST_TAG":"",              # 测试标签，云端测试执行时只执行与之匹配的CASE_TAG的用例
+"REMOTE_DEVICE_IP":"",      # 协同操作时，配置协同机ip
+"DISABLE_CLEAR_RECENT_APP": "false", # 测试执行中是否禁止清理后台程序
+"CLEAR_BUTTON_ID":"com.miui.home:id\/clearAnimView", # 配置清理手机后台时的空间ID，默认为小米手机，其他手机自行配置
 }
 ```    
 
 用例格式
 ---
-测试case以json文件的格式执行： 如：文件名 testDemon.json 文件，用例主要包括四个部分    
-id,  case,  check_point,  skip_condition 
+> * Testool 的测试用例以Json的形式实现，通过关键字驱动测试。
+> * 用例结构由 id, case, check_point, skip_condition 四个关键字组成的JsonObject组成
+> * 通过JsonArray组建测试结合，一个json文件是一个测试集合。
 
-    
+测试文件内容示例：（测试文件存储于/sdccard/autotest/testcases/路径下）    
 ```json
-[{"id":"set_alarm",
- "case":{  
-    "app": "时钟", 
-    "action": "设置闹钟", 
-    "step":[{"text":"闹钟"}], 
-    "wait_time":[6]},
-"check_point":{ 
-    "text":"08:00", 
-    "resource-id":"android:id/checkbox",
-    "status": {"index": 2, "checked": "false"}, 
-    "activity":"", 
-    "img": {"text": "text", "language": "chi_sim"}, 
-    "nd":"" 
-  },
-"skip_condition": {
-    "scope": "single",
-    "app": {"pkg":"com.xxx.xxx", "version_code":[0, 30400500]} 
+[
+    {
+        "id":123,
+        "case":{
+            "owner":"用例维护人",
+            "case_desc":"此处输入用例描述",
+            "case_tag":"此处输入用例标签",
+            "step":[
+                "执行步骤示例",
+                { "launchApp":"com.android.settings" },
+                { "text":"我的设备"}
+            ],
+            "wait_time":[1,2,4]
+        },
+        "check_point":{
+            "text":[
+                "设备名称"
+            ]
+        }
     }
-  }]
+]
 ```
 ### 1. "id"
 主要标识测试用例，根据测试用例功能特点命名即可，主要用于报告展示，方便查找定位
