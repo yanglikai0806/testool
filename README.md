@@ -9,18 +9,18 @@ Testool 介绍
 
 开发环境
 ---
-* Android Studio Bumblebee | 2021.1.1 Patch 3
-* Gradle 6.5
-* CMake 3.10
-* minSdkVersion 18
-* targetSdkVersion 28
+>* Android Studio Bumblebee | 2021.1.1 Patch 3
+>* Gradle 6.5
+>* CMake 3.10
+>* minSdkVersion 18
+>* targetSdkVersion 28
 
 首次使用
 ---
-  - 安装Testool后, 确保网络连接，初次使用会自动下载依赖并提示用户安装，根据提示安装即可。
-  - 进入App权限管理页面，将开启WLAN：始终允许，自启动：开启，获取手机信息:始终允许（最好将能给的权限全部赋予始终允许）
-  - 进入设备的电池管理功能（如有）->省电优化->锁屏后断开数据：从不；锁屏后清理内存：从不；应用智能省电：无限制
-  - 配置shell执行模式
+ > - 安装Testool后, 确保网络连接，初次使用会自动下载依赖并提示用户安装，根据提示安装即可。
+ > - 进入App权限管理页面，将开启WLAN：始终允许，自启动：开启，获取手机信息:始终允许（最好将能给的权限全部赋予始终允许）
+ > - 进入设备的电池管理功能（如有）->省电优化->锁屏后断开数据：从不；锁屏后清理内存：从不；应用智能省电：无限制
+ > - 配置shell执行模式
 
 **[Installation](#用例格式)**
 
@@ -30,7 +30,7 @@ Testool 介绍
 > * Testool安装完成后，首次启动会自动生成config.json文件（文件路径：/sdcard/autotest/config.json）
 
 配置文件说明
-```text
+```
 {  
  "RETRY": 2,             # 重试次数，表示case失败后的重试次数
  "CASE_TAG": "",         # 用例标签, 在本地测试执行时可根据标签过滤case
@@ -64,114 +64,211 @@ Testool 介绍
 用例格式
 ---
 > * Testool 的测试用例以Json的形式实现，通过关键字驱动测试。
-> * 用例结构由 id, case, check_point, skip_condition 四个关键字组成的JsonObject组成
-> * 通过JsonArray组建测试结合，一个json文件是一个测试集合。
+> * 用例结构由 id, case, check_point, skip_condition 四个关键字组成的JSONObject
+> * 通过JSONArray来组建测试集合，一个json文件是一个测试集合。
 
 测试文件内容示例：（测试文件存储于/sdccard/autotest/testcases/路径下）    
 ```json
 [
-    {
-        "id":123,
-        "case":{
-            "owner":"用例维护人",
-            "case_desc":"此处输入用例描述",
-            "case_tag":"此处输入用例标签",
-            "step":[
-                "执行步骤示例",
-                { "launchApp":"com.android.settings" },
-                { "text":"我的设备"}
-            ],
-            "wait_time":[1,2,4]
-        },
-        "check_point":{
-            "text":[
-                "设备名称"
-            ]
-        }
+  {
+    "id":123,
+    "case":{
+      "owner":"用例维护人",
+      "case_desc":"此处输入用例描述",
+      "case_tag":"此处输入用例标签",
+      "step":[
+        "执行步骤示例",
+        { "launchApp":"com.android.settings" },
+        { "text":"我的设备"}
+      ],
+      "wait_time":[1,2,4]
+    },
+    "check_point":{
+      "text":["设备名称"]
     }
+  }
 ]
 ```
-### 1. "id"
-主要标识测试用例，根据测试用例功能特点命名即可，主要用于报告展示，方便查找定位
+关键字说明
+---
+## 1. "id"
+一般为数据库存储时生成的id
 
-### 2. "case"
+## 2. "case"
 case 是测试用例的主体，执行测试用例的核心部分。
 
-* __"app"__    
-类型 _String_，值 _app名称_，如“微信”。 会从config.json 中根据APP 配置的名称对应其package name。表示测试执行依赖此app，会判断其是否安装，未安装则跳过测试。
+* __"owner"__    
+类型 _String_, 值 _用例维护人_，描述性字段（非必须）
+
+* __"case_desc"__    
+类型 _String_, 值 _用例说明_，描述性字段（非必须）
 
 * __"case_tag"__    
-类型 _String_, 值 _标签名称_，如 “monitor”。执行时会根据所选择的case_tag 过滤测试用例
+类型 _String_, 值 _标签名称_，如 "monitor", 执行时会根据所选择的case_tag 过滤测试用例 （非必须）
 
 * __"step"__    
-类型 _list_, 值 _dict_, 如 [{"text":"天气"}], dict元素表示执行的操作，目前支持的字段如下    
-
+类型 _JSONArray_, 值_用例步骤_, 如 [{"text":"设置"}], 表示执行的操作，目前支持的字段如下 
+#### __UI基础操作__
+> 通过shell input 命令实现基础UI操作能力
+###### 点击坐标
 ```
-{"text":"string", "nex":0, "index":0） 根据界面元素text属性点击界面控件,"nex" 表示查找上下关系控件例如:1表示下一个元素，-1表示上一个元素，"index"当前界面有多个符合条件元素时，第几个元素。0均代表当前元素。"nex","index"缺省默认均为0。
-{"id"："string"} 根据界面元素resource-id属性点击界面控件，"nex","index"用法同上。
-{"content":"string"} 根据界面元素content-desc属性点击界面控件，"nex","index"用法同上。
-{"class":"string"} 根据界面元素class属性点击界面控件，"nex","index"用法同上。
-{"click": [x, y]} 根据x，y坐标点击操作。
-{"swipe":[xs, ys, xe, ye, step]} 根据起始点 xs, ys 滑动界面到 xe，ye；step 为滑动步数，控制滑动快慢。
-{"drag":[{元素1},{元素2}]}，根据元素位置拖动例如{"drag":[{"text":"设置"},{"text":"相册"}]}表示从元素"设置"拖动到元素"相册的位置"
-{"activity":"string"/list} 支持string/list两种数据类型，list内多个activity 会随机启动一个，实现方式为adb命令。
+{"click": [x, y]} 根据x，y坐标进行点击操作，支持相对值
+示例: {"click": [0.5, 0.5]} 点击屏幕中心
+```
+###### 点击控件
+```
+{"text/id/content/class":"string", "nex":0, "index":0, "long":"true/10000", "checked":"true", "timeout":5000} 
+根据界面元素属性点击界面控件,"nex" 表示查找上下关系控件例如:1表示下一个元素，-1表示上一个元素，"index"当前界面有多个符合条件元素时，第几个元素。0均代表当前元素。"nex","index"缺省默认均为0, "long" 表示控件是否为长按操作，"true"默认长按1.5s，"数字"长按xxxms；"checked"字段表示控件期望的checked状态，适用于切换开关、复选框等状态类控件, timeout 表示在超时时间内查找元素，默认 5000 ms。
+
+示例：
+{"text":"设置"} 根据控件text属性，点击text属性值为"设置" 的第1个元素
+{"text":"设置", "index":2} 根据控件text属性，点击text属性值为"设置" 的第3个元素
+{"text":"设置", "nex":1} 根据控件text属性，点击text属性值为"设置" 的元素的下一个元素
+{"text":"设置", "long":"true"} 根据控件text属性，长按text属性值为"设置" 的第1个元素
+{"text":"设置", "long":"2000"} 根据控件text属性，长按text属性值为"设置" 的第1个元素 2000 ms
+{"text":"设置", "timeout":12000} 根据控件text属性，在12秒内循环查找
+{"id":"android:id/button"} 根据控件id属性，点击id属性值为"android:id/button" 的第一个元素
+{"id":"android:id/button", "checked":"true"} 根据控件id属性，查找id属性值为"android:id/button" 的第一个元素，如果 checked属性为false则点击，为true则不点击
+```
+###### 界面滑动
+```
+{"swipe":[xs, ys, xe, ye, duration]|"string"} 根据起始点 xs, ys 滑动界面到 xe，ye；duration 为滑动时长ms，控制滑动快慢， 缺省默认500ms。支持快捷滑动 如 {"swipe":"left|right|up|down"}
+
+示例：
+{"swipe":[0.5, 0.3, 0.5, 0.8]} 从一个点滑动到另一个点
+{"swipe":[0.5, 0.3, 0.5, 0.8, 2000]} 从一个点滑动到另一个点, 在2秒中内
+{"swipe":"up"} 向上滑动
+```
+###### 通知栏操作
+```
+{"notification":""} 下滑打开通知栏,支持参数"left/right"。
+
+示例：
+{"notification":"right"} 打开右侧通知栏
+```
+###### 清理后台程序
+```
+{"clearRecentApp":""} 清理后台应用，无参数
+```
+#### __UI复杂操作__
+> 通过反射UiAutomator实现复杂操作执行
+
+###### 双指缩放
+```
+{"uiautomator":{"method":"pinchOpen/pinchClose", "args":[{"id":"xxxx"}, 1.0, 500]}} 通过双指进行缩放操作，args：[可缩放元素的属性, 比例percent(缺省值1.0), 速度speed(缺省值500)]
+
+示例：
+{"uiautomator":{"method":"pinchOpen", "args":[{"id":"android:id/camera"}, 0.8, 500]}} 将控件放大80%, 速度 500像素/秒
+```
+###### 滚动操作
+```
+{"uiautomator":{"method":"scrollLeft/scrollRight/scrollUp/scrollDown", "args":[{"id":"xxxx"}, 1.0, 500]}} 滚动目标控件，args：[可定位元素的属性, 滚动比例percent, 滚动速度speed]
+
+示例：
+{"uiautomator":{"method":"scrollLeft", "args":[{"id":"xxx", "index":0}, 0.8, 500]}} 将控件向左滚动80%, 速度 500像素/秒
+```
+###### 拖动操作
+```
+{"uiautomator":{"method":"drag", "args":[{"id":"xxxx"}/[x,y], {"id":"xxx"}/[x,y], 500]}} 拖动控件，args：[被拖动元素的属性或坐标,拖动的目标元素或坐标,拖动速度speed]
+
+示例：
+{"uiautomator":{"method":"drag", "args":[{"id":"android:id/camera"}, [0.5,0.5], 500]}} 将控件拖动到屏幕中央, 速度 500像素/秒
+```
+###### fling操作
+```
+{"uiautomator":{"method":"flingLeft/flingRight/flingUp/flingDown", "args":[{"id":"xxxx"}, 5000]}} 拖动控件，args：[元素的属性,速度speed]
+
+示例：
+{"uiautomator":{"method":"flingLeft", "args":[{"id":"xxx"},  5000]}} 将控件拖动到屏幕中央, 速度 500像素/秒
+```
+###### 输入文本
+```
+{"uiautomator":{"method":"setText", "args":[{"id":"xxxx"}, "text文本", "a"]}} 输入文本，args：[元素的属性,输入文本内容, 输入方式："a" 为追加]
+
+示例：
+{"uiautomator":{"method":"setText", "args":[{"id":"xxx"},  "今天天气"]}} 在控件中输入"今天天气"
+```
+###### 双指手势
+```
+{"uiautomator":{"method":"twoPointerGesture", "args":[{"id":"xxxx"}, [500, 500], [800, 500], [500, 800], [800, 800]]}} 参数args：[元素的属性,point1起始点, point2起始点, point1结束点, point2结束点]
+```
+###### 多点手势
+```
+{"uiautomator":{"method":"multiPointerGesture", "args":[{"id":"xxxxx"}, [530, 1484], [530, 2049], [832, 2049]]}}
+```
+###### toast获取
+```
+{"uiautomator":{"method":"lastToast"} 获取20s内最近的toast内容，只支持Android实现的toast(不支持前端技术实现的toast)，并输出到/sdcard/toast.txt中，可以在 check_point/check_add 中通过"toast"关键字进行检测。
+```
+#### __设备操作__
+> 通过Android方法实现/shell 命令实现
+```
+{"activity":"string", "mode":"restart"} "mode"参数可指定启动方式，restart表示会杀掉已启动的应用进程后,重新启动。实现方式为adb命令。
 {"launchApp":"string"} 支持activity启动，支持package name 启动应用，Android方法实现。
 {"kill":"string"} 根据应用package name 结束应用进程。
+{"clear":"string"} 根据应用package name 清除应用数据。
+{"install":"url"} 根据url安装应用，url为安装包下载地址
 {"uninstall":"string"} 根据应用 package name 卸载应用。
-{"notification":""} 无参数，下滑打开通知栏。
 {"lock":""} 无参数，锁屏。
-{"unlock":"string"} 根据锁屏密码解锁屏幕，参数为空则执行上滑解锁。
-{"press":"string"} 根据参数执行按键操作，支持：home, recent, back, power, AIkey
+{"unlock":"string"} 根据数字密码解锁屏幕，参数为空则执行上滑解锁。
+{"press":"string"/int} 根据参数执行按键操作，支持：home, recent, back, power, AIkey，keyco
 {"wait":int} 等待，单位 秒。
 {"shell":"string"} 执行shell命令。
-{"wifi":"string"} on/off 开关wifi。
-{"if": {}} 执行过程判断，参数与check_point 用法一致。通过"true","false" 字段执行相应操作【参考check_point用法】
+{"wifi":"on/off"} on/off 开关wifi。
+{"video_record": int} 开启录屏，参数为int类型，表示最长录屏时间，需要与check_point中的"video"字段配合使用
+{"audio_record": int} 开启录音，参数为int类型，表示最长录制时间
+```
+#### __图像识别__
+> 基于openCv实现
+```
+{"image":"image_id/image_tag", "bounds":"[0,0][100,100]", "index":1, "limit":0.98, "similarity":0.98, "method":"sift"} 
+image_id 为图像库中的图像id,image_tag 为图像库中图像tag名,bounds限制检查范围，缺省为当前界面范围；"index" 表示在界面内有多个匹配目标时，指定特定目标，缺省则默认最后一个匹配的目标, limit 可缺省，表示匹配精度0~1，similarity 可缺省，表示匹配相似度，判断颜色等 0~1，method 表示特征匹配所用算法，目前支持sift，template, contour算法。
+```
+
+#### __网络请求__
+```
+{"post":{"url":"xxxxxx", "data":{}}} 发送post请求，data字段为参数
+{"get":{"url":"xxxxx"}} 发送get请求
+```
+
+#### __逻辑实现__
+```
+{"if": {}} 执行过程判断，参数与check_point 用法一致。通过增加"true":[],"false":[] 执行相应操作用法同"query"字段
 {"check_point":{}} 用法同check_point, 用于重写(覆盖)原检测点
 {"check_add":{}} 用法同check_point, 根据条件增加检测点。
-
+{"$var":{"txt/img":{}} 获取界面内容设置为参数，用于对比检查，配合check_point中 "$var"配合使用，例如 {"$var":{"txt":{"text":"换个话题","nex":-4}}}
+{"loop":10, "break":{}, "do":[] }  loop为最大循环次数， break为循环截止条件与check_point用法一致， "do"为循环中执行的操作与query字段用法一致 
 ```
-* 其他字段均为描述性字段可缺省
+## 3. check_point
+> 对测试执行后的结果进行断言, 支持的断言方法如下：
 
-### 3. check_point
-**check_point 对测试执行后的结果检测字段如下：**
+#### __UI检查__
 
-* __"text"__  
+###### 界面元素检查
 ```
-    {"text":[]} / {"text":"string"}
+{"text":[]} 检测当前界面**(xml布局文件)**是否存在文本属性（text 、content-desc、recource-id...），list 元素之间为 _与_ 的关系，元素中 "|" 分割 为 _或_ 的关系
+示例：
+{"text":["今天天气|空气","度"]}
 ```
-检测当前界面**(xml布局文件)**是否存在文本属性（text 、content-desc、recource-id...），list 元素之间为 _与_ 的关系，元素中 "|" 分割 为 _或_ 的关系，如{"text":["今天天气|空气","度"]}
+###### activity检查
+```
+{"activity":"string"} 检查当前activity,元素中 "|" 分割 为 _或_ 的关系
+```
 
-* __"resource-id__" / __"id"__  
+###### toast检查
 ```
-    {"resource-id":"string"} 
+{"toast":"string"} 检查toast内容是否包含元素
 ```
-是否存在某个控件id，与"text"实现方式相似，只支持string参数
 
+###### 检查某个元素的状态属性
+```
+{"status":{"s_text":"开关","nex":0, "index":1, "checked":"false"}} 检查某个元素的状态，"s_text", "s_id", "s_content", "nex", "index" 通过这几个元素定位要判断的元素，然后判断要检查的属性及其预期的值  
+示例：
+{"status":{"s_text":"开关","nex":0, "index":1, "checked":"false"}} 表示定位id为id/button, text属性为”开关“ 的第二个元素，"check"属性是否为”false"
+```
 * __"nd"__  
 ```
     {"nd": [ ]/ "string"} 
-```
-
-与 __"text"__ 用法一致，结果取反
-
-* __"activity"__  
-```
-    {"activity":"string"} 
-```
-检查当前activity,元素中 "|" 分割 为 _或_ 的关系
-
-* __"toast"__    
-```
-{"toast":"string"}
-```
-检查toast内容是否包含元素
-
-* __"status"__    
-{"status":{}} 检查某个元素的状态，"s_text", "s_id", "s_content", "nex", "index" 通过这几个元素定位要判断的元素，然后判断要检查的属性及其预期的值    
-例如：   
-```
-    {"s_text":"开关", "s_id":"id/button", "nex":0, "index":1, "checked":"false“} 
-    表示定位id为id/button, text属性为”开关“ 的第二个元素，"check"属性是否为”false“
 ```
 
 * __"delta"__
@@ -218,7 +315,7 @@ case 是测试用例的主体，执行测试用例的核心部分。
 * __"false"__
 检测结果为false时，执行相关操作，使用方法与 case 中的 "step" 字段一致
 
-### 4. skip_condition
+## 4. skip_condition
 skip\_condition 字段的用法继承了check\_point 的用法，check\_point的字段都是支持的。   
 
 * __"scope"__ 
