@@ -1,11 +1,21 @@
-Testool 介绍
+# Testool 
+[![GitHub stars](https://img.shields.io/github/stars/yanglikai0806/testool.svg)](https://github.com/yanglikai0806/testool/stargazers) [![GitHub forks](https://img.shields.io/github/forks/yanglikai0806/testool.svg)](https://github.com/yanglikai0806/testool/forkgazers) [![GitHub release](https://img.shields.io/github/release/yanglikai0806/testool.svg)](https://github.com/yanglikai0806/testool/releases)
+> 为Android设备打造更可靠，更易用，更高效的测试执行工具
+* [工具特色](#工具特色)
+* [开发环境](#开发环境)
+* [首次使用](#首次使用)
+* [配置文件](#配置文件)
+* [用例格式](#用例格式)
+* [关键字说明](#关键字说明)
+
+工具特色
 ---
-[![GitHub stars](https://img.shields.io/github/stars/yanglikai0806/testool.svg)](https://github.com/yanglikai0806/testool/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/yanglikai0806/testool.svg)](https://github.com/yanglikai0806/testool/forkgazers)
-[![GitHub release](https://img.shields.io/github/release/yanglikai0806/testool.svg)](https://github.com/yanglikai0806/testool/releases)
->* Testool主要适用于Android端应用的UI自动化测试
+>* Testool主要应用于Android端应用的UI自动化测试，目前已支持 手机、电视、音箱、手表等多种Android设备
 >* Testool可直接安装在Android设备中，无需通过USB连接adb，所以Testool可以在完全**脱机**的情况下使用
->* Testool的测试用例是通过Json的形式来实现的
+>* Testool的测试用例是通过Json的形式来实现的, 消除自动化测试入门的语言门槛，让不懂编程的人员也可以完成自动化测试的搭建
+>* Testool实现了进程保持机制来保障测试执行的稳定性，来保障低端设备上测试的稳定执行
+>* Testool致力于做极致的测试执行工具，推崇极简化一键式的测试执行模式
+>* Testool的最佳使用方式是结合测试平台实现分布式的测试执行体系
 
 开发环境
 ---
@@ -21,8 +31,6 @@ Testool 介绍
  > - 进入App权限管理页面，将开启WLAN：始终允许，自启动：开启，获取手机信息:始终允许（最好将能给的权限全部赋予始终允许）
  > - 进入设备的电池管理功能（如有）->省电优化->锁屏后断开数据：从不；锁屏后清理内存：从不；应用智能省电：无限制
  > - 配置shell执行模式
-
-**[Installation](#用例格式)**
 
 配置文件
 ---
@@ -118,7 +126,12 @@ case 是测试用例的主体，执行测试用例的核心部分。
 ###### 点击控件
 ```
 {"text/id/content/class":"string", "nex":0, "index":0, "long":"true/10000", "checked":"true", "timeout":5000} 
-根据界面元素属性点击界面控件,"nex" 表示查找上下关系控件例如:1表示下一个元素，-1表示上一个元素，"index"当前界面有多个符合条件元素时，第几个元素。0均代表当前元素。"nex","index"缺省默认均为0, "long" 表示控件是否为长按操作，"true"默认长按1.5s，"数字"长按xxxms；"checked"字段表示控件期望的checked状态，适用于切换开关、复选框等状态类控件, timeout 表示在超时时间内查找元素，默认 5000 ms。
+根据界面元素属性点击界面控件
+"nex" 表示查找上下关系控件例如:1表示下一个元素，-1表示上一个元素，
+"index"当前界面有多个符合条件元素时，第几个元素，0均代表第一个元素。"nex","index"缺省默认均为0。
+"long" 表示控件是否为长按操作，"true"默认长按1.5s，"数字"长按xxxms，
+"checked"字段表示控件期望的checked状态，适用于切换开关、复选框等状态类控件, 
+"timeout" 表示在超时时间内查找元素，默认 5000 ms。
 
 示例：
 {"text":"设置"} 根据控件text属性，点击text属性值为"设置" 的第1个元素
@@ -132,7 +145,10 @@ case 是测试用例的主体，执行测试用例的核心部分。
 ```
 ###### 界面滑动
 ```
-{"swipe":[xs, ys, xe, ye, duration]|"string"} 根据起始点 xs, ys 滑动界面到 xe，ye；duration 为滑动时长ms，控制滑动快慢， 缺省默认500ms。支持快捷滑动 如 {"swipe":"left|right|up|down"}
+{"swipe":[xs, ys, xe, ye, duration]|"string"} 
+xs, ys 滑动的起始点  xe, ye滑动结束点 ；
+duration 为滑动时长ms，控制滑动快慢， 缺省默认500ms。
+支持快捷滑动 如 {"swipe":"left|right|up|down"}
 
 示例：
 {"swipe":[0.5, 0.3, 0.5, 0.8]} 从一个点滑动到另一个点
@@ -155,42 +171,53 @@ case 是测试用例的主体，执行测试用例的核心部分。
 
 ###### 双指缩放
 ```
-{"uiautomator":{"method":"pinchOpen/pinchClose", "args":[{"id":"xxxx"}, 1.0, 500]}} 通过双指进行缩放操作，args：[可缩放元素的属性, 比例percent(缺省值1.0), 速度speed(缺省值500)]
+{"uiautomator":{"method":"pinchOpen/pinchClose", "args":[{"id":"xxxx"}, 1.0, 500]}} 
+通过双指进行缩放操作，
+args：[可缩放元素的属性, 比例percent(缺省值1.0), 速度speed(缺省值500)]
 
 示例：
 {"uiautomator":{"method":"pinchOpen", "args":[{"id":"android:id/camera"}, 0.8, 500]}} 将控件放大80%, 速度 500像素/秒
 ```
 ###### 滚动操作
 ```
-{"uiautomator":{"method":"scrollLeft/scrollRight/scrollUp/scrollDown", "args":[{"id":"xxxx"}, 1.0, 500]}} 滚动目标控件，args：[可定位元素的属性, 滚动比例percent, 滚动速度speed]
+{"uiautomator":{"method":"scrollLeft/scrollRight/scrollUp/scrollDown", "args":[{"id":"xxxx"}, 1.0, 500]}} 
+滚动目标控件，
+args：[可定位元素的属性, 滚动比例percent, 滚动速度speed]
 
 示例：
 {"uiautomator":{"method":"scrollLeft", "args":[{"id":"xxx", "index":0}, 0.8, 500]}} 将控件向左滚动80%, 速度 500像素/秒
 ```
 ###### 拖动操作
 ```
-{"uiautomator":{"method":"drag", "args":[{"id":"xxxx"}/[x,y], {"id":"xxx"}/[x,y], 500]}} 拖动控件，args：[被拖动元素的属性或坐标,拖动的目标元素或坐标,拖动速度speed]
+{"uiautomator":{"method":"drag", "args":[{"id":"xxxx"}/[x,y], {"id":"xxx"}/[x,y], 500]}} 
+拖动控件，
+args：[被拖动元素的属性或坐标,拖动的目标元素或坐标,拖动速度speed]
 
 示例：
 {"uiautomator":{"method":"drag", "args":[{"id":"android:id/camera"}, [0.5,0.5], 500]}} 将控件拖动到屏幕中央, 速度 500像素/秒
 ```
 ###### fling操作
 ```
-{"uiautomator":{"method":"flingLeft/flingRight/flingUp/flingDown", "args":[{"id":"xxxx"}, 5000]}} 拖动控件，args：[元素的属性,速度speed]
+{"uiautomator":{"method":"flingLeft/flingRight/flingUp/flingDown", "args":[{"id":"xxxx"}, 5000]}} 
+fling操作，
+args：[元素的属性,速度speed]
 
 示例：
 {"uiautomator":{"method":"flingLeft", "args":[{"id":"xxx"},  5000]}} 将控件拖动到屏幕中央, 速度 500像素/秒
 ```
 ###### 输入文本
 ```
-{"uiautomator":{"method":"setText", "args":[{"id":"xxxx"}, "text文本", "a"]}} 输入文本，args：[元素的属性,输入文本内容, 输入方式："a" 为追加]
+{"uiautomator":{"method":"setText", "args":[{"id":"xxxx"}, "text文本", "a"]}} 
+输入文本，
+args：[元素的属性,输入文本内容, 输入方式："a" 为追加]
 
 示例：
 {"uiautomator":{"method":"setText", "args":[{"id":"xxx"},  "今天天气"]}} 在控件中输入"今天天气"
 ```
 ###### 双指手势
 ```
-{"uiautomator":{"method":"twoPointerGesture", "args":[{"id":"xxxx"}, [500, 500], [800, 500], [500, 800], [800, 800]]}} 参数args：[元素的属性,point1起始点, point2起始点, point1结束点, point2结束点]
+{"uiautomator":{"method":"twoPointerGesture", "args":[{"id":"xxxx"}, [500, 500], [800, 500], [500, 800], [800, 800]]}} 
+args：[元素的属性,point1起始点, point2起始点, point1结束点, point2结束点]
 ```
 ###### 多点手势
 ```
@@ -211,11 +238,11 @@ case 是测试用例的主体，执行测试用例的核心部分。
 {"uninstall":"string"} 根据应用 package name 卸载应用。
 {"lock":""} 无参数，锁屏。
 {"unlock":"string"} 根据数字密码解锁屏幕，参数为空则执行上滑解锁。
-{"press":"string"/int} 根据参数执行按键操作，支持：home, recent, back, power, AIkey，keyco
+{"press":"string"/int} 根据参数执行按键操作，支持：home, recent, back, power, keycode值
 {"wait":int} 等待，单位 秒。
 {"shell":"string"} 执行shell命令。
 {"wifi":"on/off"} on/off 开关wifi。
-{"video_record": int} 开启录屏，参数为int类型，表示最长录屏时间，需要与check_point中的"video"字段配合使用
+{"video_record": int} 开启录屏，参数为int类型，表示最长录屏时间
 {"audio_record": int} 开启录音，参数为int类型，表示最长录制时间
 ```
 #### __图像识别__
@@ -336,7 +363,7 @@ image_id 为图像库中的图像id,image_tag 为图像库中图像tag名,bounds
 
   <img src="https://raw.githubusercontent.com/yanglikai0806/testool/master/resource/0.gif" width="300" height="570" alt="展示"/>
   
- 五. 加入交流群(群号：439269565)
+ 加入交流群(群号：439269565)
  ---
   <img src="https://github.com/yanglikai0806/testool/blob/master/resource/testool%E7%BE%A4%E4%BA%8C%E7%BB%B4%E7%A0%81.png" width="230" height="300" alt="展示"/>
 
