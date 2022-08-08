@@ -1,6 +1,8 @@
 package com.kevin.share.adblib;
 
 
+import com.kevin.share.utils.logUtil;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.Closeable;
@@ -236,6 +238,7 @@ public class AdbConnection implements Closeable {
 					} catch (Exception e) {
 						/* The cleanup is taken care of by a combination of this thread
 						 * and close() */
+						logUtil.e("", e);
 						break;
 					}
 				}

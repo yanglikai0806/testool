@@ -14,12 +14,14 @@ import android.widget.TextView;
 
 import com.kevin.testool.R;
 import com.kevin.testool.utils.WifiUtils;
-import com.kevin.share.utils.AdbUtils;
+import com.kevin.share.utils.ShellUtils;
 import com.kevin.share.utils.ToastUtils;
 import com.kevin.share.utils.logUtil;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static com.kevin.share.CONST.ADB_PORT;
 
 public class WirelessAdb extends Activity {
 
@@ -67,11 +69,11 @@ public class WirelessAdb extends Activity {
         ivWifi.getLayoutParams().width = (int) (dm.widthPixels * NUM);
         ivWifi.getLayoutParams().height = (int) (dm.widthPixels * NUM);
 
-        if (AdbUtils.adbIfRunning()) {
+        if (ShellUtils.adbIfRunning()) {
             tvSwitch.setText(getString(R.string.adb_stop));
             String str = getString(R.string.adb_started) + "\n" +
 //                    System.getProperty("line.separator", "\\n") +
-                    "adb connect " + new WifiUtils(getApplicationContext()).getIPAddress() + ":" + AdbUtils.PORT;
+                    "adb connect " + new WifiUtils(getApplicationContext()).getIPAddress() + ":" + ADB_PORT;
             tvState.setText(str);
             ivWifi.setImageResource(R.drawable.wifi_on);
         } else {
@@ -134,7 +136,7 @@ public class WirelessAdb extends Activity {
                 //MToast.Show(MainActivity.this, getString(R.string.adb_started));
                 String str = getString(R.string.adb_started) + "\n" +
 //                    System.getProperty("line.separator", "\\n") +
-                        "adb connect " + new WifiUtils(getApplicationContext()).getIPAddress() + ":" + AdbUtils.PORT;
+                        "adb connect " + new WifiUtils(getApplicationContext()).getIPAddress() + ":" + ADB_PORT;
                 tvState.setText("" + str);
                 tvState.refreshDrawableState();
                 tvSwitch.setText(getString(R.string.adb_stop));
@@ -197,7 +199,7 @@ public class WirelessAdb extends Activity {
 
 
     private String startAdb() {
-        if (AdbUtils.adbStart()) {
+        if (ShellUtils.adbStart()) {
             return "ok";
         } else {
             return "no";
@@ -205,7 +207,7 @@ public class WirelessAdb extends Activity {
     }
 
     private String stopAdb() {
-        if (AdbUtils.adbStop()) {
+        if (ShellUtils.adbStop()) {
             return "ok";
         } else {
             return "no";

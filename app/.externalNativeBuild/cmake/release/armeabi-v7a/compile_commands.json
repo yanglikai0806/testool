@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/yanglikai/androidpro/testool/app/.externalNativeBuild/cmake/release/armeabi-v7a",
+  "command": "/home/yanglikai/Android/Sdk/ndk-bundle/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=armv7-none-linux-androideabi23 --gcc-toolchain=/home/yanglikai/Android/Sdk/ndk-bundle/toolchains/llvm/prebuilt/linux-x86_64 --sysroot=/home/yanglikai/Android/Sdk/ndk-bundle/toolchains/llvm/prebuilt/linux-x86_64/sysroot  -Dnative_lib_EXPORTS  -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -march=armv7-a -mthumb -Wformat -Werror=format-security   -Oz -DNDEBUG  -fPIC   -o CMakeFiles/native-lib.dir/native-lib.cpp.o -c /home/yanglikai/androidpro/testool/app/src/main/cpp/native-lib.cpp",
+  "file": "/home/yanglikai/androidpro/testool/app/src/main/cpp/native-lib.cpp"
+}
+]

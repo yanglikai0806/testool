@@ -7,8 +7,8 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.4.2'
-        
+        classpath 'com.android.tools.build:gradle:4.1.2'
+
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -19,7 +19,19 @@ allprojects {
     repositories {
         google()
         jcenter()
+//        maven { url 'https://jitpack.io' }
     }
+}
+
+ext {
+    compileSdkVersion = 28
+    buildToolsVersion = '28.0.3'
+    androidXLibraryVersion = '1.0.0'
+
+    PUBLISH_GROUP_ID = 'com.theartofdev.edmodo'
+    PUBLISH_ARTIFACT_ID = 'android-image-cropper'
+    PUBLISH_VERSION = '2.8.0'
+    // gradlew clean build generateRelease
 }
 
 task clean(type: Delete) {

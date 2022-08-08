@@ -8,6 +8,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Toast;
 
+import com.kevin.share.utils.logUtil;
+
 public class MainActivity extends AppCompatActivity {
 
     @Override
@@ -46,7 +48,11 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         if (!Settings.canDrawOverlays(this)) {
-            startActivityForResult(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName())), 0);
+            try {
+                startActivityForResult(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName())), 0);
+            } catch (Exception e){
+                logUtil.e("", e.getMessage());
+            }
         } else {
             startService(new Intent(MainActivity.this, FloatingWindowService.class));
         }
@@ -57,7 +63,11 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         if (!Settings.canDrawOverlays(this)) {
-            startActivityForResult(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName())), 1);
+            try {
+                startActivityForResult(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName())), 1);
+            } catch (Exception e){
+                logUtil.e("", e.getMessage());
+            }
         } else {
             startService(new Intent(MainActivity.this, RecordCaseService.class));
         }

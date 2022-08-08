@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="com.kevin.testool.MainActivity"
+    tools:context="com.kevin.testool.activity.MainActivity"
     tools:showIn="@layout/app_bar_main">
 
     <LinearLayout
@@ -43,34 +43,28 @@
 
         <Button
             android:id="@+id/selectAll"
+            style="@android:style/Widget.Material.Button.Inset"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
             android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:layout_weight="1"
-            android:text="@string/selectAll"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/startDebug"
-            app:layout_constraintTop_toBottomOf="@+id/list_test"
-            tools:ignore="ButtonStyle" />
+            android:text="@string/selectAll" />
+
 
         <Button
             android:id="@+id/startDebug"
+            style="@android:style/Widget.Material.Button.Inset"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"
             android:layout_weight="1"
-            android:text="调试任务"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/startDebug"
-            app:layout_constraintHorizontal_bias="0.152"
-            app:layout_constraintStart_toStartOf="parent"
-            tools:ignore="ButtonStyle" />
+            android:text="调试任务" />
 
         <Button
             android:id="@+id/startMonitor"
+            style="@android:style/Widget.Material.Button.Inset"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -81,16 +75,13 @@
 
         <Button
             android:id="@+id/startTest"
+            style="@android:style/Widget.Material.Button.Inset"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:layout_marginTop="8dp"
             android:layout_weight="1"
-            android:text="@string/startTest"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            tools:ignore="ButtonStyle" />
+            android:text="@string/startTest" />
     </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>

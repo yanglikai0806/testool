@@ -1,0 +1,5 @@
+<root>
+    <item name='java.io.BufferedReader java.lang.String readLine()'>
+        <annotation name='android.support.annotation.Nullable' />
+    </item>
+</root>

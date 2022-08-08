@@ -33,7 +33,7 @@ import static com.kevin.testool.R.layout.list_report;
  * 测试报告
  */
 
-public class ReportActivity extends AppCompatActivity {
+public class ReportActivity extends BasicActivity {
 
     private ListView listView;
 
@@ -104,8 +104,8 @@ public class ReportActivity extends AppCompatActivity {
                 holder = new ViewHolder();
                 // 导入布局并赋值给convertview
                 convertView = inflater.inflate(list_report, null);
-                holder.fn = (TextView) convertView.findViewById(R.id.folder_name);
-                holder.sb = (Button) convertView.findViewById(R.id.showBtn);
+                holder.fn = convertView.findViewById(R.id.folder_name);
+                holder.sb = convertView.findViewById(R.id.showBtn);
                 holder.lb = convertView.findViewById(R.id.logBtn);
                 // 为view设置标签
                 convertView.setTag(holder);
@@ -113,6 +113,14 @@ public class ReportActivity extends AppCompatActivity {
                 // 取出holder
                 holder = (ViewHolder) convertView.getTag();
             }
+            convertView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent_web = new Intent(ReportActivity.this, WebViewActivity.class);
+                    intent_web.putExtra("FOLDER_NAME", list.get(position));
+                    startActivity(intent_web);
+                }
+            });
             holder.fn.setText(list.get(position));
             holder.sb.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -136,14 +144,6 @@ public class ReportActivity extends AppCompatActivity {
                     String res = "";
                     res = FileUtils.readJsonFile(REPORT_PATH + list.get(position) + File.separator+ "log.txt");
                     case_detail.setText(res);
-//                popWindow.setMessage(res.replace("}},","}},\n\n"));
-                    // 添加选择按钮并注册监听
-//                popWindow.setPositiveButton("确定", new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which) {
-////                        finish();
-//                    }
-//                });
                     logWindow.setNegativeButton("关闭", null);
                     //对话框显示
                     logWindow.show();

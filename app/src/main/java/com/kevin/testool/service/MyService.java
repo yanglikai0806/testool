@@ -9,7 +9,6 @@ import android.util.Log;
 import com.kevin.testool.utils.AVUtils;
 
 public class MyService extends Service {
-    private final String TAG = "MonkeyService";
     //必须要实现的方法
     @Override
     public IBinder onBind(Intent intent) {

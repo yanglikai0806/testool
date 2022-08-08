@@ -56,26 +56,19 @@ public class FileUtils {
         return dirName;
     }
 
-//    public static void writeFile(String file_name, String content, Boolean append) throws FileNotFoundException {
-//        File file = new File(file_name);
-//        FileOutputStream fos;
-////        android.os.Build.VERSION.RELEASE.startsWith("11")
-//        fos = new FileOutputStream(file, append);
-//        OutputStreamWriter osw = new OutputStreamWriter(fos);
-//        BufferedWriter bw = new BufferedWriter(osw);
-//        try {
-//            bw.write(content);
-//            bw.close();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//    }
 
-    public static void writeFile(String file_name, String contnet, boolean append) throws FileNotFoundException{
+    public static void writeFile(String file_name, String contnet, boolean append){
         try {
             String exContent = "";
-            if ( append){
-                if (new File(file_name).exists()) {
+            File file = new File(file_name);
+            if (!file.getParentFile().exists()){
+                file.getParentFile().mkdirs();
+            }
+            if (!file.exists()){
+                file.createNewFile();
+            }
+            if (append){
+                if (file.exists()) {
                     exContent = readToString(file_name);
                 }
                 append = false;
@@ -86,7 +79,7 @@ public class FileUtils {
 //            BufferedWriter out = new BufferedWriter(fileWriter);
 //            out.write(contnet);
 //            out.close();
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -99,6 +92,16 @@ public class FileUtils {
 
         } else {
             logUtil.d("deleteFile", "文件不存在:"+file_name);
+        }
+    }
+
+    public static void deleteFile(File myDelFile) {
+        if(myDelFile.exists()){
+            myDelFile.delete();
+            logUtil.d("deleteFile", "删除文件:"+myDelFile);
+
+        } else {
+            logUtil.d("deleteFile", "文件不存在:"+myDelFile);
         }
     }
 
@@ -125,11 +128,8 @@ public class FileUtils {
     public static void createTempFile(String file_name, String content){
 
 //        deleteFile(file_name);
-        try {
-            writeFile(file_name,content, false);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        writeFile(file_name,content, false);
+
 
     }
 
@@ -225,32 +225,7 @@ public class FileUtils {
             }
 
         }
-
-        try {
-            writeFile(fileName, String.valueOf(content), false);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
-//        FileOutputStream fos = null;//FileOutputStream会自动调用底层的close()方法，不用关闭
-//        BufferedWriter bw = null;
-//        try {
-//
-//            fos = new FileOutputStream(fileName, false);//这里的第二个参数代表追加还是覆盖，true为追加，flase为覆盖
-//            bw = new BufferedWriter(new OutputStreamWriter(fos));
-//            assert content != null;
-//            bw.write(String.valueOf(content));
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } finally {
-//            try {
-//                if (bw != null) {
-//                    bw.close();//关闭缓冲流
-//                }
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
+        writeFile(fileName, String.valueOf(content), false);
 
     }
 
@@ -311,17 +286,19 @@ public class FileUtils {
 
     public static String readJsonFile(String file){
         File tcJson = new File(file);
-
-        Long fileLengthLong = tcJson.length();
-        byte[] fileContent = new byte[fileLengthLong.intValue()];
-        try {
-            FileInputStream inputStream = new FileInputStream(tcJson);
-            inputStream.read(fileContent);
-            inputStream.close();
-        } catch (Exception e) {
-            // TODO: handle exception
+        if (tcJson.exists()) {
+            Long fileLengthLong = tcJson.length();
+            byte[] fileContent = new byte[fileLengthLong.intValue()];
+            try {
+                FileInputStream inputStream = new FileInputStream(tcJson);
+                inputStream.read(fileContent);
+                inputStream.close();
+            } catch (Exception e) {
+                logUtil.e("", e);
+            }
+            return new String(fileContent);
         }
-        return new String(fileContent);
+        return "";
     }
 
     /**
@@ -398,15 +375,6 @@ public class FileUtils {
                 try {
                     json_content = new JSONObject(content);
                     json_content.put(JO.keys().next(), JO.get(JO.keys().next()));
-//                    Iterator<?> iterator = json_content.keys();// 应用迭代器Iterator 获取所有的key值
-//                    while (iterator.hasNext()) { // 遍历每个key
-//                        String key = (String) iterator.next();
-//                        if (!JO.isNull(key)){
-//                            json_content.put(key, JO.getString(JO.keys().next()));
-//                            break;
-//                        }
-//
-//                    }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -447,19 +415,68 @@ public class FileUtils {
             //用默认的编码格式进行编码
             result = Base64.encodeToString(data,Base64.NO_WRAP); //Base64.DEFAULT 带\n， Base64.NO_WRAP不带\n
         }catch (Exception e){
-            e.printStackTrace();
+            logUtil.e("", e);
         }finally {
             if(null !=is){
                 try {
                     is.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    logUtil.e("", e);
                 }
             }
 
         }
-        System.out.println(result);
         return result;
+    }
+
+    /**
+     * 将图片转换成Base64编码的字符串
+     */
+    public static String xToBase64(String path, int mode){
+        if(TextUtils.isEmpty(path)){
+            return null;
+        }
+        InputStream is = null;
+        byte[] data = null;
+        String result = null;
+        try{
+            is = new FileInputStream(path);
+            //创建一个字符流大小的数组。
+            data = new byte[is.available()];
+            //写入数组
+            is.read(data);
+            //用默认的编码格式进行编码
+            result = Base64.encodeToString(data,mode); //Base64.DEFAULT 带\n， Base64.NO_WRAP不带\n
+        }catch (Exception e){
+            logUtil.e("", e);
+        }finally {
+            if(null !=is){
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    logUtil.e("", e);
+                }
+            }
+
+        }
+        return result;
+    }
+
+    /**
+     * 将Base64编码的字符串转成图片
+     */
+
+    public static String base64ToFile(String base64Code,String savePath) throws Exception {
+        //byte[] buffer = new BASE64Decoder().decodeBuffer(base64Code);
+        if (base64Code.length() > 0){
+            byte[] buffer =Base64.decode(base64Code, Base64.NO_WRAP);
+            FileOutputStream out = new FileOutputStream(savePath);
+            out.write(buffer);
+            out.close();
+        } else {
+            logUtil.d("", "base64code为空");
+        }
+        return savePath;
     }
 
     public static void editCaseJsonFile(String Name, String msg){
@@ -496,10 +513,7 @@ public class FileUtils {
                 bw.write("[\n" + msg + "]");
             } else {
                 bw.write(content.trim().substring(0,content.length()-1).trim() + ",\n" + msg + "]");
-//                System.out.println("["+content.trim().substring(1,content.length()-1) + ",\n" + msg + "]");
             }
-
-//            bw.newLine();
 
         } catch (IOException e) {
             e.printStackTrace();

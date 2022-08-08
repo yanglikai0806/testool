@@ -2,11 +2,12 @@
     <string name="app_name">测试工具</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="service_ticker">Auto test is running</string>
+    <string name="service_ticker">testool is running</string>
     <string name="service_title">测试工具</string>
-    <string name="service_text">Auto test is running</string>
+    <string name="service_text">Test is running</string>
     <string name="service_text2">Monkey is running</string>
     <string name="service_text3">Monitor is running</string>
+    <string name="service_text4">Remote is running</string>
     <string name="action_settings">Settings</string>
     <string name="appDescription">Android端实现的UI自动化测试工具</string>
     <string name="author">凯哥出品</string>
@@ -19,9 +20,10 @@
     <string name="title_activity_edit_case">editCaseActivity</string>
     <string name="selectAll">全选</string>
     <string name="selectCon">反选</string>
-    <string name="startTest">开始</string>
+    <string name="startTest">测试任务</string>
     <string name="more">更多</string>
     <string name="upgrade">关于</string>
+    <string name="keep">进程保活</string>
     <string name="adb">无线adb</string>
     <string name="wakeup">唤醒测试</string>
     <string name="wake_up">唤醒测试</string>
@@ -30,6 +32,8 @@
     <string name="tab_text_2">Tab 2</string>
     <string name="tab_text_3">Tab 3</string>
     <string name="section_format">Hello World from section: %1$d</string>
+    <string name="image_croper">图片剪裁</string>
+    <string name="image_edit">图片操作</string>
     <string name="clear_log">清空日志文件</string>
     <string name="monkeyTest">Monkey+</string>
     <string name="test_env">测试环境：</string>
@@ -61,8 +65,15 @@
     <string name="loops">循环次数：</string>
     <string name="caseTag">用例标签：</string>
     <string name="retryTimes">重试次数：</string>
+    <string name="taskId">任务序号：</string>
+    <string name="taskResult">筛选结果：</string>
+    <string name="taskDate">筛选批次：</string>
     <string name="setting">设置</string>
     <string name="start_accessibility">启用辅助功能</string>
+    <string name="start_float">开启悬浮球</string>
     <string name="record_case">录制用例</string>
+    <string name="test_plateform">测试平台</string>
+    <string name="remote_control">允许远程</string>
+    <string name="disable_remote_control">禁止远程</string>
 
 </resources>

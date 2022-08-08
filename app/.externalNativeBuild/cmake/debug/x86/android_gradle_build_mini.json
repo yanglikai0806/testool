@@ -1,0 +1,18 @@
+{
+  "buildFiles": [
+    "/home/yanglikai/Android/Sdk/ndk-bundle/build/cmake/android.toolchain.cmake",
+    "/home/yanglikai/androidpro/testool/app/src/main/cpp/CMakeLists.txt",
+    "/home/yanglikai/Android/Sdk/ndk-bundle/build/cmake/platforms.cmake"
+  ],
+  "cleanCommands": [
+    "/home/yanglikai/Android/Sdk/cmake/3.10.2.4988404/bin/cmake --build \"/home/yanglikai/androidpro/testool/app/.externalNativeBuild/cmake/debug/x86\" --target clean"
+  ],
+  "libraries": {
+    "native-lib-Debug-x86": {
+      "artifactName": "native-lib",
+      "buildCommand": "/home/yanglikai/Android/Sdk/cmake/3.10.2.4988404/bin/cmake --build \"/home/yanglikai/androidpro/testool/app/.externalNativeBuild/cmake/debug/x86\" --target native-lib",
+      "abi": "x86",
+      "output": "/home/yanglikai/androidpro/testool/app/build/intermediates/cmake/debug/obj/x86/libnative-lib.so"
+    }
+  }
+}

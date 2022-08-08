@@ -4,11 +4,13 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.WindowManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.kevin.share.utils.logUtil;
 import com.kevin.testool.R;
 import com.kevin.testool.common.HtmlReport;
 import com.kevin.share.utils.ToastUtils;
@@ -22,14 +24,14 @@ import static android.webkit.WebView.setWebContentsDebuggingEnabled;
 import static com.kevin.share.CONST.REPORT_PATH;
 
 
-public class WebViewActivity extends AppCompatActivity {
+public class WebViewActivity extends BasicActivity {
     private WebView webView;
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getSupportActionBar().hide();//隐藏标题栏
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);//隐藏状态栏
+//        getSupportActionBar().hide();//隐藏标题栏
+//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);//隐藏状态栏
         setContentView(R.layout.activity_webview);
 
         webView = findViewById(R.id.webview);
@@ -61,8 +63,8 @@ public class WebViewActivity extends AppCompatActivity {
             if (!reportHtml.exists()){
                 try {
                     HtmlReport.generateReport(REPORT_PATH + folderName + File.separator+ "log.txt");
-                } catch (IOException | JSONException e) {
-                    e.printStackTrace();
+                } catch (Exception e) {
+                    logUtil.e("", e);
                 }
             }
             if (reportHtml.exists()) {
@@ -71,5 +73,13 @@ public class WebViewActivity extends AppCompatActivity {
                 ToastUtils.showShort(this, "未生成报告文件");
             }
         }
+    }
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && webView.canGoBack()) {
+            webView.goBack();// 返回前一个页面
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 }

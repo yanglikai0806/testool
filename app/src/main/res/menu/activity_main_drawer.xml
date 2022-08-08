@@ -22,8 +22,13 @@
             android:title="@string/updateCases" />
         <item
             android:id="@+id/nav_report"
-            android:icon="@drawable/ic_menu_report"
+            android:icon="?android:attr/actionModePasteDrawable"
             android:title="@string/logAndReport" />
+
+        <item
+            android:id="@+id/image_edit"
+            android:icon="@drawable/ic_menu_image"
+            android:title="@string/image_edit" />
         <item
             android:id="@+id/nav_monkey"
             android:icon="@drawable/ic_menu_memTest"
@@ -37,6 +42,14 @@
     <item android:title="@string/more">
         <menu>
             <item
+                android:id="@+id/nav_share"
+                android:icon="@drawable/ic_menu_share"
+                android:title="@string/upgrade" />
+            <item
+                android:id="@+id/nav_keep"
+                android:icon="@drawable/ic_menu_keep"
+                android:title="@string/keep" />
+            <item
                 android:id="@+id/nav_adb"
                 android:icon="@drawable/ic_menu_send"
                 android:title="@string/adb" />
@@ -44,6 +57,10 @@
                 android:id="@+id/nav_log"
                 android:icon="@drawable/ic_menu_bugreport"
                 android:title="@string/bugreprot" />
+            <item
+                android:id="@+id/nav_test_plateform"
+                android:icon="@drawable/ic_menu_test_plateform"
+                android:title="@string/test_plateform" />
         </menu>
     </item>
 

@@ -98,14 +98,14 @@
             app:layout_constraintTop_toBottomOf="@+id/constraintLayout"
             tools:ignore="MissingConstraints">
 
-            <TextView
-                android:id="@+id/select_item_step"
-                android:layout_width="45dp"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:text="@string/step"
-                android:textColor="#FFA3A1A1"
-                android:textSize="14sp" />
+            <!--<TextView-->
+                <!--android:id="@+id/select_item_query"-->
+                <!--android:layout_width="45dp"-->
+                <!--android:layout_height="match_parent"-->
+                <!--android:gravity="center"-->
+                <!--android:text="@string/query"-->
+                <!--android:textColor="#FFA3A1A1"-->
+                <!--android:textSize="14sp" />-->
 
             <TextView
                 android:id="@+id/select_item_ui"
@@ -193,6 +193,16 @@
                 android:textColor="#FFA3A1A1"
                 android:textSize="14sp"
                 tools:ignore="DuplicateIds" />
+
+            <TextView
+                android:id="@+id/select_item_img"
+                android:layout_width="45dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="image"
+                android:textColor="#FFA3A1A1"
+                android:textSize="14sp" />
 
             <TextView
                 android:id="@+id/select_item_more"

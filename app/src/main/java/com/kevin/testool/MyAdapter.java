@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.view.ContextThemeWrapper;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -19,15 +18,8 @@ import android.widget.TextView;
 
 import com.kevin.share.CONST;
 import com.kevin.share.Common;
-import com.kevin.share.MainActivity;
 import com.kevin.share.utils.FileUtils;
 import com.kevin.share.utils.ToastUtils;
-import com.kevin.testool.common.DBService;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -120,7 +112,7 @@ public class MyAdapter extends BaseAdapter{
                 builder.setItems(Items, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        String caseFileName = list.get(position).split("\\.")[1].trim();
+                        String caseFileName = list.get(position).split("\\.", 2)[1].trim();
                         String fp = TESTCASES_PATH + caseFileName + ".json";
                         switch(Items[i]){
                             case "删除":
@@ -140,27 +132,11 @@ public class MyAdapter extends BaseAdapter{
                                 new Thread(new Runnable() {
                                     @Override
                                     public void run() {
-//                                        DBService.dropTable(caseFileName);
-//                                        if (!DBService.createTable(caseFileName)){
-//                                            ToastUtils.showShortByHandler(context, "上传失败: create table failed");
-//                                            return;
-//                                        }
-//                                        try {
-//                                            JSONArray testCaseList = new JSONArray(FileUtils.readJsonFile(fp));
-//                                            for (int j=0; j<testCaseList.length(); j++){
-//                                                boolean isOk = DBService.insertCase(caseFileName,testCaseList.getJSONObject(j), j);
-//                                                if (!isOk){
-//                                                    ToastUtils.showShortByHandler(context, "上传失败: insert data failed");
-//                                                    return;
-//                                                }
-//                                            }
-//                                        } catch (JSONException e) {
-//                                            e.printStackTrace();
-//                                            ToastUtils.showLongByHandler(context, "Error:" + e);
-//                                        }
-
-                                        Common.updateTestCases(FileUtils.readJsonFile(fp));
-                                        ToastUtils.showShortByHandler(context, "上传完成");
+                                        if (Common.updateTestCases(FileUtils.readJsonFile(fp))){
+                                            ToastUtils.showShortByHandler(context, "上传完成");
+                                        } else {
+                                            ToastUtils.showShortByHandler(context, "上传失败");
+                                        }
                                     }
                                 }).start();
                                 break;
@@ -193,7 +169,7 @@ public class MyAdapter extends BaseAdapter{
             @Override
             public void onClick(View v) {
 //                ToastUtils.showShort(context, list.get(position));
-                String caseFileName = list.get(position).split("\\.")[1].trim();
+                String caseFileName = list.get(position).split("\\.", 2)[1].trim();
                 AlertDialog.Builder popWindow = new AlertDialog.Builder(context);
                 View dialogView = LayoutInflater.from(MyApplication.getContext()).inflate(R.layout.case_detail,null);
                 //设置对话框标题
@@ -205,11 +181,6 @@ public class MyAdapter extends BaseAdapter{
                 final TextView case_detail = dialogView.findViewById(R.id.case_detail);
                 case_detail.setText(res.replace("}},","}},\n").replace("\",", "\",\n").replace("\n\n", "\n"));
                 case_detail.setTextIsSelectable(true);
-//                TextView showText = new TextView(context);
-//                showText.setTextSize(18);
-//                assert res != null;
-//                showText.setText(res.replace("}},","}},\n").replace(",", ",\n"));
-//                popWindow.setView(showText);
 
 //                 添加选择按钮并注册监听
                 popWindow.setPositiveButton("编辑", (dialog, which) -> {
@@ -220,11 +191,8 @@ public class MyAdapter extends BaseAdapter{
                     final EditText et = editWindowView.findViewById(R.id.caseEdit);
                     et.setText(res.replace("}},","}},\n").replace("\",", "\",\n").replace("\n\n", "\n"));
                     editWindow.setPositiveButton("保存", (dialog1, which1) -> {
-                        try {
-                            FileUtils.writeFile(fp, et.getText().toString(), false);
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
-                        }
+                        FileUtils.writeFile(fp, et.getText().toString(), false);
+
                             });
                     editWindow.setNegativeButton("取消", null);
                     editWindow.show();

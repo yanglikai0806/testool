@@ -3,16 +3,14 @@ package com.kevin.testool.receiver;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
-
-import com.kevin.testool.service.AlarmService;
-import com.kevin.testool.utils.DateTimeUtils;
-import com.kevin.share.utils.ToastUtils;
-
-import java.util.Calendar;
+import android.os.Build;
+import com.kevin.share.utils.ShellUtils;
+import com.kevin.share.utils.SPUtils;
+import com.kevin.share.utils.logUtil;
+import com.kevin.testool.service.DeviceRemoteService;
 
 /**
- * 开机重新启动服务AlarmService
+ * 开机重新启动服务
  *
  */
 
@@ -22,13 +20,18 @@ public class BootCompleteReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        Log.d("定时服务", "开机启动");
-        ToastUtils.showShort(context, "定时服务开机启动");
-        Intent i = new Intent(context, AlarmService.class);
-        // 获取3分钟之后的日期时间字符串
-        i.putExtra("alarm_time",
-                DateTimeUtils.getNLaterDateTimeString(Calendar.MINUTE, 3));
-        i.putExtra("task_id", mTaskId);
-        context.startService(i);
+        logUtil.i("定时服务", "开机启动");
+        ShellUtils.adbStart();
+
+        //按需启动远程服务
+        if (SPUtils.getInt(SPUtils.MY_DATA, DeviceRemoteService.REMOTE) == 1) {
+            Intent intent_remote = new Intent(context, DeviceRemoteService.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent_remote);
+            } else {
+                context.startService(intent_remote);
+            }
+
+        }
     }
 }

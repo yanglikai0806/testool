@@ -8,11 +8,13 @@ import android.text.method.ScrollingMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
 import com.kevin.share.CONST;
+import com.kevin.share.utils.logUtil;
 import com.kevin.testool.R;
 import com.kevin.testool.service.MonkeyService;
 import com.kevin.share.utils.FileUtils;
@@ -24,7 +26,7 @@ import java.io.File;
 
 import static com.kevin.share.Common.CONFIG;
 
-public class UICrawlerActivity extends AppCompatActivity {
+public class UICrawlerActivity extends BasicActivity {
 
     private Button startBtn;
     private Button setParamBtn;
@@ -54,7 +56,7 @@ public class UICrawlerActivity extends AppCompatActivity {
             try {
                 pakage.setText(CONFIG().getString("TARGET_APP"));
             } catch (JSONException e) {
-                e.printStackTrace();
+                logUtil.e("", e);
             }
         }
         startBtn.setOnClickListener(v -> {
@@ -73,6 +75,13 @@ public class UICrawlerActivity extends AppCompatActivity {
             startService(crawlerIntent);
             moveTaskToBack(true);
 
+        });
+
+        setParamBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
         });
         if (new File(CONST.UICRAWLWER_CONFIG_FILE).exists()) {
             paramDis.setText(FileUtils.readJsonFile(CONST.UICRAWLWER_CONFIG_FILE));

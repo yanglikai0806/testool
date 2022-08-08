@@ -2,8 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/testool.iml" filepath="$PROJECT_DIR$/testool.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/testool.iml" filepath="$PROJECT_DIR$/.idea/modules/testool.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/testool.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/testool.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/floatingWindow/testool.floatingWindow.iml" filepath="$PROJECT_DIR$/.idea/modules/floatingWindow/testool.floatingWindow.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/opencv/testool.opencv.iml" filepath="$PROJECT_DIR$/.idea/modules/opencv/testool.opencv.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/share/testool.share.iml" filepath="$PROJECT_DIR$/.idea/modules/share/testool.share.iml" />
     </modules>
   </component>
 </project>

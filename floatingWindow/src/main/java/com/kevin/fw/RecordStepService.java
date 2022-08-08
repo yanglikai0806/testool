@@ -5,13 +5,18 @@ import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.PixelFormat;
+import android.graphics.Rect;
 import android.os.Build;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -21,17 +26,28 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ScrollView;
 
+import com.kevin.share.AppContext;
+import com.kevin.share.CONST;
 import com.kevin.share.Common;
+import com.kevin.share.utils.BitmapUtil;
 import com.kevin.share.utils.FileUtils;
 import com.kevin.share.utils.SPUtils;
 import com.kevin.share.utils.ToastUtils;
+import com.theartofdev.edmodo.cropper.CropImageView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.FileNotFoundException;
+import java.sql.SQLOutput;
+import java.util.ArrayList;
 import java.util.Iterator;
+
+import static com.kevin.share.CONST.CROPPER_IMG_PATH;
+import static com.kevin.share.CONST.CROPPER_IMG_SCALE;
 
 
 public class RecordStepService extends Service {
@@ -115,9 +131,38 @@ public class RecordStepService extends Service {
             Button editeBtn = floatView.findViewById(R.id.edite);
             Button actionBtn = floatView.findViewById(R.id.action);
             Button addBtn = floatView.findViewById(R.id.add);
-            stepMsg.setText(msg);
-            if (item.equals("step")){
-                stepMsg.setHint("点击“编辑”按钮，输入步骤描述");
+            if (stepMsg != null) {
+                stepMsg.setText(msg);
+            }
+            CropImageView crop = null;
+            if (item.equals("image")){
+
+                Common.screenShot(CROPPER_IMG_PATH);//截图
+                crop = (CropImageView) floatView.findViewById(R.id.dialog_action_crop_view);
+                Bitmap bitmap = BitmapFactory.decodeFile(CROPPER_IMG_PATH);
+                Matrix matrix = new Matrix();
+                float mScale = 0.8f;
+                matrix.postScale(mScale, mScale);
+                Bitmap newBM = Bitmap.createBitmap(bitmap, 0, 0,
+                        bitmap.getWidth(), bitmap.getHeight(), matrix, false);
+
+                final Rect defaultBound;
+                defaultBound = new Rect(newBM.getWidth() / 5,
+                        newBM.getHeight() / 3, newBM.getWidth() / 5 * 4,
+                        newBM.getHeight() / 3 * 2);
+
+
+                crop.setImageBitmap(newBM);
+                crop.setCropRect(defaultBound);
+                layoutParams.alpha = 1.0f;
+                windowManager.updateViewLayout(floatView, layoutParams);
+                if (!bitmap.isRecycled()){
+                    bitmap.recycle();
+                }
+            }
+
+            if (item.equals("toast") && stepMsg != null){
+                stepMsg.setHint("点击“编辑”按钮，输入你要说的话...");
             }
             if (item.equals("key")){
                 Button recentKey = floatView.findViewById(R.id.recentKey);
@@ -132,15 +177,32 @@ public class RecordStepService extends Service {
             }
             if (item.equals("save")){
                 Button saveBtn = floatView.findViewById(R.id.save);
+                Button uploadCase = floatView.findViewById(R.id.upload);
                 saveBtn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         if (caseFile.split("\\.").length > 1){
-                            FileUtils.editCaseJsonFile(caseFile.split("\\.")[1].trim(), stepMsg.getText().toString());
+                            FileUtils.editCaseJsonFile(caseFile.split("\\.",2)[1].trim(), stepMsg.getText().toString());
                         } else {
                             FileUtils.editCaseJsonFile(caseFile.trim(), stepMsg.getText().toString());
                         }
                         ToastUtils.showShortByHandler(getApplicationContext(), "已保存");
+                    }
+                });
+
+                uploadCase.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (Common.updateTestCases( "["+stepMsg.getText().toString()+"]")){
+                                    ToastUtils.showShortByHandler(getApplicationContext(), "上传完成");
+                                } else {
+                                    ToastUtils.showShortByHandler(getApplicationContext(), "上传失败");
+                                }
+                            }
+                        }).start();
                     }
                 });
             }
@@ -224,9 +286,31 @@ public class RecordStepService extends Service {
 
             if (actionBtn != null) {
 
+                CropImageView finalCrop = crop;
                 actionBtn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        if (item.equals("image")){
+                            String cropperBounds = Common.parseRect(finalCrop.getCropRect(), CROPPER_IMG_SCALE, 50);
+                            Log.d("KEVIN_DEBUG bounds", cropperBounds);
+
+                            Bitmap result = finalCrop.getCroppedImage();
+                            String bs64 = BitmapUtil.bitmapToBase64(result);
+                            FileUtils.writeFile(CONST.LOGPATH + "image_base64.txt", bs64,false);
+
+                            if (!result.isRecycled()){
+                                result.recycle();
+                            }
+
+                            Intent img = new Intent(getApplicationContext(), RecordStepService.class);
+                            img.putExtra("SELECT_ITEM", "more");
+                            img.putExtra("ROOT_KEY", rootKey);
+                            img.putExtra("STEP_MSG", String.format("{\"bounds\":\"%s\",\"image\":\"%s\"}", cropperBounds,bs64));
+                            startService(img);
+
+                            return;
+                        }
+
                         JSONArray step = new JSONArray();
                         String action = stepMsg.getText().toString();
                         if (action.startsWith("{")) {
@@ -350,6 +434,9 @@ public class RecordStepService extends Service {
         }
         if (item.equals("save")){
             floatView = LayoutInflater.from(this).inflate(R.layout.record_save, null);
+        }
+        if (item.equals("image")){
+            floatView = LayoutInflater.from(this).inflate(R.layout.record_cropper, null);
         }
 
         layoutParams = new WindowManager.LayoutParams();
@@ -496,8 +583,16 @@ public class RecordStepService extends Service {
     }
     public void setCheckpoint(JSONObject JO){
         try {
-            String key = JO.keys().next();
-            cp = getCheckpoint().put(key, JO.get(key));
+            cp = getCheckpoint();
+            Iterator<String> itr = JO.keys();
+//            ArrayList<String> keys = new ArrayList<>();
+            while (itr.hasNext()){
+                String key = itr.next();
+                Log.d("KEVIN_DEBUG", "setCheckpoint: " + key);
+                cp = cp.put(key, JO.get(key));
+            }
+//            String key = JO.keys().next();
+//            cp = getCheckpoint().put(key, JO.get(key));
         } catch (JSONException e) {
             e.printStackTrace();
         }

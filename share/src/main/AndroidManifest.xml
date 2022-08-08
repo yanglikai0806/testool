@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.kevin.share">
+
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
@@ -14,22 +15,45 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <permission
+        android:name="com.kevin.testool.read"
+        android:protectionLevel="normal" />
+    <permission
+        android:name="com.kevin.testool.write"
+        android:protectionLevel="normal" />
+
 
     <application
         android:allowBackup="true"
         android:label="@string/app_name"
         android:largeHeap="true"
         android:networkSecurityConfig="@xml/network_security_config"
-        android:usesCleartextTraffic="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:usesCleartextTraffic="true">
+
+        <provider
+            android:name=".MyContentProvider"
+            android:authorities="com.kevin.testool"
+            android:enabled="true"
+            android:exported="true"
+            android:readPermission="com.kevin.testool.read"
+            android:writePermission="com.kevin.testool.write"/>
+
         <activity android:name=".MainActivity">
             <intent-filter>
-                <!--<action android:name="android.intent.action.MAIN" />-->
+
+                <!-- <action android:name="android.intent.action.MAIN" /> -->
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".service.RecordService"
+            android:enabled="true"
+            android:exported="true" />
+        <service android:name=".service.InstallService" />
     </application>
 
 </manifest>

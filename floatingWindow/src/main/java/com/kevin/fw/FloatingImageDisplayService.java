@@ -49,11 +49,7 @@ public class FloatingImageDisplayService extends Service {
         layoutParams.y = 300;
 
         images = new int[] {
-                R.drawable.image_01,
-                R.drawable.image_02,
-                R.drawable.image_03,
-                R.drawable.image_04,
-                R.drawable.image_05,
+                R.drawable.target,
         };
 
         changeImageHandler = new Handler(this.getMainLooper(), changeImageCallback);

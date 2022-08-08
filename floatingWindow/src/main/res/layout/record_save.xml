@@ -2,38 +2,40 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/record_step"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/colorAccent"
     android:orientation="vertical">
 
     <ScrollView
         android:id="@+id/scrollView2"
-        android:layout_width="250dp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/linnerlayout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="MissingConstraints">
 
 
         <LinearLayout
-            android:layout_width="250dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
             <EditText
                 android:id="@+id/text_content"
-                android:layout_width="250dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/edite_bk"
-                android:textIsSelectable="true"
                 android:ems="10"
                 android:gravity="start|top"
                 android:inputType="textMultiLine"
+                android:textIsSelectable="true"
                 android:textSize="14sp" />
         </LinearLayout>
     </ScrollView>
@@ -47,26 +49,36 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="MissingConstraints" />
 
-    <Button
-        android:id="@+id/edite"
-        android:layout_width="55dp"
-        android:layout_height="38dp"
-        android:layout_marginStart="260dp"
-        android:text="编辑"
-        app:layout_constraintBottom_toTopOf="@+id/save"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <Button
-        android:id="@+id/save"
-        android:layout_width="55dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="260dp"
-        android:layout_marginTop="76dp"
-        android:layout_marginBottom="6dp"
-        android:text="保存"
+    <LinearLayout
+        android:id="@+id/linnerlayout"
+        android:layout_width="80dp"
+        android:layout_height="120dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0"
-        tools:ignore="MissingConstraints" />
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:ignore="MissingConstraints">
+
+        <Button
+            android:id="@+id/edite"
+            android:layout_width="55dp"
+            android:layout_height="40dp"
+            android:text="编辑"
+            tools:ignore="MissingConstraints" />
+
+        <Button
+            android:id="@+id/save"
+            android:layout_width="55dp"
+            android:layout_height="40dp"
+            android:text="保存"
+            tools:ignore="MissingConstraints" />
+
+        <Button
+            android:id="@+id/upload"
+            android:layout_width="55dp"
+            android:layout_height="40dp"
+            android:text="上传" />
+    </LinearLayout>
+
 </android.support.constraint.ConstraintLayout>

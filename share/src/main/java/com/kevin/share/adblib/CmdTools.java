@@ -41,7 +41,6 @@ import java.util.Locale;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -49,6 +48,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import static com.kevin.share.CONST.ADB_PORT;
 
 /**
  * 命令行操作集合
@@ -277,10 +278,10 @@ public class CmdTools {
         generateConnection();
         // 主线程的话走Callable
         if (Looper.myLooper() == Looper.getMainLooper()) {
-            if (wait > 5000 || wait == 0) {
-                logUtil.w(TAG, "主线程配置的等待时间过长，修改为5000ms");
-                wait = 5000;
-            }
+//            if (wait > 5000 || wait == 0) {
+//                logUtil.w(TAG, "主线程配置的等待时间过长，修改为5000ms");
+//                wait = 5000;
+//            }
 
             final int finalWait = wait;
             Callable<String> callable = new Callable<String>() {
@@ -294,10 +295,8 @@ public class CmdTools {
             // 等待执行完毕
             try {
                 return result.get();
-            } catch (InterruptedException e) {
-                logUtil.d(TAG, "Catch java.lang.InterruptedException: " + e.getMessage());
-            } catch (ExecutionException e) {
-                logUtil.d(TAG, "Catch java.util.concurrent.ExecutionException: " + e.getMessage());
+            } catch (Exception e) {
+                logUtil.d(TAG, e.getMessage());
             }
             return null;
         }
@@ -324,13 +323,13 @@ public class CmdTools {
             // 当wait为0，每个10ms观察一次stream状况，直到shutdown
             if (wait == 0) {
                 while (!stream.isClosed()) {
-                    Thread.sleep(10);
+                    Thread.sleep(100);
                 }
             } else if (wait > 0){
                 // 等待最长wait毫秒后强制退出
                 long start = System.currentTimeMillis();
                 while (!stream.isClosed() && System.currentTimeMillis() - start < wait) {
-                    Thread.sleep(10);
+                    Thread.sleep(100);
                 }
 
                 if (!stream.isClosed()) {
@@ -618,10 +617,10 @@ public class CmdTools {
         // 开始连接adb
         logUtil.d(TAG, "Socket connecting...");
         try {
-            sock = new Socket("localhost", 5555);
+            sock = new Socket("localhost", ADB_PORT);
         } catch (IOException e) {
             logUtil.d("", "-----------------------");
-            logUtil.e(TAG, e);
+            logUtil.e(TAG, e.toString());
             logUtil.d("", "***********************");
             ADB_BREAK = true;
             return false;

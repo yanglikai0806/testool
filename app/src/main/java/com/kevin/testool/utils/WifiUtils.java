@@ -12,6 +12,8 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.WifiLock;
 
+import com.kevin.share.utils.logUtil;
+
 
 public class WifiUtils {
     // 定义WifiManager对象
@@ -44,6 +46,7 @@ public class WifiUtils {
     public void openWifi() {
         if (!mWifiManager.isWifiEnabled()) {
             mWifiManager.setWifiEnabled(true);
+            logUtil.i("", "WIFI开启");
         }
     }
 
@@ -58,6 +61,7 @@ public class WifiUtils {
     public void closeWifi() {
         if (mWifiManager.isWifiEnabled()) {
             mWifiManager.setWifiEnabled(false);
+            logUtil.i("", "WIFI关闭");
         }
     }
 

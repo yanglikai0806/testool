@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class RecordCaseActivity extends AppCompatActivity {
+public class RecordCaseActivity extends BasicActivity {
     private Button startRecord;
     private EditText caseFile;
     private EditText caseName;
@@ -52,7 +52,11 @@ public class RecordCaseActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (!Settings.canDrawOverlays(RecordCaseActivity.this)) {
-                    startActivityForResult(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName())), 0);
+                    try {
+                        startActivityForResult(new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName())), 0);
+                    } catch (Exception e){
+                        logUtil.e("", e.getMessage());
+                    }
                 } else {
                     caseId = caseName.getText().toString();
                     if (TextUtils.isEmpty(caseId)){
@@ -109,7 +113,7 @@ public class RecordCaseActivity extends AppCompatActivity {
                 }
 
             } catch (JSONException e) {
-                e.printStackTrace();
+                logUtil.e("", e);
             }
         }
         Collections.sort(cases_list, String.CASE_INSENSITIVE_ORDER);

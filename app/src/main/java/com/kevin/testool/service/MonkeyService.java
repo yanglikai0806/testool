@@ -5,24 +5,23 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.content.Context;
-import android.media.AudioManager;
 import android.os.Build;
 import android.os.SystemClock;
 import android.support.v4.app.NotificationCompat;
+import android.text.TextUtils;
 import android.util.Log;
 
+import com.kevin.share.AppContext;
 import com.kevin.share.CONST;
 import com.kevin.share.UICrawler;
-import com.kevin.testool.MainActivity;
+import com.kevin.testool.activity.MainActivity;
 import com.kevin.testool.MyApplication;
 import com.kevin.testool.R;
 import com.kevin.share.Checkpoint;
 import com.kevin.share.Common;
 import com.kevin.share.utils.FileUtils;
-import com.kevin.share.utils.ToastUtils;
 import com.kevin.share.utils.logUtil;
 
 import org.json.JSONArray;
@@ -40,7 +39,10 @@ import java.util.Locale;
 
 import static com.kevin.share.CONST.MONKEY_PATH;
 import static com.kevin.share.Common.CONFIG;
+import static com.kevin.share.CONST.TARGET_APP;
 import static com.kevin.share.UICrawler.UICrawlerConfig;
+import static com.kevin.testool.activity.MonkeyTestActivity.ZipLogFolder;
+import static com.kevin.share.utils.HttpUtil.uploadMonkeyLog;
 
 /**
  * 执行monkey测试，界面遍历测试
@@ -54,8 +56,11 @@ public class MonkeyService extends IntentService {
     private NotificationCompat.Builder builder;
 
     private static final String ACTION_MONKEY = "com.kevin.testool.monkey";
+    private static final String ACTION_MONKEY_LOG_UPLOAD = "com.kevin.testool.monkey.log.upload";
     private static final String ACTION_UICRAWLER = "com.kevin.testool.monkey.uicrawler";
     private static List<String> errorList = new ArrayList<>();
+    private static String pkg = "";
+    private static String activity = "";
 
     public MonkeyService() {
         super("MonkeyService");
@@ -99,12 +104,20 @@ public class MonkeyService extends IntentService {
     @Override
     protected void onHandleIntent(final Intent intent) {
         String dt = dateFormat.format(date);
-        String pkg = intent.getStringExtra("PKG");
+        assert intent != null;
+        pkg = intent.getStringExtra("PKG");
+        // 对于activity进行处理
+        if (pkg.contains("/")){
+            activity = pkg;
+            pkg = pkg.split("/",2)[0];
+        }
         String con;
         String thro;
         String seed;
+        String timeout;
         String logDir;
-        int waitTime = 2000;
+        int waitTime = 20000; // ms
+        double KEEP_TIME;
         String page = "";
         if (intent.hasExtra("Page")) {
             page = intent.getStringExtra("PAGE");
@@ -116,24 +129,31 @@ public class MonkeyService extends IntentService {
                     con = intent.getStringExtra("CON");
                     thro = intent.getStringExtra("THRO");
                     seed = intent.getStringExtra("SEED");
-                    logDir = MONKEY_PATH + Common.getVersionName(this, pkg) + File.separator + dt + File.separator;
-                    int KEEP_TIME = Integer.valueOf(con)*Integer.valueOf(thro);
+                    timeout = intent.getStringExtra("TIMEOUT");
+                    logDir = MONKEY_PATH + Common.getVersionName(AppContext.getContext(), pkg) + File.separator + dt + File.separator;
+                    if (!TextUtils.isEmpty(timeout)) {
+                        KEEP_TIME = Double.valueOf(timeout) * 3600 * 1000; //ms
+                    } else {
+                        KEEP_TIME = 8 * 3600 * 1000;
+                    }
                     FileUtils.creatDir(logDir);
                     Log.i("Monkey", "开启monkey测试");
                     monkey(pkg, con, thro, seed, logDir);
-                    if (pkg.contains("/")) {
-                        Common.startActivity(pkg);
-                        while (KEEP_TIME > 0) {
-                            SystemClock.sleep(waitTime);
-                            Common.startActivity(pkg);
-                            if (Common.getMonkeyProcess().equals("")) {  //判断monkey是否结束
-                                break;
-                            }
-                            KEEP_TIME = KEEP_TIME - waitTime;
-                        }
-                    }
 
+                    while (KEEP_TIME > 0) {
+                        Common.muteSound();
+                        SystemClock.sleep(waitTime);
+                        //如果测试pkg参数对应的是activity页面，则循环启动activity页面
+                        if (!TextUtils.isEmpty(activity)) Common.startActivity(activity);
+
+                        if (Common.getMonkeyProcess().equals("")) {  //判断monkey是否结束
+                            monkey(pkg, con, thro, seed, logDir);
+                        }
+                        KEEP_TIME = KEEP_TIME - waitTime;
+                    }
+                    stopMonkey();
                     break;
+
                 case ACTION_UICRAWLER:
                     logDir = CONST.LOGPATH + "uicrawler" + File.separator + Common.getVersionName(this, pkg) + File.separator;
                     FileUtils.creatDir(logDir);
@@ -144,23 +164,31 @@ public class MonkeyService extends IntentService {
                         pageList = UICrawlerConfig.getJSONArray("PAGE_LIST");
                     } catch (JSONException e) {
                         pageList.put("recommend");
-                        e.printStackTrace();
+                        logUtil.e("", e);
                         logUtil.u("UICrawler", e.toString());
                     }
                     logUtil.u("UICrawler", "开启UICrawler测试, 遍历深度："+deepth);
                     UICrawler uc = new UICrawler(pkg, Common.getVersionName(this, pkg), deepth);
                     if (page.length() == 0) {
-                        uc.guideStep("default");
-                        long startTime = System.currentTimeMillis();
-                        try {
-                            uc.crawlerPage(0,0,"default");
-                            logUtil.u("UICrawler", "遍历结束，点击次数：" + UICrawler.clickCount);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                            logUtil.u("UICrawler", "退出遍历，点击次数：" + UICrawler.clickCount);
-                            logUtil.u("UICrawler", e.toString());
+
+                        for (int i=0; i<pageList.length(); i++){
+                            try {
+                                ucpage = pageList.getString(i);
+                            } catch (Exception e) {
+                                logUtil.u("UICrawler", e.toString());
+                            }
+                            uc.guideStep(ucpage);
+                            long startTime = System.currentTimeMillis();
+                            try {
+                                uc.crawlerPage(0,0,ucpage);
+                                logUtil.u("UICrawler", "Page: " + ucpage + "Page遍历结束，点击次数：" + UICrawler.clickCount);
+                            } catch (Exception e) {
+                                logUtil.e("", e);
+                                logUtil.u("UICrawler", "退出遍历，点击次数：" + UICrawler.clickCount);
+                                logUtil.u("UICrawler", e.toString());
+                            }
+                            logUtil.u("UICrawler", "执行时长：" + (System.currentTimeMillis() - startTime)/60000 + "min");
                         }
-                        logUtil.u("UICrawler", "执行时长：" + (System.currentTimeMillis() - startTime)/60000 + "min");
 
                     } else {
                         uc.guideStep(page);
@@ -169,7 +197,7 @@ public class MonkeyService extends IntentService {
                             uc.crawlerPage(0,0,page);
                             logUtil.u("UICrawler", "遍历结束，点击次数：" + UICrawler.clickCount);
                         } catch (Exception e) {
-                            e.printStackTrace();
+                            logUtil.e("", e);
                             logUtil.u("UICrawler", "退出遍历，点击次数：" + UICrawler.clickCount);
                             logUtil.u("UICrawler", e.toString());
                         }
@@ -178,45 +206,55 @@ public class MonkeyService extends IntentService {
                     uc.lastStep();
 
                     break;
+                case ACTION_MONKEY_LOG_UPLOAD:
+                    String uploadLogFolder = CONST.MONKEY_PATH + Common.getVersionName(AppContext.getContext(), TARGET_APP);
+                    String zipFilePath = uploadLogFolder + ".zip";
+                    try {
+                        ZipLogFolder(uploadLogFolder, zipFilePath);
+                        File zipFile = new File(zipFilePath);
+                        if (zipFile.exists()){
+                            uploadMonkeyLog(zipFile, CONST.SERVER_BASE_URL + "upload", zipFile.getName(), "zipfile", TARGET_APP);
+                        } else {
+                            logUtil.d("", "未生成log压缩文件");
+                        }
+                    } catch (Exception e) {
+                        logUtil.e("", e);
+                    }
+                    break;
 
             }
         }
     }
     private static void monkey(final String pkg, final String con, final String thro, final String seed, final String logDir){
-        final Thread tm = new Thread(){
-            @Override
-            public void run() {
-                Common.runMonkey(pkg, con,thro, seed,logDir);
-            }
-        };
-        tm.start();
-        SystemClock.sleep(10000);
+
+        Common.runMonkey(pkg, con,thro, seed,logDir);
         new Thread(){
             @Override
             public void run() {
-                monkeyMonitor(tm, logDir, pkg);
+                monkeyMonitor(logDir, pkg);
             }
         }.start();
     }
 
-    private static void monkeyMonitor(Thread tm, String logDir, String pkg){
+    private static void monkeyMonitor(String logDir, String pkg){
+        logUtil.d("monkey", "正在监听monkey测试");
         boolean recordMeminfoFlag = true;
         try {
             recordMeminfoFlag = CONFIG().getString("RECORD_MEMINFO").equals("true");
         } catch (JSONException e) {
-            e.printStackTrace();
+            logUtil.e("", e);
         }
-        while (tm.isAlive()) {
+        while (true) {
             Common.openWifi();  //monkey测试中可能会关闭网络
             try {
                 int merrorcont = errorCount;
                 int nerrorCount = readMonkeyLog(logDir + "monkey_error.txt", pkg);
                 if (nerrorCount - merrorcont >0) {
-                    Common.generateBugreport(logDir + "bugreport_" + dateFormat.format(new Date()) + ".txt");
+                    Common.generateBugreport2(logDir + "bugreport_" + dateFormat.format(new Date()) + ".txt");
                     errorCount = nerrorCount;
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                logUtil.e("", e);
             }
             if (Common.getMonkeyProcess().length()==0){
                 break;
@@ -230,9 +268,10 @@ public class MonkeyService extends IntentService {
             } else {
                 SystemClock.sleep(180000);
             }
-
         }
+        logUtil.d("monkey", "结束monkey测试监听");
     }
+
 
     public static int readMonkeyLog(String filePath, String pkg) throws IOException {
         int _errorCount = 0;
@@ -272,4 +311,15 @@ public class MonkeyService extends IntentService {
         br.close();
         return _errorCount;
     }
+
+    private void stopMonkey(){
+        while (Common.killProcess("com.android.commands.monkey")){
+            SystemClock.sleep(10);
+        }
+        logUtil.d("", "stop monkey");
+        Common.killProcess("com.kevin.testool:uicrawler");
+    }
+
+
+
 }

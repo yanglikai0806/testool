@@ -15,5 +15,17 @@
         android:title="@string/start_accessibility"
         android:visible="true"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_start_float"
+        android:orderInCategory="100"
+        android:title="@string/start_float"
+        android:visible="true"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/remote"
+        android:icon="@drawable/eye_disabled"
+        android:orderInCategory="100"
+        android:title="@string/remote_control"
+        app:showAsAction="always" />
 
 </menu>

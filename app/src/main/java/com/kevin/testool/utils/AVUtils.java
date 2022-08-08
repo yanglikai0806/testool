@@ -7,9 +7,10 @@ import android.media.MediaMuxer;
 import android.os.Environment;
 
 import com.kevin.share.utils.FileUtils;
+import com.kevin.share.utils.logUtil;
 import com.kevin.testool.MyApplication;
-import com.yorhp.tyhjffmpeg.Mv2Gif;
-import com.yorhp.tyhjffmpeg.Setting;
+//import com.yorhp.tyhjffmpeg.Mv2Gif;
+//import com.yorhp.tyhjffmpeg.Setting;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,31 +22,31 @@ public class AVUtils {
 
 
     public static void mp4ToGif(String mp4File, int mp4Time, boolean toDeleteMp4){
-        if(!new File(mp4File).exists()){
-            return;
-        }
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                Setting setting = new Setting(true,
-                        720,
-                        1080,
-                        15,
-                        0,
-                        mp4Time
-                );
-                String gifFile = mp4File.replace(".mp4", ".gif");
-                boolean success = false;
-                try {
-                    success = Mv2Gif.convert(mp4File, mp4File.replace(".mp4", ".gif"), setting);
-                } catch (Exception e){
-                    e.printStackTrace();
-                }
-                if (toDeleteMp4 && success){
-                    FileUtils.deleteFile(mp4File);
-                }
-            }
-        }).start();
+//        if(!new File(mp4File).exists()){
+//            return;
+//        }
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                Setting setting = new Setting(true,
+//                        720,
+//                        1080,
+//                        15,
+//                        0,
+//                        mp4Time
+//                );
+//                String gifFile = mp4File.replace(".mp4", ".gif");
+//                boolean success = false;
+//                try {
+//                    success = Mv2Gif.convert(mp4File, mp4File.replace(".mp4", ".gif"), setting);
+//                } catch (Exception e){
+//                    logUtil.e("", e);
+//                }
+//                if (toDeleteMp4 && success){
+//                    FileUtils.deleteFile(mp4File);
+//                }
+//            }
+//        }).start();
 
 
     }
@@ -99,7 +100,7 @@ public class AVUtils {
             }
             isFinish = true;
         } catch (IOException e) {
-            e.printStackTrace();
+            logUtil.e("", e);
             isFinish = false;
         }finally {
             mediaExtractor.release();
@@ -144,7 +145,7 @@ public class AVUtils {
             }
             file1.createNewFile();
         } catch (IOException e) {
-            e.printStackTrace();
+            logUtil.e("", e);
         }
 
         try {
@@ -153,7 +154,7 @@ public class AVUtils {
             }
             file2.createNewFile();
         } catch (IOException e) {
-            e.printStackTrace();
+            logUtil.e("", e);
         }
 
         MediaMuxer mMediaMuxer;
@@ -231,7 +232,7 @@ public class AVUtils {
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logUtil.e("", e);
         }finally {
             mediaExtractor.release();
             mediaExtractor = null;

@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">fw</string>
-    <string name="step">step</string>
+    <string name="query">query</string>
     <string name="ui">UI++</string>
     <string name="accessibility">acs</string>
     <string name="activity">activity</string>
@@ -10,4 +10,8 @@
     <string name="ifelse">if</string>
     <string name="check_point">check</string>
     <string name="caseid">用例id</string>
+    <string name="edit">编辑</string>
+    <string name="action">执行</string>
+    <string name="cropper">剪裁</string>
+    <string name="add">添加</string>
 </resources>

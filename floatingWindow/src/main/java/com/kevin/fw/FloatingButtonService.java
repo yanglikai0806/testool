@@ -3,11 +3,7 @@ package com.kevin.fw;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.IBinder;
@@ -21,12 +17,9 @@ import android.view.WindowManager;
 import android.widget.Button;
 
 
-import com.kevin.share.AppContext;
 import com.kevin.share.CONST;
 import com.kevin.share.Common;
-import com.kevin.share.utils.AdbUtils;
 import com.kevin.share.utils.FileUtils;
-import com.kevin.share.utils.ToastUtils;
 
 import java.io.IOException;
 

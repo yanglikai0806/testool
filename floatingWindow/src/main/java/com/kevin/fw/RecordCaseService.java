@@ -26,6 +26,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -65,7 +66,7 @@ public class RecordCaseService extends Service {
     String case_desc;
     String caseFile;
 
-    TextView item_step;
+//    TextView item_query;
     TextView item_ui;
     TextView item_acs;
     TextView item_act;
@@ -74,6 +75,7 @@ public class RecordCaseService extends Service {
     TextView item_ifelse;
     TextView item_shell;
     TextView item_check;
+    TextView item_image;
     TextView item_more;
 
     ImageButton replayBtn;
@@ -176,7 +178,12 @@ public class RecordCaseService extends Service {
                         }
                     }
                     isReplaying = false;
-                    windowManager.addView(floatView, layoutParams);
+                    try{
+                        windowManager.addView(floatView, layoutParams);
+                    } catch (Exception e){
+                        layoutParams.alpha = 0.7f;
+                        windowManager.updateViewLayout(floatView, layoutParams);
+                    }
                     ballManager.removeView(floatBallView);
                 }
         });
@@ -189,7 +196,7 @@ public class RecordCaseService extends Service {
             final ImageView record_icon = floatView.findViewById(R.id.recordIcon);
             final TextView case_id = floatView.findViewById(R.id.case_id);
             case_id.setText(caseId + "/" + caseDesc);
-            item_step = floatView.findViewById(R.id.select_item_step);
+//            item_query = floatView.findViewById(R.id.select_item_query);
             item_ui = floatView.findViewById(R.id.select_item_ui);
             item_acs = floatView.findViewById(R.id.select_item_access);
             item_act = floatView.findViewById(R.id.select_item_act);
@@ -198,6 +205,7 @@ public class RecordCaseService extends Service {
             item_ifelse = floatView.findViewById(R.id.select_item_if);
             item_shell = floatView.findViewById(R.id.select_item_shell);
             item_check = floatView.findViewById(R.id.select_item_check);
+            item_image = floatView.findViewById(R.id.select_item_img);
             item_more = floatView.findViewById(R.id.select_item_more);
 
             final ImageButton startBtn = floatView.findViewById(R.id.start);
@@ -329,21 +337,21 @@ public class RecordCaseService extends Service {
 
             });
 
-            item_step.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (isStarted) {
-                        setTextColor(item_step, true);
-                        Intent qi = new Intent(getApplicationContext(), RecordStepService.class);
-                        qi.putExtra("SELECT_ITEM", "step");
-                        qi.putExtra("ROOT_KEY", "case");
-                        startService(qi);
-                    } else {
-                        Toast.makeText(getApplicationContext(), "请按规范流程操作", Toast.LENGTH_SHORT).show();
-                    }
-
-                }
-            });
+//            item_query.setOnClickListener(new View.OnClickListener() {
+//                @Override
+//                public void onClick(View v) {
+//                    if (isStarted) {
+//                        setTextColor(item_query, true);
+//                        Intent qi = new Intent(getApplicationContext(), RecordStepService.class);
+//                        qi.putExtra("SELECT_ITEM", "query");
+//                        qi.putExtra("ROOT_KEY", "case");
+//                        startService(qi);
+//                    } else {
+//                        Toast.makeText(getApplicationContext(), "请按规范流程操作", Toast.LENGTH_SHORT).show();
+//                    }
+//
+//                }
+//            });
 
             item_ui.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -455,7 +463,7 @@ public class RecordCaseService extends Service {
                         Intent ii = new Intent(getApplicationContext(), RecordStepService.class);
                         ii.putExtra("SELECT_ITEM", "input");
                         ii.putExtra("ROOT_KEY", rootKey);
-                        ii.putExtra("STEP_MSG", "{\"input\":\"输入内容，支持英文\"}");
+                        ii.putExtra("STEP_MSG", "{\"input\":\"输入内容\"}");
                         startService(ii);
                     } else {
                         Toast.makeText(getApplicationContext(), "请按规范流程操作", Toast.LENGTH_SHORT).show();
@@ -484,10 +492,32 @@ public class RecordCaseService extends Service {
                 public void onClick(View v) {
                     if (isStarted ) {
                         setTextColor(item_check, true);
+                        rootKey = "check";
                         Intent ci = new Intent(getApplicationContext(), RecordStepService.class);
                         ci.putExtra("SELECT_ITEM", "check");
                         ci.putExtra("ROOT_KEY", rootKey);
                         startService(ci);
+                    } else {
+                        Toast.makeText(getApplicationContext(), "请按规范流程操作", Toast.LENGTH_SHORT).show();
+                    }
+
+                }
+            });
+
+            item_image.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (isStarted) {
+                        setTextColor(item_image, true);
+                        Intent img = new Intent(getApplicationContext(), RecordStepService.class);
+                        img.putExtra("SELECT_ITEM", "image");
+                        img.putExtra("ROOT_KEY", rootKey);
+                        startService(img);
+//                        layoutParams.alpha = 0.0f;
+//                        windowManager.updateViewLayout(floatView, layoutParams);
+                        windowManager.removeView(floatView);
+                        showReplayBall();
+
                     } else {
                         Toast.makeText(getApplicationContext(), "请按规范流程操作", Toast.LENGTH_SHORT).show();
                     }
@@ -508,7 +538,7 @@ public class RecordCaseService extends Service {
                 }
             });
 
-            setTextViewTouchEvent(item_step);
+//            setTextViewTouchEvent(item_query);
             setTextViewTouchEvent(item_ui);
             setTextViewTouchEvent(item_act);
             setTextViewTouchEvent(item_shell);
@@ -516,6 +546,7 @@ public class RecordCaseService extends Service {
             setTextViewTouchEvent(item_input);
             setTextViewTouchEvent(item_ifelse);
             setTextViewTouchEvent(item_check);
+            setTextViewTouchEvent(item_image);
             setTextViewTouchEvent(item_more);
 
 
@@ -553,7 +584,7 @@ public class RecordCaseService extends Service {
     }
 
     public void setTextColor(TextView tv, boolean setFlag){
-        item_step.setTextColor(Color.parseColor("#FFA3A1A1"));
+//        item_query.setTextColor(Color.parseColor("#FFA3A1A1"));
         item_ui.setTextColor(Color.parseColor("#FFA3A1A1"));
         item_acs.setTextColor(Color.parseColor("#FFA3A1A1"));
         item_act.setTextColor(Color.parseColor("#FFA3A1A1"));
@@ -562,13 +593,14 @@ public class RecordCaseService extends Service {
         item_ifelse.setTextColor(Color.parseColor("#FFA3A1A1"));
         item_shell.setTextColor(Color.parseColor("#FFA3A1A1"));
         item_check.setTextColor(Color.parseColor("#FFA3A1A1"));
+        item_image.setTextColor(Color.parseColor("#FFA3A1A1"));
         item_more.setTextColor(Color.parseColor("#FFA3A1A1"));
         if (setFlag) {
             String tx = tv.getText().toString();
             logUtil.d("", "setColor: " + tx);
             if (rootKey.contains("check")){
 //                Log.d("KEVIN_DEBUG", "setTextColor: " + rootKey);
-                if (tx.equals("check") || tx.equals("UI++") || tx.equals("acs") || tx.equals("activity") || tx.equals("to_speak") || tx.equals("ocr") || tx.equals("status")) {
+                if (tx.equals("check") || tx.equals("UI++") || tx.equals("acs") || tx.equals("activity") || tx.equals("to_speak") || tx.equals("image") || tx.equals("status")) {
                     tv.setTextColor(Color.parseColor("#D81B60"));
                     item_check.setTextColor(Color.parseColor("#D81B60"));
                 }
@@ -617,7 +649,7 @@ public class RecordCaseService extends Service {
         public void onReceive(Context context, Intent intent) {
 
             if (intent.hasExtra("SELECT_ITEM") && TextUtils.isEmpty(intent.getStringExtra("SELECT_ITEM"))){
-                setTextColor(item_step, false);
+//                setTextColor(item_query, false);
             }
         }
     }

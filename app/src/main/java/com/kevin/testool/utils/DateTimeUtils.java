@@ -1,5 +1,7 @@
 package com.kevin.testool.utils;
 
+import com.kevin.share.utils.logUtil;
+
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.ParseException;
@@ -289,7 +291,7 @@ public class DateTimeUtils {
             date = fmt.parse(dateTimeStr);
             return date;
         } catch (ParseException e) {
-            e.printStackTrace();
+            logUtil.e("", e);
         }
         return date;
     }
@@ -332,7 +334,7 @@ public class DateTimeUtils {
             DecimalFormat df = new DecimalFormat("0.00");
             return Double.parseDouble(df.format(dayDif));
         } catch (ParseException e) {
-            e.printStackTrace();
+            logUtil.e("", e);
         }
         return -1;
     }
@@ -364,7 +366,7 @@ public class DateTimeUtils {
             String newDateStr = fmt.format(newDate);
             return newDateStr;
         } catch (ParseException e) {
-            e.printStackTrace();
+            logUtil.e("", e);
         }
         return "";
     }

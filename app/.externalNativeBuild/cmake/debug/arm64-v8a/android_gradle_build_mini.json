@@ -1,0 +1,18 @@
+{
+  "buildFiles": [
+    "/home/yanglikai/Android/Sdk/ndk-bundle/build/cmake/android.toolchain.cmake",
+    "/home/yanglikai/androidpro/testool/app/src/main/cpp/CMakeLists.txt",
+    "/home/yanglikai/Android/Sdk/ndk-bundle/build/cmake/platforms.cmake"
+  ],
+  "cleanCommands": [
+    "/home/yanglikai/Android/Sdk/cmake/3.10.2.4988404/bin/cmake --build \"/home/yanglikai/androidpro/testool/app/.externalNativeBuild/cmake/debug/arm64-v8a\" --target clean"
+  ],
+  "libraries": {
+    "native-lib-Debug-arm64-v8a": {
+      "artifactName": "native-lib",
+      "buildCommand": "/home/yanglikai/Android/Sdk/cmake/3.10.2.4988404/bin/cmake --build \"/home/yanglikai/androidpro/testool/app/.externalNativeBuild/cmake/debug/arm64-v8a\" --target native-lib",
+      "abi": "arm64-v8a",
+      "output": "/home/yanglikai/androidpro/testool/app/build/intermediates/cmake/debug/obj/arm64-v8a/libnative-lib.so"
+    }
+  }
+}

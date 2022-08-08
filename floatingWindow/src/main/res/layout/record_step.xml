@@ -2,38 +2,40 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/record_step"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/colorAccent"
     android:orientation="vertical">
 
     <ScrollView
         android:id="@+id/scrollView2"
-        android:layout_width="250dp"
+        android:layout_width="0dp"
         android:layout_height="120dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/add"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="MissingConstraints">
 
 
         <LinearLayout
-            android:layout_width="250dp"
+            android:layout_width="match_parent"
             android:layout_height="120dp"
             android:orientation="vertical">
 
             <EditText
                 android:id="@+id/text_content"
-                android:layout_width="250dp"
+                android:layout_width="match_parent"
                 android:layout_height="120dp"
                 android:background="@drawable/edite_bk"
                 android:ems="10"
-                android:textSize="14sp"
                 android:gravity="start|top"
-                android:inputType="textMultiLine" />
+                android:inputType="textMultiLine"
+                android:textSize="14sp" />
         </LinearLayout>
     </ScrollView>
 
@@ -50,30 +52,31 @@
         android:id="@+id/edite"
         android:layout_width="55dp"
         android:layout_height="38dp"
-        android:layout_marginStart="260dp"
-        android:text="编辑"
+        android:layout_marginEnd="40dp"
+        android:text="@string/edit"
         app:layout_constraintBottom_toTopOf="@+id/action"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:ignore="MissingConstraints" />
 
     <Button
         android:id="@+id/action"
         android:layout_width="55dp"
         android:layout_height="38dp"
-        android:layout_marginStart="260dp"
-        android:text="执行"
+        android:layout_marginEnd="40dp"
+        android:text="@string/action"
         app:layout_constraintBottom_toTopOf="@+id/add"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <Button
         android:id="@+id/add"
         android:layout_width="55dp"
         android:layout_height="40dp"
-        android:layout_marginStart="260dp"
         android:layout_marginTop="76dp"
+        android:layout_marginEnd="40dp"
         android:layout_marginBottom="6dp"
-        android:text="添加"
+        android:text="@string/add"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="1.0"
         tools:ignore="MissingConstraints" />

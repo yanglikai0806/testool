@@ -53,7 +53,7 @@ public class AccessibilityNodeInfoDumper {
         serializer.setOutput(out, "UTF-8");
         serializer.startDocument("UTF-8", true);
         serializer.startTag("", "hierarchy");
-        AccessibilityNodeInfo[] arr$ = getWindowRoots(service); // device.getWindowRoots();
+        AccessibilityNodeInfo[] arr$ = getWindowRoots(service);
         int len$ = arr$.length;
 
         for (int i$ = 0; i$ < len$; ++i$) {

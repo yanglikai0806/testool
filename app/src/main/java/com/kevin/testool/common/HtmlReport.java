@@ -2,9 +2,7 @@ package com.kevin.testool.common;
 
 import android.os.Build;
 
-import com.kevin.testool.MyApplication;
 import com.kevin.share.utils.FileUtils;
-import com.kevin.share.utils.ToastUtils;
 import com.kevin.share.utils.logUtil;
 
 import org.json.JSONArray;
@@ -431,7 +429,7 @@ public class HtmlReport {
 
         File reportFile = new File(logFile.replace("log.txt", "report.html"));
         FileUtils.writeFile(reportFile.toString(), output, false);
-        System.out.println(logFile.replace("log.txt", "report.html"));
+        logUtil.d("",logFile.replace("log.txt", "report.html"));
         return logFile.replace("log.txt", "report.html");
     }
 
@@ -541,11 +539,6 @@ public class HtmlReport {
         String name = t;
         String desc = name;
         String tmpl;
-//        if (has_output){
-//            tmpl = REPORT_TEST_WITH_OUTPUT_TMPL;
-//        } else {
-//            tmpl = REPORT_TEST_NO_OUTPUT_TMPL;
-//        }
         StringBuilder output = new StringBuilder();
         StringBuilder noutput = new StringBuilder();
         for (int i=0; i < o.length();i++){
@@ -554,37 +547,38 @@ public class HtmlReport {
             if (line.contains(".png")){
                 String image = "screenshot/"+line.split(":i")[1].trim();
                 if (new File(logFolderPath + File.separator + image).exists()) {
-                    line = String.format("<img src=\"%s\" alt=\"screen_shot\" height=\"270\" width=\"130\"></img>\n", image);
+                    line = String.format("<img src=\"%s\" alt=\"screen_shot\" height=\"%s\" width=\"%s\"></img>\n", image, "50%", "50%");
+                }
+            }
+            if (line.contains(".jpg")){
+                String image = "screenshot/"+line.split(":i")[1].trim();
+                if (new File(logFolderPath + File.separator + image).exists()) {
+                    line = String.format("<img src=\"%s\" alt=\"screen_shot\" height=\"%s\" width=\"%s\"></img>\n", image, "50%", "50%");
                 }
             }
             if (line.contains(".gif")){
                 String gif = "screenshot/"+line.split(":i")[1].trim();
                 if (new File(logFolderPath + File.separator + gif).exists()) {
-                    line = String.format("<img src=\"%s\" alt=\"screen_gif\" height=\"270\" width=\"180\"></img>\n", gif);
+                    line = String.format("<img src=\"%s\" alt=\"screen_gif\" height=\"%s\" width=\"%s\"></img>\n", gif, "50%", "50%");
                 }
             }
             if (line.contains(".mp4")){
                 String screenRecord = "screenshot/"+line.split(":i")[1].trim();
                 if (new File(logFolderPath + File.separator + screenRecord).exists()) {
 //                    line = String.format("<a href=\"%s\" target=\"_blank\">查看录屏</a>", screenRecord);
-                    line = String.format("<video id=\"screen_record\" controls=\"controls\" width=\"360\" height=\"540\" src=\"%s\" >录屏文件</video>", screenRecord);
+                    line = String.format("<video src=\"%s\" id=\"screen_record\" controls=\"controls\" height=\"%s\" width=\"%s\" >录屏文件</video>", screenRecord, "50%", "50%");
+                }
+            }
+            if (line.contains(".csv")){
+                String powerRecord = "power/"+line.split(":i")[1].trim();
+                if (new File(logFolderPath + File.separator + powerRecord).exists()) {
+//                    line = String.format("<a href=\"%s\" target=\"_blank\">查看录屏</a>", screenRecord);
+                    line = String.format("<a id=\"power_record\" target=\"_blank\" href=\"%s\" >点击查看功耗结果</a>", powerRecord);
                 }
             }
             noutput.append(line).append("\n");
         }
         output.append(e);
-//        StringBuilder noutput = new StringBuilder();
-        // 插入截图
-//        String[] outputLst = output.toString().split("\n");
-//        for (String line: outputLst){
-//            if (line.contains(".png")){
-//                String image = "screenshot/"+line.split(":i")[1].trim();
-//                line = String.format("<img src=\"%s\" alt=\"screen_shot\" height=\"352\" width=\"200\"></img>\n" +
-//                        "        <a href=\"%s\" target=\"_blank\">点击查看原图</a>", image, image);
-//            }
-//            noutput.append(line).append('\n');
-
-//        }
         JSONObject STATUS = new JSONObject("{\"0\":\"通过\", \"1\":\"失败\", \"2\":\"错误\"}");
         String script = String.format(REPORT_TEST_OUTPUT_TMPL, tid.substring(2), noutput);
         String row = tmpl(has_output, tid, Class, style, desc, script, STATUS.getString(n+""));

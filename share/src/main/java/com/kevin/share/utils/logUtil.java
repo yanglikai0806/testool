@@ -23,9 +23,6 @@ import static com.kevin.share.Common.CONFIG;
 
 /**
  * 将Log日志写入文件中
- * <p>
- * 使用单例模式是因为要初始化文件存放位置
- * <p>
  */
 public class logUtil {
 
@@ -50,6 +47,7 @@ public class logUtil {
 
     private static final char ERROR = 'e';
     private static final char UICRAWLER = 'u';
+    private static final char TESTOOL = 't';
 
     public static boolean isShow = true;
     public static String test_log = "";
@@ -76,9 +74,10 @@ public class logUtil {
 
     }
 
-    public static void d(String tag, String msg) {
+    public static void d(String tag, Object msg) {
         if(isDebug) {
             Log.d(TAG + tag, msg + "");
+//            writeToFile(TESTOOL, tag, msg + "");
         }
 //        writeToFile(DEBUG, tag, msg);
     }
@@ -106,12 +105,14 @@ public class logUtil {
     public static void e(String tag, String msg) {
 
         Log.e(TAG + tag, msg);
+        writeToFile(TESTOOL, tag, msg + "");
 //        writeToFile(ERROR, tag, msg);
     }
 
     public static void e(String tag, Throwable e) {
 
         Log.e(TAG + tag, Log.getStackTraceString(e));
+        writeToFile(TESTOOL, tag, Log.getStackTraceString(e));
 //        writeToFile(ERROR, tag, Log.getStackTraceString(e));
     }
     public static void u(String tag, String msg) {
@@ -129,16 +130,18 @@ public class logUtil {
     private static void writeToFile(char type, String tag, String msg) {
         try {
             if (type == UICRAWLER){
-                logPath = CONST.LOGPATH + "UICrawler";//获得文件储存路径
-            } else {
-                logPath = CONST.REPORT_PATH + readTempFile();//获得文件储存路径
+                logPath = CONST.LOGPATH + "UICrawler" + File.separator ;//获得文件储存路径
+            } else if (type == TESTOOL) {
+                logPath = CONST.LOGPATH;
+            }else {
+                logPath = CONST.REPORT_PATH + readTempFile() + File.separator ;//获得文件储存路径
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
 
 //        String fileName = logPath +  File.separator + dateFormat.format(new Date()) + ".txt";//log日志名，使用时间命名，保证不重复
-        String fileName = logPath +  File.separator + "log.txt";//log日志名，使用时间命名，保证不重复
+        String fileName = logPath + "log.txt";//log日志名，使用时间命名，保证不重复
         String log = dateFormat.format(new Date()) + ":" + type + " " + tag + " " + msg + "\n";//log日志内容，可以自行定制
 
         //如果父路径不存在
@@ -166,34 +169,7 @@ public class logUtil {
         if(tag.equals("RESULT")){
             recordTestLog = false;
         }
-        try {
-            FileUtils.writeFile(fileName, log, true);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
-//        FileOutputStream fos = null;//FileOutputStream会自动调用底层的close()方法，不用关闭
-//        BufferedWriter bw = null;
-//        try {
-//
-//            fos = new FileOutputStream(fileName, true);//这里的第二个参数代表追加还是覆盖，true为追加，flase为覆盖
-//            bw = new BufferedWriter(new OutputStreamWriter(fos));
-//            bw.write(log);
-//
-//            //
-////            bw.newLine();
-//
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } finally {
-//            try {
-//                if (bw != null) {
-//                    bw.close();//关闭缓冲流
-//                }
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
+        FileUtils.writeFile(fileName, log, true);
 
     }
 

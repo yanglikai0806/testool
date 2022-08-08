@@ -13,7 +13,9 @@ import android.view.accessibility.AccessibilityNodeInfo;
 
 import com.kevin.fw.RecordPointService;
 import com.kevin.fw.RecordStepService;
+import com.kevin.share.CONST;
 import com.kevin.share.accessibility.AccessibilityNodeInfoDumper;
+import com.kevin.share.utils.FileUtils;
 import com.kevin.testool.accessibility.BaseAccessibility;
 import com.kevin.share.Common;
 import com.kevin.share.utils.ToastUtils;
@@ -77,7 +79,7 @@ public class MyAccessibility extends BaseAccessibility {
 //        logUtil.d("-----------------node----------------", nodeInfo.toString());
         //界面获取
         if (getElements && !isDumping) {
-            new Thread(() -> Common.screenShot(Environment.getExternalStorageDirectory().getPath() + File.separator + "window_dump.png")).start();
+//            new Thread(() -> Common.screenShot(Environment.getExternalStorageDirectory().getPath() + File.separator + "window_dump.png")).start();
             dumpWindowHierarchys();
             isDumping = false;
             getElements = false;
@@ -151,13 +153,15 @@ public class MyAccessibility extends BaseAccessibility {
         try {
 
             String strPath = Environment.getExternalStorageDirectory().getPath();
+            FileUtils.deleteFile(CONST.DUMP_PNG_PATH);
+            new Thread(() -> Common.screenShot(CONST.DUMP_PNG_PATH)).start();
             //创建xml文件
             File file = new File(strPath, "window_dump.xml");
             FileOutputStream fos = new FileOutputStream(file);
             dumpWindowHierarchy(this, fos);
             logUtil.d("MyAccessibility", "完成界面获取");
         } catch (IOException e) {
-            e.printStackTrace();
+            logUtil.e("", e);
         }
     }
 

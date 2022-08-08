@@ -2,7 +2,7 @@ package com.kevin.share;
 
 import android.os.SystemClock;
 
-import com.kevin.share.utils.AdbUtils;
+import com.kevin.share.utils.ShellUtils;
 import com.kevin.share.utils.FileUtils;
 import com.kevin.share.utils.logUtil;
 
@@ -12,7 +12,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -41,12 +40,10 @@ public class UICrawler extends Common {
 
 
     public UICrawler(String app_package, String versionName, int mDeep){
-        try {
+
             //初始化log.txt
-            FileUtils.writeFile(UICRAWLER_PATH + File.separator + "log.txt", "", false);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        FileUtils.writeFile(UICRAWLER_PATH + File.separator + "log.txt", "", false);
+
         PKG = app_package;
         version = versionName;
         maxDeep = mDeep;
@@ -66,7 +63,7 @@ public class UICrawler extends Common {
         ArrayList<Element> elements = get_elements(true, "", "", 0);
         if (elements != null) {
             FileUtils.copyFile(new File(CONST.DUMP_PATH), CONST.LOGPATH + "UICrawler" + File.separator + "page"+index+".xml");
-            AdbUtils.runShellCommand("screencap -p " + CONST.LOGPATH + "UICrawler" + File.separator + "page"+index+".png", 0);
+            ShellUtils.runShellCommand("screencap -p " + CONST.LOGPATH + "UICrawler" + File.separator + "page"+index+".png", 0);
             for (Element e : elements) {
                 if (e.attribute("package").getValue().equals(PKG)){
                     pageElements.add(e);
@@ -600,7 +597,7 @@ public class UICrawler extends Common {
                     if (!new File(logFolder).exists()){
                         new File(logFolder).mkdirs();
                     }
-                    AdbUtils.runShellCommand("screencap -p " + logFolder + File.separator + "error.png", 0);
+                    ShellUtils.runShellCommand("screencap -p " + logFolder + File.separator + "error.png", 0);
                     generateBugreport(logFolder + File.separator + bugreportFile);
                     FileUtils.copyFile(new File(UICRAWLER_PATH + File.separator + "error.txt"), logFolder + File.separator + "error.txt");
 
@@ -611,7 +608,7 @@ public class UICrawler extends Common {
                     if (!new File(logFolder).exists()){
                         new File(logFolder).mkdirs();
                     }
-                    AdbUtils.runShellCommand("screencap -p " + logFolder + File.separator + "error.png", 0);
+                    ShellUtils.runShellCommand("screencap -p " + logFolder + File.separator + "error.png", 0);
                     generateBugreport(logFolder + File.separator + bugreportFile);
                     FileUtils.copyFile(new File(UICRAWLER_PATH + File.separator + "error.txt"), logFolder + File.separator + "error.txt");
                     for (int i=0; i<pageIndex; i++){
@@ -621,11 +618,9 @@ public class UICrawler extends Common {
 
                 // 记录点击坐标
                 logUtil.d("crawler","点击坐标：" + x + "," + y);
-                try {
-                    FileUtils.writeFile(CONST.LOGPATH + "record.txt", pageIndex + ":" +x+","+y+"\n", true);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
+
+                FileUtils.writeFile(CONST.LOGPATH + "record.txt", pageIndex + ":" +x+","+y+"\n", true);
+
                 clickCount++;
                 exSteps.put(pageIndex,clickRecord(elem)); //记录执行步骤
                 exStepsRecord(pageIndex, clickRecord(elem));
@@ -642,7 +637,7 @@ public class UICrawler extends Common {
                         if (!new File(logFolder).exists()){
                             new File(logFolder).mkdirs();
                         }
-                        AdbUtils.runShellCommand("screencap -p " + logFolder + File.separator + "error.png", 0);
+                        ShellUtils.runShellCommand("screencap -p " + logFolder + File.separator + "error.png", 0);
                         generateBugreport(logFolder + File.separator + bugreportFile);
                         for (int i=0; i<pageIndex; i++){
                             FileUtils.copyFile(new File(UICRAWLER_PATH + File.separator + "page" + i + ".png"), logFolder + File.separator + "page" + i + ".png");
