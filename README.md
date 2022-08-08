@@ -356,13 +356,17 @@ image_id 为图像库中的图像id,image_tag 为图像库中图像tag名,bounds
 ```
 使用方法
 ---
-* 将写好的testDemo.json文件存储到手机跟目录下/autotest/testcases/路径下  
+* 将写好的testcase.json文件存储到手机跟目录下/autotest/testcases/路径下  
 * 在工具左侧导航栏里选择“重新导入”，用例会显示在主界面，点击每个item会显示 用例详情。   
-* 选中要执行的用例集合 点击 “开始” 测试开始执行，选择相应的测试环境，用例配置，目标应用，case_tag，等参数，点击确定即开始测试   
-* 测试完成后 点击导航栏 “日志报告” 可以查看测试报告    
+* 选中要执行的用例集合 点击 “测试任务” 测试开始执行，选择相应的测试配置参数，点击确定即开始执行测试   
+* 测试完成后 点击导航栏 “日志报告” 可以查看测试报告
+* 新建测试用例:
 
-  <img src="https://raw.githubusercontent.com/yanglikai0806/testool/master/resource/0.gif" width="300" height="570" alt="展示"/>
-  
+  <img src="https://raw.githubusercontent.com/yanglikai0806/testool/master/resource/create_case.gif" width="150" height="285" alt="展示"/>
+* 执行测试任务:
+
+  <img src="https://raw.githubusercontent.com/yanglikai0806/testool/master/resource/start_test.gif" width="150" height="285" alt="展示"/>
+
  加入交流群(群号：439269565)
  ---
   <img src="https://github.com/yanglikai0806/testool/blob/master/resource/testool%E7%BE%A4%E4%BA%8C%E7%BB%B4%E7%A0%81.png" width="230" height="300" alt="展示"/>
@@ -370,5 +374,7 @@ image_id 为图像库中的图像id,image_tag 为图像库中图像tag名,bounds
 
 Thank to
 ---
-* [https://github.com/openatx/android-uiautomator-server](https://github.com/openatx/android-uiautomator-server) 
-* [https://github.com/cgutman/AdbLib](https://github.com/cgutman/AdbLib)
+* [https://github.com/xiaocong/android-uiautomator-server](https://github.com/xiaocong/android-uiautomator-server) 
+* [https://github.com/openatx/uiautomator2](https://github.com/openatx/uiautomator2)
+* [https://github.com/gtf35/app_process-shell-use](https://github.com/gtf35/app_process-shell-use)
+* [https://github.com/alipay/SoloPi](https://github.com/alipay/SoloPi)
