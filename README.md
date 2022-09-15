@@ -164,7 +164,7 @@ duration 为滑动时长ms，控制滑动快慢， 缺省默认500ms。
 ```
 ###### 清理后台程序
 ```
-{"clearRecentApp":""} 清理后台应用，无参数
+{"clearRecentApp":""} 清理后台应用，无参数，需修改配置文件中CLEAR_BUTTON_ID的值，或修改源码 share-> common -> clearRecentApp() 方法实现
 ```
 #### __UI复杂操作__
 > 通过反射UiAutomator实现复杂操作执行
