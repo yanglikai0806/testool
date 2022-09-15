@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
@@ -77,6 +78,7 @@ public class RecordStepService extends Service {
         return null;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         String item = "";
@@ -98,6 +100,7 @@ public class RecordStepService extends Service {
         return super.onStartCommand(intent, flags, startId);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @SuppressLint("ClickableViewAccessibility")
     private void showFloatingWindow(String item, String msg, String rootKey) {
         if (Settings.canDrawOverlays(this)) {
@@ -541,22 +544,12 @@ public class RecordStepService extends Service {
     }
 
     public JSONArray getWaitTime(){
-        try {
-            wt = getCaseContent().getJSONObject("case").getJSONArray("wait_time");
-        } catch (JSONException e) {
-            e.printStackTrace();
-            wt = new JSONArray();
-        }
+        wt = getCaseContent().optJSONObject("case").optJSONArray("wait_time");
         return wt;
     }
 
     public JSONObject getCheckpoint(){
-        try {
-            return getCaseContent().getJSONObject("check_point");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return new JSONObject();
+        return getCaseContent().optJSONObject("check_point");
     }
 
     public JSONObject getCheckadd(){
@@ -589,6 +582,13 @@ public class RecordStepService extends Service {
             while (itr.hasNext()){
                 String key = itr.next();
                 Log.d("KEVIN_DEBUG", "setCheckpoint: " + key);
+                if (key.equals("text")){
+                    if (cp.optJSONArray("text") != null) {
+                        JO.put("text", cp.optJSONArray("text").put(JO.get(key)));
+                    } else {
+                        JO.put("text", new JSONArray().put(JO.get(key)));
+                    }
+                }
                 cp = cp.put(key, JO.get(key));
             }
 //            String key = JO.keys().next();

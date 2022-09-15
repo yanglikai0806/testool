@@ -97,7 +97,7 @@ public class DeviceRemoteService extends IntentService {
         startMyWebsocketServer();
         // 上传设备初始状态
         try {
-            HttpUtil.postResp(CONST.SERVER_BASE_URL + "devices_state", Common.getDeviceStatusInfo().put("remote", 1).toString());
+            HttpUtil.postResp(CONST.SERVER_BASE_URL + "api/device_state", Common.getDeviceStatusInfo().put("remote", 1).toString());
         } catch (JSONException e) {
             logUtil.e(TAG, e);
         }
@@ -107,15 +107,15 @@ public class DeviceRemoteService extends IntentService {
         // 开始任务轮训
         while (true){
             // 开启wifi
-            new WifiUtils(DeviceRemoteService.this).openWifi();
+            Common.openWifi();
             try {
-                String respMsg = HttpUtil.postResp(CONST.SERVER_BASE_URL + "devices_state", Common.getDeviceStatusInfo().put("remote", 1).toString());
+                String respMsg = HttpUtil.postResp(CONST.SERVER_BASE_URL + "api/device_state", Common.getDeviceStatusInfo().put("remote", 1).toString());
                 logUtil.d(TAG, respMsg);
                 if (!isIdle()){
                     SystemClock.sleep(10000);
                     continue;
                 }
-                JSONObject resp = new JSONObject(HttpUtil.getResp(CONST.SERVER_BASE_URL + "devices_state?device_id=" + Common.getDeviceId()));
+                JSONObject resp = new JSONObject(HttpUtil.getResp(CONST.SERVER_BASE_URL + "api/device_state?device_id=" + Common.getDeviceId()));
                 logUtil.d(TAG, resp);
                 if (resp.optInt("code", 0) == 200){
                     JSONObject deviceInfo = resp.getJSONObject("data");
@@ -179,7 +179,7 @@ public class DeviceRemoteService extends IntentService {
                                 }
                                 //消费掉task_id, “分布“ 模式下消费task_id, 写在 MonitorService 中
                                 if (!task_mode.equals("分布")) {
-                                    HttpUtil.postResp(CONST.SERVER_BASE_URL + "devices_state", Common.getDeviceStatusInfo().put("task_id", "0") + "");
+                                    HttpUtil.postResp(CONST.SERVER_BASE_URL + "api/device_state", Common.getDeviceStatusInfo().put("task_id", "0") + "");
                                     logUtil.d("", "消费掉task_id:" + taskId);
                                 }
                                 // 等待几秒钟让任务执行一会

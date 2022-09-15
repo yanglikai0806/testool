@@ -36,11 +36,9 @@ public final class CONST {
      public static final String TESSDATA = LOGPATH + "tessdata";
      public static final String RESOURCE = LOGPATH + "resource";
      public static final String ACCESSIBILITY_RECEIVER = "com.kevin.testool.MyAccessibility.Receiver";
-     public static final String SHUTTLE_RECEIVER = "com.kevin.testool.test.shuttle";
      public static final String DRAG_RECEIVER = "com.kevin.testool.test.drag";
 
      public static final String ACTION_UPDATECASELIST = "com.kevin.testool.action.updatecaselist";
-     public static final String ACTION_POWER_RECORD_FINISH = "com.kevin.testool.action.power.record.finish";
 
      public static final String CROPPER_IMG_PATH = CONST.LOGPATH + "cropper.jpg";
      public static final float CROPPER_IMG_SCALE = 0.8f;
@@ -49,54 +47,17 @@ public final class CONST {
      public static final String TESTOOL_SETTING = "testool_setting";
      public static final String NEED_REMIND_ACCESSIBILITY = "NEED_REMIND_ACCESSIBILITY";
      public static final String EDITE_TESTCASE = "EDITE_TESTCASE";
-     public static final String DUMP_FINISHED = "DUMP_FINISHED";
      public static final String[] TEST_RESULT_URL = {};
      public static final String[] TEST_TASK_URL = {};
      public static final String[] NOT_CLEAR_RECENT_APP = {};
      public static final int ADB_PORT = 5555; //无线adb使用端口
 
-     public static String TARGET_APP = "";
+     public static String TARGET_APP = Common.CONFIG().optString("TARGET_APP");
 
-     static {
-          try {
-               TARGET_APP = Common.CONFIG().getString("TARGET_APP");
-          } catch (JSONException e) {
-               e.printStackTrace();
-          }
-     }
+     public static int SOCKET_PORT = Common.CONFIG().optInt("SOCKET_PORT", 9999);
 
+     public static String SERVER_BASE_URL = Common.CONFIG().optString("SERVER_BASE_URL");
 
-     public static String SERVER_IP = "";
-
-     static {
-          try {
-               SERVER_IP = Common.CONFIG().getString("SERVER_IP");
-          } catch (JSONException e) {
-               e.printStackTrace();
-          }
-     }
-
-     public static String SERVER_PORT = "9999";
-
-     static {
-          try {
-               SERVER_PORT = Common.CONFIG().getString("SERVER_PORT");
-          } catch (JSONException e) {
-               e.printStackTrace();
-          }
-     }
-
-     public static String SERVER_BASE_URL = "";
-
-     static {
-          try {
-               if (!TextUtils.isEmpty(Common.CONFIG().getString("SERVER_BASE_URL"))){
-                    SERVER_BASE_URL = Common.CONFIG().getString("SERVER_BASE_URL");
-               }
-          } catch (JSONException e) {
-               e.printStackTrace();
-          }
-     }
 
      public static String CONFIG_JSON = "{\n" +
              "    \"ALARM_MSG\": \"false\",\n" +

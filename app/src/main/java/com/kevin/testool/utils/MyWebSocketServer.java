@@ -54,7 +54,7 @@ public class MyWebSocketServer extends WebSocketServer implements ScreenShotHelp
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
 
-//        Common.postJson(CONST.SERVER_BASE_URL + "devices_state", Common.getDeviceStatusInfo().toString());
+//        Common.postJson(CONST.SERVER_BASE_URL + "api/device_state", Common.getDeviceStatusInfo().toString());
         isOpening = true;
         TEMP_BASE64_STR_LEN = 0;
         logUtil.d(TAG, "客户端连接成功：" + conn.getRemoteSocketAddress());
@@ -68,7 +68,7 @@ public class MyWebSocketServer extends WebSocketServer implements ScreenShotHelp
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
         isOpening = false;
-//        Common.postJson(CONST.SERVER_BASE_URL + "devices_state", Common.getDeviceStatusInfo().toString());
+//        Common.postJson(CONST.SERVER_BASE_URL + "api/device_state", Common.getDeviceStatusInfo().toString());
         TEMP_BASE64_STR_LEN = 0;
         logUtil.d(TAG, "服务关闭");
 
@@ -100,7 +100,7 @@ public class MyWebSocketServer extends WebSocketServer implements ScreenShotHelp
                                     data.put("device_id", Common.getDeviceId());
                                     data.put("screen", base64Str);
                                     data.put("dump", FileUtils.readFile(CONST.DUMP_PATH));
-                                    HttpUtil.postResp(CONST.SERVER_BASE_URL + "dump", data.toString());
+                                    HttpUtil.postResp(CONST.SERVER_BASE_URL + "device_dump", data.toString());
                                 } catch (Exception e){
                                     logUtil.e("", e);
                                 }
@@ -184,7 +184,7 @@ public class MyWebSocketServer extends WebSocketServer implements ScreenShotHelp
     public void onError(WebSocket conn, Exception ex) {
         logUtil.e(TAG, ex);
         try {
-            HttpUtil.postJson(CONST.SERVER_BASE_URL + "devices_state", Common.getDeviceStatusInfo("-2").put("remote", 1).toString());
+            HttpUtil.postJson(CONST.SERVER_BASE_URL + "api/device_state", Common.getDeviceStatusInfo("-2").put("remote", 1).toString());
         } catch (JSONException e) {
             logUtil.e("", e);
         }
@@ -201,10 +201,7 @@ public class MyWebSocketServer extends WebSocketServer implements ScreenShotHelp
     public static MyWebSocketServer myWebSocketServer;
     // 实现方法，在服务中或者OnCreate()方法调用此方法
     public static void startMyWebsocketServer() {
-//         上传设备状态到数据库
-//        Common.postResp(CONST.SERVER_BASE_URL + "devices_state", Common.getDeviceStatusInfo().toString());
-
-        InetSocketAddress myHost = new InetSocketAddress(new WifiUtils(AppContext.getContext()).getIPAddress() + "", Integer.parseInt(CONST.SERVER_PORT));
+        InetSocketAddress myHost = new InetSocketAddress(new WifiUtils(AppContext.getContext()).getIPAddress() + "", CONST.SOCKET_PORT);
         if (myWebSocketServer != null) {
             try {
                 myWebSocketServer.stop();
@@ -242,6 +239,7 @@ public class MyWebSocketServer extends WebSocketServer implements ScreenShotHelp
         String base64Str = FileUtils.xToBase64(screenshotJpg);
         int base64StrLen = 0;
         if (!TextUtils.isEmpty(base64Str)){
+            assert base64Str != null;
             base64StrLen = base64Str.length();
             if (Math.abs(TEMP_BASE64_STR_LEN - base64StrLen) < 100){ // 通过长度是否改变判断页面是否有变化
                 String send_pause = "*pause*" + TEMP_BASE64_STR_LEN + ":"+base64StrLen;

@@ -150,7 +150,7 @@ public class MonitorService extends IntentService {
                         continue;
                     }
                     //上传设备状态
-                    HttpUtil.postJson(CONST.SERVER_BASE_URL + "devices_state", Common.getDeviceStatusInfo().toString());
+                    HttpUtil.postJson(CONST.SERVER_BASE_URL + "api/device_state", Common.getDeviceStatusInfo().toString());
                     try {
                         int flag = 0; // 根据此flag切换访问的服务接口，0，监控，1，测试， 2，离线
                         if (isTest) flag = 1;
@@ -170,7 +170,7 @@ public class MonitorService extends IntentService {
                             // 缓存测试用例
 //                                    SPUtils.putString(SPUtils.TASK_CASE, taskId+"", testcases.toString() );
                             if (taskFlag == 1) {
-                                HttpUtil.postResp(CONST.SERVER_BASE_URL + "devices_state", Common.getDeviceStatusInfo().put("task_id", "0") + "");
+                                HttpUtil.postResp(CONST.SERVER_BASE_URL + "api/device_state", Common.getDeviceStatusInfo().put("task_id", "0") + "");
                                 logUtil.i(TAG, "消费掉task_id:" + taskId);
                             }
                             SystemClock.sleep(1000);

@@ -62,7 +62,7 @@ public class HttpUtil {
     }
 
     public static String postResp(String url, String data){
-//        logUtil.d("postResp", url);
+        logUtil.d("postResp", url);
         // 开启wifi
         final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
         RequestBody body = RequestBody.create(JSON, data);
@@ -73,7 +73,7 @@ public class HttpUtil {
         try {
             Response response = new OkHttpClient().newCall(request).execute();
             String msg = response.body().string();
-//            logUtil.d("postResp", msg);
+            logUtil.d("postResp-------", msg);
             return msg.trim();
         } catch (Exception e) {
             logUtil.e("postResp", e);

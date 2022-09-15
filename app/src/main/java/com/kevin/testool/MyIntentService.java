@@ -1494,7 +1494,7 @@ public class MyIntentService extends IntentService {
 
                         case "remote":
                             // 两个设备协同操作，需先在设备的config文件中配置对应设备的IP,对应字段 REMOTE_DEVICE_IP，且对应设备开启可见
-                            String wsUrl = "ws://" + CONFIG().getString("REMOTE_DEVICE_IP") + ":" + CONST.SERVER_PORT;
+                            String wsUrl = "ws://" + CONFIG().getString("REMOTE_DEVICE_IP") + ":" + CONST.SOCKET_PORT;
                             MyWebSocketClient msc = new MyWebSocketClient();
                             JSONObject sendMsg = new JSONObject();
                             sendMsg.put("mode", "case");

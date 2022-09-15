@@ -17,6 +17,7 @@ import android.os.IBinder;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
@@ -115,6 +116,7 @@ public class RecordCaseService extends Service {
         return null;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         caseId = intent.getStringExtra("CASE_NAME");
@@ -190,6 +192,7 @@ public class RecordCaseService extends Service {
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @SuppressLint({"ClickableViewAccessibility", "SetTextI18n"})
     private void showFloatingWindow(final long caseId, final String caseDesc, final String caseFile) {
         if (Settings.canDrawOverlays(this)) {
