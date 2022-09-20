@@ -67,6 +67,11 @@ public abstract class FirstActivity extends AppCompatActivity {
         // 检查工具文件存储路径
         if (!new File(LOGPATH).exists()){
             new File(LOGPATH).mkdirs();
+        } else {
+            //生成config文件
+            if (!new File(CONST.CONFIG_FILE).exists()) {
+                FileUtils.writeFile(CONFIG_FILE, CONST.CONFIG_JSON, false);
+            }
         }
 
         //shellserver.dex文件加载
