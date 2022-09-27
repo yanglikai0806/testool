@@ -1,4 +1,4 @@
-# 如果觉得不错，请 watch fork star 三连~~~
+*如果觉得不错，请 watch fork star 三连~~~*
 # Testool 
 [![GitHub stars](https://img.shields.io/github/stars/yanglikai0806/testool.svg)](https://github.com/yanglikai0806/testool/stargazers) [![GitHub forks](https://img.shields.io/github/forks/yanglikai0806/testool.svg)](https://github.com/yanglikai0806/testool/forkgazers) [![GitHub release](https://img.shields.io/github/release/yanglikai0806/testool.svg)](https://github.com/yanglikai0806/testool/releases)
 > 为Android设备打造更可靠，更易用，更高效的测试执行工具
@@ -377,6 +377,7 @@ image_id 为图像库中的图像id,image_tag 为图像库中图像tag名,bounds
 * 录制测试用例:
 
   <img src="https://raw.githubusercontent.com/yanglikai0806/testool/master/resource/record_case.gif" width="150" height="285" alt="展示"/>
+
 
  加入交流群(群号：439269565)
  ---
