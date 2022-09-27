@@ -374,6 +374,9 @@ image_id 为图像库中的图像id,image_tag 为图像库中图像tag名,bounds
 * 执行测试任务:
 
   <img src="https://raw.githubusercontent.com/yanglikai0806/testool/master/resource/start_test.gif" width="150" height="285" alt="展示"/>
+* 录制测试用例:
+
+  <img src="https://raw.githubusercontent.com/yanglikai0806/testool/master/resource/record_case.gif" width="150" height="285" alt="展示"/>
 
  加入交流群(群号：439269565)
  ---
