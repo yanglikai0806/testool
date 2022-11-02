@@ -37,8 +37,8 @@
  2. 连接PC后开启 tcpip 5555 端口（命令：adb tcpip 5555）
  3. 通过app_process命令执行shell。先通过adb shell进入设备的shell，再输入命令：nohup app_process -Djava.class.path=/sdcard/autotest/shellserver.dex /system/bin --nice-name=shellServer shellService.Main > /dev/null 2>&1 & ，最后执行exit退出shell。
  （确保/sdcard/autotest/shellserver.dex文件存在，若不存在需从resource目录下手动push到设备中）
- 
  ```
+>- shellserver.dex 实现原理：[shell-server](https://github.com/yanglikai0806/shell-server)
 
 配置文件
 ---
