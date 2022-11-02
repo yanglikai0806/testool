@@ -4,6 +4,7 @@ import android.os.Environment;
 import android.os.SystemClock;
 import android.text.TextUtils;
 
+import com.kevin.share.ocr.Imagett;
 import com.kevin.share.utils.HttpUtil;
 import com.kevin.share.utils.ShellUtils;
 import com.kevin.share.utils.CvUtils;
@@ -163,20 +164,20 @@ public class Checkpoint extends Common {
             Common.cropeImage(imageFile, bounds);
         }
         // 先通过接口识别文本
-        if (refreshImg || TextUtils.isEmpty(imageText)) {
-            imageText = CvUtils.getTextFromImage("", imageFile, imageFile, 0);
-        }
-        // 如果接口不能访问通过本地的ocr识别文本
-//        if (imageText.length() == 0 || imageText.equals("null")){
-//            try {
-//                if (new File(imageFile).exists()){
-//                    imageText = Imagett.imageToText(imageFile, language, true, bounds);
-//                }
-//            } catch (Exception e){
-//                logUtil.e("", e);
-//                imageText = "";
-//            }
+//        if (refreshImg || TextUtils.isEmpty(imageText)) {
+//            imageText = CvUtils.getTextFromImage("", imageFile, imageFile, 0);
 //        }
+        // 如果接口不能访问通过本地的ocr识别文本
+        if (imageText.length() == 0 || imageText.equals("null")){
+            try {
+                if (new File(imageFile).exists()){
+                    imageText = Imagett.imageToText(imageFile, language, true, bounds);
+                }
+            } catch (Exception e){
+                logUtil.e("", e);
+                imageText = "";
+            }
+        }
         if (text.contains("|")) {
             ArrayList<Boolean> res_lst = new ArrayList<>();
             for (String item : text.split("\\|")) {

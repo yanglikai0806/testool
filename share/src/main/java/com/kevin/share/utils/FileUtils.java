@@ -504,19 +504,16 @@ public class FileUtils {
         BufferedWriter bw = null;
         try {
             String content = readToString(fileName);
-//            System.out.println(content);
-
             fos = new FileOutputStream(fileName, false);//这里的第二个参数代表追加还是覆盖，true为追加，flase为覆盖
             bw = new BufferedWriter(new OutputStreamWriter(fos));
-            assert content != null;
             if (TextUtils.isEmpty(content)) {
                 bw.write("[\n" + msg + "]");
             } else {
                 bw.write(content.trim().substring(0,content.length()-1).trim() + ",\n" + msg + "]");
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            logUtil.e("", e);
         } finally {
             try {
                 if (bw != null) {
@@ -533,24 +530,19 @@ public class FileUtils {
         String encoding = "UTF-8";
         File file = new File(fileName);
         if (!file.exists()){
-            return null;
+            return "";
         }
-        Long filelength = file.length();
-        byte[] filecontent = new byte[filelength.intValue()];
+        long filelength = file.length();
+        byte[] filecontent = new byte[(int) filelength];
         try {
             FileInputStream in = new FileInputStream(file);
             in.read(filecontent);
             in.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
             return new String(filecontent, encoding);
-        } catch (UnsupportedEncodingException e) {
-            System.err.println("The OS does not support " + encoding);
-            e.printStackTrace();
-            return null;
+        } catch (Exception e) {
+            logUtil.e("", e);
         }
+        return "";
     }
 
 

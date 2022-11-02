@@ -32,6 +32,10 @@ public class HttpUtil {
      * @param data json格式的string
      */
     public static void postJson(String url, String data) {
+        if (!url.startsWith("http")) {
+            logUtil.d("postJson", "wrong url:" + url);
+            return;
+        }
         logUtil.d("postJson", url);
         final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
         RequestBody body = RequestBody.create(JSON, data);
@@ -62,6 +66,10 @@ public class HttpUtil {
     }
 
     public static String postResp(String url, String data){
+        if (!url.startsWith("http")) {
+            logUtil.d("postResp", "wrong url:" + url);
+            return "";
+        }
         logUtil.d("postResp", url);
         // 开启wifi
         final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
@@ -82,7 +90,11 @@ public class HttpUtil {
     }
 
     public static String getResp(String url) {
-//        logUtil.d("getResp", url);
+        if (!url.startsWith("http")) {
+            logUtil.d("getResp", "wrong url:" + url);
+            return "";
+        }
+        logUtil.d("getResp", url);
         Request request = new Request.Builder()
                 .url(url)
                 .get()

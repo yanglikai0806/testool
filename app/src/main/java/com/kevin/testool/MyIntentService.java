@@ -928,7 +928,6 @@ public class MyIntentService extends IntentService {
                                 startLocalRun(SELECTED_CASES.get(i) + "", CASE_TAG, false, LOOP);
                             } catch (Exception e) {
                                 logUtil.e(ERROR, e);
-                                ToastUtils.showLongByHandler(getApplicationContext(), e.toString());
                             }
 
                         }
@@ -959,7 +958,6 @@ public class MyIntentService extends IntentService {
                     }
                     if (MemoryManager.getAvailableInternalMemorySize()/1000000000.00 < 1){
                         logUtil.i("", "设备可用存储过低，停止测试");
-                        ToastUtils.showShortByHandler(getApplicationContext(), "设备可用存储过低，停止测试");
                         return;
                     }
                     //同步用例
@@ -1046,6 +1044,7 @@ public class MyIntentService extends IntentService {
                         logUtil.e("", e);
                         logUtil.i("",e.toString());
                     }
+                    Common.killProcess("com.kevin.testool:MyIntentService");
 
                     break;
                 case ACTION_RUN_REMOTE:
