@@ -37,8 +37,8 @@
  2. 连接PC后开启 tcpip 5555 端口（命令：adb tcpip 5555）
  3. 通过app_process命令执行shell。先通过adb shell进入设备的shell，再输入命令：nohup app_process -Djava.class.path=/sdcard/autotest/shellserver.dex /system/bin --nice-name=shellServer shellService.Main > /dev/null 2>&1 & ，最后执行exit退出shell。
  （确保/sdcard/autotest/shellserver.dex文件存在，若不存在需从resource目录下手动push到设备中）
- 
  ```
+>- shellserver.dex 实现原理：[shell-server](https://github.com/yanglikai0806/shell-server)
 
 配置文件
 ---
@@ -366,7 +366,7 @@ image_id 为图像库中的图像id,image_tag 为图像库中图像tag名,bounds
 ---
 * 将写好的testcase.json文件存储到手机跟目录下/autotest/testcases/路径下  
 * 在工具左侧导航栏里选择“重新导入”，用例会显示在主界面，点击每个item会显示 用例详情。   
-* 选中要执行的用例集合 点击 “测试任务” 测试开始执行，选择相应的测试配置参数，点击确定即开始执行测试   
+* 选中要执行的用例集合 点击 “测试任务” 从弹窗页面中选择相应的测试配置参数，点击“执行本地测试”后，测试开始执行
 * 测试完成后 点击导航栏 “日志报告” 可以查看测试报告
 * 新建测试用例:
 
