@@ -102,7 +102,6 @@ public class HttpUtil {
         try {
             Response response = new OkHttpClient().newCall(request).execute();
             String msg = response.body().string();
-
             return msg.trim();
         } catch (IOException e) {
             logUtil.e("错误", e);

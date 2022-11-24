@@ -58,7 +58,6 @@ public class MonitorService extends IntentService {
     private static final String ACTION_MONITOR_TASK = "com.kevin.testool.task";
 
     private static boolean isDebug = false;
-    private static boolean isDumpTask = false;
 
     public MonitorService() {
         super("MonitorService");
@@ -108,6 +107,7 @@ public class MonitorService extends IntentService {
         String dt = dateFormat.format(date);
         String pkg;
         // 监控任务标识
+        assert intent != null;
         boolean isMonitor = intent.getBooleanExtra("IS_MONITOR", false);
         // 测试任务标识
         boolean isTest = intent.getBooleanExtra("IS_TEST", false);
@@ -137,7 +137,7 @@ public class MonitorService extends IntentService {
         // 任务批次选择
         String taskDate = intent.getStringExtra("TASK_DATE");
         isDebug = intent.getBooleanExtra("IS_DEBUG", false);
-        logUtil.d("Monitor", "开启monitor");
+        logUtil.d("Monitor", "开启任务轮询");
         String action = intent.getAction();
         if (action != null) {
             if (ACTION_MONITOR_TASK.equals(action)) {
@@ -152,13 +152,11 @@ public class MonitorService extends IntentService {
                     //上传设备状态
                     HttpUtil.postJson(CONST.SERVER_BASE_URL + "api/device_state", Common.getDeviceStatusInfo().toString());
                     try {
-                        int flag = 0; // 根据此flag切换访问的服务接口，0，监控，1，测试， 2，离线
+                        int flag = 0; // 根据此flag切换访问的服务接口，0，监控，1，测试，
                         if (isTest) flag = 1;
                         JSONArray testcases = new JSONArray();
-                        JSONObject task = new JSONObject();
-                        if (taskFlag != 2) {
-                            task = getTask(flag, taskId, taskResult, taskDate);
-                        }
+                        JSONObject task = getTask(flag, taskId, taskResult, taskDate);
+
                         if (task.optInt("code") == 200) {
 
                             // 云端测试任务执行模式为 “分布” 时，实现动态获取
@@ -186,18 +184,13 @@ public class MonitorService extends IntentService {
                             SystemClock.sleep(10000);
                             continue;
                         }
-                        //判断是否为界面获取任务
-                        if (!testcases.getJSONObject(0).isNull("case_type")) {
-                            if (testcases.length() > 0 && testcases.getJSONObject(0).getString("case_type").equals("dump")) {
-                                isDumpTask = true;
-                            }
-                        }
+
                         //初始化执行器intent
                         Intent intent_start = new Intent(this, MyIntentService.class);
 
                         if (isDebug) { //开启debug任务
                             logUtil.d("", "***********START DEBUG TASK***********");
-                            intent_start.setAction("com.kevin.testool.action.debug");
+                            intent_start.setAction(CONST.ACTION_DEBUG);
                             intent_start.putExtra("DEBUG_CASE", testcases.toString());
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                 startForegroundService(intent_start);
@@ -207,8 +200,8 @@ public class MonitorService extends IntentService {
 
                         } else if (isMonitor) { // 开启监控任务
                             logUtil.d("", "***********START MONITOR TASK***********");
-                            intent_start.setAction("com.kevin.testool.action.run.retry");
-                            intent_start.putExtra("RETRY_CASES", testcases.toString());
+                            intent_start.setAction(CONST.ACTION_RUN_TASK);
+                            intent_start.putExtra("TASK_CASES", testcases.toString());
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                 startForegroundService(intent_start);
                             } else {
@@ -223,8 +216,8 @@ public class MonitorService extends IntentService {
                                 } else if (taskFlag == 2) {
                                     testcases = new JSONArray(); // 将testcases清空, 执行器会根据flag从缓存中读取用例
                                 }
-                                intent_start.setAction("com.kevin.testool.action.run.retry");
-                                intent_start.putExtra("RETRY_CASES", testcases + "");
+                                intent_start.setAction(CONST.ACTION_RUN_TASK);
+                                intent_start.putExtra("TASK_CASES", testcases + "");
                                 intent_start.putExtra("FLAG", flag);
                                 intent_start.putExtra("TASK_ID", taskId);
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -247,11 +240,9 @@ public class MonitorService extends IntentService {
                     } catch (JSONException e) {
                         logUtil.e("", e);
                     }
-                    if (isDumpTask) {
-                        SystemClock.sleep(2000);
-                    } else {
-                        SystemClock.sleep(15000);
-                    }
+
+                    SystemClock.sleep(15000);
+
                 }
             }
         }
@@ -281,17 +272,19 @@ public class MonitorService extends IntentService {
                 if (isDebug) {
                     data.put("debug", isDebug);
                 }
-            } catch (JSONException e) {
+            } catch (Exception e) {
                 logUtil.e("", e);
             }
             return new JSONObject(HttpUtil.postResp(CONST.SERVER_BASE_URL + CONST.TEST_TASK_URL[flag], data.toString()));
-        } else {
+        } else if (flag == 1){
             if (TextUtils.isEmpty(taskResult)) {
                 return new JSONObject(HttpUtil.getResp(CONST.SERVER_BASE_URL + CONST.TEST_TASK_URL[flag] + "?task_id=" + taskId));
             } else {
                 return new JSONObject(HttpUtil.getResp(CONST.SERVER_BASE_URL + CONST.TEST_TASK_URL[flag] + "?task_id=" + taskId + "&result=" + taskResult + "&task_date=" + taskDate + "&device_id=" +deviceId));
 
             }
+        } else {
+            return new JSONObject();
         }
 
     }

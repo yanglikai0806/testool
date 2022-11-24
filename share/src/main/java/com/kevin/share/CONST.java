@@ -39,6 +39,8 @@ public final class CONST {
      public static final String DRAG_RECEIVER = "com.kevin.testool.test.drag";
 
      public static final String ACTION_UPDATECASELIST = "com.kevin.testool.action.updatecaselist";
+     public static final String ACTION_RUN_TASK = "com.kevin.testool.action.run.task";
+     public static final String ACTION_DEBUG = "com.kevin.testool.action.debug";
 
      public static final String CROPPER_IMG_PATH = CONST.LOGPATH + "cropper.jpg";
      public static final float CROPPER_IMG_SCALE = 0.8f;
@@ -46,9 +48,11 @@ public final class CONST {
 
      public static final String TESTOOL_SETTING = "testool_setting";
      public static final String NEED_REMIND_ACCESSIBILITY = "NEED_REMIND_ACCESSIBILITY";
-     public static final String EDITE_TESTCASE = "EDITE_TESTCASE";
-     public static final String[] TEST_RESULT_URL = {};
-     public static final String[] TEST_TASK_URL = {};
+     public static final String EDIT_TESTCASE = "EDIT_TESTCASE";
+//     public static final String[] TEST_RESULT_URL = {};
+//     public static final String[] TEST_TASK_URL = {};
+     public static final String[] TEST_RESULT_URL = {"test_submit", "task_engine"};
+     public static final String[] TEST_TASK_URL = {"test_retry", "task_engine"};
      public static final String[] NOT_CLEAR_RECENT_APP = {};
      public static final int ADB_PORT = 5555; //无线adb使用端口
 
@@ -92,7 +96,7 @@ public final class CONST {
              "        \"您已阅读并同意\",\n" +
              "        \"同意并加入\"\n" +
              "    ],\n" +
-             "    \"POST_RESULT\": \"true\",\n" +
+             "    \"POST_RESULT\": \"false\",\n" +
              "    \"RECORD_CURRENT\": \"false\",\n" +
              "    \"RECORD_MEMINFO\": \"false\",\n" +
              "    \"RETRY\": \"1\",\n" +

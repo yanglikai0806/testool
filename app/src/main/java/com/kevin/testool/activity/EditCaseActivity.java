@@ -10,7 +10,6 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Environment;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,25 +25,21 @@ import android.widget.Toast;
 import com.kevin.fw.FloatingButtonService;
 import com.kevin.fw.TextDisplayWindowService;
 import com.kevin.share.CONST;
-import com.kevin.share.utils.ShellUtils;
 import com.kevin.testool.MyIntentService;
 import com.kevin.testool.R;
 import com.kevin.share.Common;
 import com.kevin.share.utils.FileUtils;
 import com.kevin.share.utils.ToastUtils;
 import com.kevin.share.utils.logUtil;
-import com.kevin.testool.service.DeviceRemoteService;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 
-import static com.kevin.share.CONST.EDITE_TESTCASE;
-import static com.kevin.share.CONST.NEED_REMIND_ACCESSIBILITY;
+import static com.kevin.share.CONST.EDIT_TESTCASE;
 import static com.kevin.share.CONST.TESTOOL_SETTING;
 
 
@@ -96,7 +91,7 @@ public class EditCaseActivity extends BasicActivity {
                 "    \"activity\": \"\"},\n" +
                 "  \"skip_condition\": {}\n" +
                 "}";
-        String debugCase = tc.getString(EDITE_TESTCASE, defaultCase);
+        String debugCase = tc.getString(EDIT_TESTCASE, defaultCase);
 
         case_info.setText(debugCase);
 
@@ -111,7 +106,7 @@ public class EditCaseActivity extends BasicActivity {
                     Intent intent_debug =  new Intent(EditCaseActivity.this, MyIntentService.class);
                     intent_debug.setAction("com.kevin.testool.action.debug");
                     intent_debug.putExtra("DEBUG_CASE", case_info.getText().toString());
-                    tc.edit().putString(EDITE_TESTCASE, case_info.getText().toString()).apply();
+                    tc.edit().putString(EDIT_TESTCASE, case_info.getText().toString()).apply();
                     startService(intent_debug);
                     String tempFile = Environment.getExternalStorageDirectory() + File.separator + "AutoTest" +  File.separator +"temp.txt";
                     FileUtils.createTempFile(tempFile, FileUtils.creatLogDir());

@@ -68,6 +68,8 @@ import java.util.regex.Pattern;
 
 
 import static android.os.Process.killProcess;
+import static com.kevin.share.CONST.ACTION_DEBUG;
+import static com.kevin.share.CONST.ACTION_RUN_TASK;
 import static com.kevin.share.CONST.DUMP_PATH;
 import static com.kevin.share.CONST.LOGPATH;
 import static com.kevin.share.CONST.REPORT_PATH;
@@ -105,14 +107,12 @@ public class MyIntentService extends IntentService {
     private SimpleDateFormat dr = new SimpleDateFormat("yyyyMMdd", Locale.US);
     private static final String TAG = "MyIntentService";
     private static final String ACTION_RUN = "com.kevin.testool.action.run";
-    private static final String ACTION_RUN_RETRY = "com.kevin.testool.action.run.retry";
     private static final String ACTION_RUN_ADB = "com.kevin.testool.action.adb";
     private static final String ACTION_RUN_REMOTE = "com.kevin.testool.action.remote";
-    public static final String ACTION_EXECUTE_STEP = "com.kevin.testool.action.execute_step";
-    private static final String ACTION_DEBUG = "com.kevin.testool.action.debug";
+    private static final String ACTION_EXECUTE_STEP = "com.kevin.testool.action.execute_step";
+
     private static final String ACTION_DEBUG_FINISH = "com.kevin.testool.action.debug.finish";
     private static final String ACTION_DEBUG_TOOL = "com.kevin.testool.action.debug.tool";
-    private static final String ACTION_KEEP_PAGE = "com.kevin.testool.action.keep.page";
     private static final String ACTION_TESTCASES_SYC = "com.kevin.testool.action.testcases.syc";
     private static final String ACTION_AUDIO_RECORD= "com.kevin.testool.action.audio_record";
     private static final String DEBUG = "com.kevin.testool.DEBUG";
@@ -149,7 +149,6 @@ public class MyIntentService extends IntentService {
     private NotificationCompat.Builder builder;
     //配置
     private static Boolean LOG_FLAG = false;
-    private static Boolean SWITCH_ACCESS_FLAG = false;
     private static Boolean SCREENSHOT_FLAG = false;
     private static Boolean SCREENRECORD_FLAG = false;
     private static Boolean MP42GIF_FLAG = false;
@@ -258,7 +257,6 @@ public class MyIntentService extends IntentService {
     public void startTaskRun(JSONArray testcases, int flag, int taskId) throws JSONException, IOException {
         // 读取配置
         JSONObject CFG = CONFIG();
-        JSONObject AccessDt = new JSONObject();
         if (!CFG.isNull("LOG") && CFG.getString("LOG").equals("true")){
             LOG_FLAG = true;
         }
@@ -278,13 +276,13 @@ public class MyIntentService extends IntentService {
             MP42GIF_FLAG = true;
         }
         if (!CFG.isNull("RETRY") && CFG.getString("RETRY").length() > 0) {
-            RETRY = Integer.valueOf(CFG.getString("RETRY"));
+            RETRY = Integer.parseInt(CFG.getString("RETRY"));
         }
         //result 命名
         JSONObject resultDic = new JSONObject("{\"true\":1,\"false\":0,\"null\":-1, \"break\":-1, \"continue\":-1}");
 
         continue_flag = true;
-        logUtil.d("", "任务类型 0:监控, 1:测试, 2:离线评测。当前任务为:" +flag);
+        logUtil.d("", "任务类型 0:监控, 1:测试。当前任务为:" +flag);
         if (flag == 1){
             // 从缓存中读取未执行的测试用例
             String _testcases = SPUtils.getString(SPUtils.TASK_CASE, taskId + "");
@@ -306,12 +304,9 @@ public class MyIntentService extends IntentService {
             String test_date = testcase.getString("test_date");
             if (i == 0) {
                 //切换测试环境
-                String test_env = testcase.getString("environment");
-                if (test_env.equals("preview") || test_env.equals("production")) {
-                    Common.switchTestEnv(TARGET_APP, test_env); //切换测试环境
-                } else {
-                    Common.switchTestEnv(TARGET_APP, "production"); //切换测试环境
-                }
+                String test_env = testcase.optString("test_env");
+                Common.switchTestEnv(TARGET_APP, test_env); //切换测试环境 todo
+
                 TEST_ENV = test_env;
                 timeTag = FileUtils.creatLogDir(test_date.replace(":", "-").replace(" ", "_"));
                 FileUtils.createTempFile(CONST.TEMP_FILE, timeTag);
@@ -322,7 +317,6 @@ public class MyIntentService extends IntentService {
                     logUtil.i(START, "TEST_TASK");
                 }
             }
-//            logUtil.i("", testcase.toString());
             int origin_id = 0;
             int is_retry = 0;
             if (!testcase.isNull("origin_id")){
@@ -331,10 +325,8 @@ public class MyIntentService extends IntentService {
                     is_retry = 1;
                 }
             }
-            String case_domain = "";
-            if (!testcase.isNull("case_domain")){
-                case_domain = testcase.getString("case_domain").toLowerCase();
-            }
+            String case_domain = testcase.optString("domain", "");
+
             //处理音量避免扰民
             Common.muteSound();
             //
@@ -406,18 +398,25 @@ public class MyIntentService extends IntentService {
                 logUtil.i(RESULT, result + "");
             }
             if (POST_FLAG) {
+                //上传截图
+//                new Thread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        File mFile = new File(REPORT_PATH + timeTag + File.separator + CONST.SCREENSHOT + File.separator + postScreen);
+//                        if (mFile.exists()) {
+//                            HttpUtil.uploadFile(mFile, CONST.SERVER_BASE_URL + "api/upload", Common.getDeviceId() + "_" + mFile.getName(), "img");
+//                        }
+//                    }
+//                }).start();
                 //上传case执行结果到服务端
-//                String test_tag = "";
-//                if (!testcase.isNull("test_tag")) {
-//                    test_tag = testcase.getString("test_tag");
-//                }
-//                JSONObject caseDetailInfo = generateCaseDetail(mTestcase, resultDic.getInt(String.valueOf(result)),test_tag, postScreen, test_date, is_retry, case_domain, origin_id, taskId);
-//                String resp = Common.postResp(CONST.SERVER_BASE_URL+CONST.TEST_RESULT_URL[flag], caseDetailInfo.toString());
-//                logUtil.d("上传测试结果", resp);
-//                //测试结果上传失败时，对测试结果进行缓存
-//                if (!resp.contains("测试结果已写入")){
-//                    caseDetailInfoCach.put(caseDetailInfo);
-//                }
+                String test_tag = testcase.optString("test_tag");
+                JSONObject caseDetailInfo = generateCaseDetail(mTestcase, resultDic.getInt(String.valueOf(result)),test_tag, postScreen, test_date, is_retry, case_domain, origin_id, taskId);
+                String resp = HttpUtil.postResp(CONST.SERVER_BASE_URL+CONST.TEST_RESULT_URL[flag], caseDetailInfo.toString());
+                logUtil.d("上传测试结果", resp);
+                //测试结果上传失败时，对测试结果进行缓存
+                if (!resp.contains("测试结果已写入")){
+                    caseDetailInfoCach.put(caseDetailInfo);
+                }
             }
 
             // 更新测试用例缓存
@@ -686,7 +685,7 @@ public class MyIntentService extends IntentService {
         caseDetail.put("test_date", test_date);
         caseDetail.put("device_name",Common.getDeviceAlias());
         caseDetail.put("device_id", Common.getDeviceId());
-        caseDetail.put("environment", TEST_ENV);
+        caseDetail.put("test_env", TEST_ENV);
         if (task_id > 0){
             caseDetail.put("task_id", task_id);
         }
@@ -1030,16 +1029,16 @@ public class MyIntentService extends IntentService {
                         logUtil.i("report", e.getMessage());
                     }
                     break;
-                case ACTION_RUN_RETRY:
+                case ACTION_RUN_TASK:
                     DEVICE = Common.getDeviceName();//.replace(" ", "");
                     ALIAS = Common.getDeviceAlias();
                     APP_VER = Common.getVersionName(getApplicationContext(), TARGET_APP);
-                    String retryCases = intent.getStringExtra("RETRY_CASES");
+                    String taskCases = intent.getStringExtra("TASK_CASES");
                     int flag = intent.getIntExtra("TASK_FLAG", 0);
                     int taskId = intent.getIntExtra("TASK_ID", 0);
                     try {
 //                        logUtil.i(START, TARGET_APP);
-                        startTaskRun(new JSONArray(retryCases), flag, taskId);
+                        startTaskRun(new JSONArray(taskCases), flag, taskId);
                     } catch (Exception e) {
                         logUtil.e("", e);
                         logUtil.i("",e.toString());
