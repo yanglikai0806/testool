@@ -1,9 +1,9 @@
 <resources>
-    <string name="app_name">测试工具</string>
+    <string name="app_name">Testool</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="service_ticker">testool is running</string>
-    <string name="service_title">测试工具</string>
+    <string name="service_title">Testool</string>
     <string name="service_text">Test is running</string>
     <string name="service_text2">Monkey is running</string>
     <string name="service_text3">Monitor is running</string>

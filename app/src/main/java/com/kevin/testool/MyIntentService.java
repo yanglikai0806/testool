@@ -95,11 +95,7 @@ import static com.kevin.share.utils.CvUtils.getMatchTextFromVideo;
 import static com.kevin.share.utils.CvUtils.isSameImage;
 
 /**
- * An {@link IntentService} subclass for handling asynchronous task requests in
- * a service on a separate handler thread.
- * <p>
- * TODO: Customize class - update intent actions, extra parameters and static
- * helper methods.
+ * 执行服务：执行器 和 检查器
  */
 public class MyIntentService extends IntentService {
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US);
@@ -248,7 +244,7 @@ public class MyIntentService extends IntentService {
     }
 
     /**
-     *
+     * 任务执行
      * @param testcases case集合，如：[{"id":"test","case":{"step":[{"text":"相机"}],"wait":[2]},"check_point":{"text":["天气"]}}]
      * @param flag 标记测试类型，默认 0： 为 监控任务； 1： 为测试任务
      * @throws JSONException
@@ -467,7 +463,7 @@ public class MyIntentService extends IntentService {
 
 
     /**
-     * 执行测试集合内的测试case
+     * 本地执行
      * @param caseName  测试集合json文件的文件名
      * @param case_tag 执行测试的用例标签
      * @param offline 是否执行离线功能测试
@@ -705,7 +701,7 @@ public class MyIntentService extends IntentService {
     }
 
     /**
-     *
+     * 执行器实现
      * @param testcase a JsonObject like {"id":123, "case":{"step":["你好"], "wait_time":[1]}, "check_point":{}, "skip_condition":{}}
      * @param retry 是否重试 0 : no, 1: yes
      * @param case_tag case tag
@@ -903,7 +899,7 @@ public class MyIntentService extends IntentService {
                     APP_VER = Common.getVersionName(getApplicationContext(), TARGET_APP);
                     TEST_ENV = intent.getStringExtra("TEST_ENV");
                     Common.switchTestEnv(TARGET_APP, TEST_ENV); //切换测试环境
-                    logUtil.i(REPORT_TITLE, ("测试机型：" + DEVICE +"（"+ ALIAS + "） SN："+ Common.getSerialno()+" 小爱版本：" + APP_VER + " 测试环境：" + TEST_ENV).replace("\n", ""));
+                    logUtil.i(REPORT_TITLE, ("测试机型：" + DEVICE +"（"+ ALIAS + "） SN："+ Common.getSerialno()+" 应用版本：" + APP_VER + " 测试环境：" + TEST_ENV).replace("\n", ""));
                     try {
                         SELECTED_CASES = new JSONArray(intent.getStringExtra("SELECTED_CASES"));
                         CASE_TAG = intent.getStringExtra("CASE_TAG");
@@ -1565,6 +1561,15 @@ public class MyIntentService extends IntentService {
         return success;
     }
 
+    /**
+     * 检查器实现
+     * @param check_point
+     * @param refresh
+     * @param rTime
+     * @param showLog
+     * @param addResult
+     * @return
+     */
     public boolean resultCheck(JSONObject check_point, Boolean refresh, long rTime, boolean showLog, boolean... addResult){
         if (check_point == null || check_point.length() == 0){
             return true;

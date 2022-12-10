@@ -4,9 +4,21 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/testool.iml" filepath="$PROJECT_DIR$/.idea/modules/testool.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/testool.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/testool.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/testool.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/testool.app.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/testool.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/testool.app.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/testool.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/testool.app.unitTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/floatingWindow/testool.floatingWindow.iml" filepath="$PROJECT_DIR$/.idea/modules/floatingWindow/testool.floatingWindow.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/floatingWindow/testool.floatingWindow.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/floatingWindow/testool.floatingWindow.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/floatingWindow/testool.floatingWindow.main.iml" filepath="$PROJECT_DIR$/.idea/modules/floatingWindow/testool.floatingWindow.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/floatingWindow/testool.floatingWindow.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/floatingWindow/testool.floatingWindow.unitTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/opencv/testool.opencv.iml" filepath="$PROJECT_DIR$/.idea/modules/opencv/testool.opencv.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/opencv/testool.opencv.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/opencv/testool.opencv.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/opencv/testool.opencv.main.iml" filepath="$PROJECT_DIR$/.idea/modules/opencv/testool.opencv.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/opencv/testool.opencv.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/opencv/testool.opencv.unitTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/share/testool.share.iml" filepath="$PROJECT_DIR$/.idea/modules/share/testool.share.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/share/testool.share.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/share/testool.share.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/share/testool.share.main.iml" filepath="$PROJECT_DIR$/.idea/modules/share/testool.share.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/share/testool.share.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/share/testool.share.unitTest.iml" />
     </modules>
   </component>
 </project>

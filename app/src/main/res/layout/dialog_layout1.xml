@@ -20,7 +20,7 @@
             android:id="@+id/dialogMsg"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="\n您尚未安装测试辅助应用，请按提示安装(内网环境下)：\n" />
+            android:text="\n您尚未安装测试辅助应用，请按提示安装：\n" />
 
         <Button
             android:id="@+id/btn1"

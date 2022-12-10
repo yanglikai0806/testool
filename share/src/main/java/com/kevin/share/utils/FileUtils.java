@@ -3,6 +3,7 @@ package com.kevin.share.utils;
 import android.annotation.SuppressLint;
 import android.text.TextUtils;
 import android.util.Base64;
+import android.util.Log;
 
 import com.kevin.share.CONST;
 
@@ -540,7 +541,7 @@ public class FileUtils {
             in.close();
             return new String(filecontent, encoding);
         } catch (Exception e) {
-            logUtil.e("", e);
+            logUtil.d("", Log.getStackTraceString(e));
         }
         return "";
     }
