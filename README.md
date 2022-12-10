@@ -1,7 +1,7 @@
 *如果觉得不错，请 watch fork star 三连~~~*
 # Testool 
 [![GitHub stars](https://img.shields.io/github/stars/yanglikai0806/testool.svg)](https://github.com/yanglikai0806/testool/stargazers) [![GitHub forks](https://img.shields.io/github/forks/yanglikai0806/testool.svg)](https://github.com/yanglikai0806/testool/forkgazers) [![GitHub release](https://img.shields.io/github/release/yanglikai0806/testool.svg)](https://github.com/yanglikai0806/testool/releases)
-> Testool是为Android设备打造的更可靠，更易用，更高效的测试执行工具；
+> Testool是为Android设备打造的更可靠，更易用，更高效的测试执行工具；  
 > 可以配合测试平台实现分布式的测试执行能力，能更好的发挥Testool的作用。[测试平台demo](https://github.com/yanglikai0806/testool-web)
 * [工具特色](#工具特色)
 * [开发环境](#开发环境)
@@ -29,10 +29,10 @@
 
 首次使用
 ---
- > - 安装Testool后, 确保网络连接，初次使用会自动下载依赖并提示用户安装，根据提示安装即可。如果下载失败可在resource目录下将apk文件手动安装
+ > - 安装Testool后, 确保网络连接，初次使用会自动下载依赖并提示用户安装，根据提示安装即可。如果下载失败可在resource目录下将testassist.apk和testassist-test.apk文件手动安装
  > - 进入App权限管理页面，将开启WLAN：始终允许，自启动：开启，获取手机信息:始终允许（最好将能给的权限全部赋予始终允许）
  > - 进入设备的电池管理功能（如有）->省电优化->锁屏后断开数据：从不；锁屏后清理内存：从不；应用智能省电：无限制
- > - 配置shell执行模式：支持三种shell执行模式，用户可根据自身选择其一。
+ > - 配置shell执行模式：支持三种shell执行模式，用户可根据自身情况选择其一。
  ```
  1. 设备具有root权限的情况下，为testool赋予root执行权限
  2. 连接PC后开启 tcpip 5555 端口（命令：adb tcpip 5555）
