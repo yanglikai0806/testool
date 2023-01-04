@@ -68,7 +68,7 @@
   ],
 "RECORD_CURRENT":"false",   # 是否记录电流消耗
 "RECORD_MEMINFO":"false",   # 是否记录内存消耗
-"SERVER_BASE_URL":"",       # 测试平台服务url,url中的/需要转义为\/,且以\/结尾，例如：htpp:\/\/192.168.1.1:8566\/test\/
+"SERVER_BASE_URL":"",       # 测试平台服务url, url中的/需要转义为\/,且以\/结尾，例如：htpp:\/\/192.168.1.1:8566\/test\/
 "TABLE":"test_cases",       # 测试用例存储表格
 "TARGET_APP":"",            # 被测应用包名
 "TEST_TAG":"",              # 测试标签，云端测试执行时只执行与之匹配的CASE_TAG的用例
