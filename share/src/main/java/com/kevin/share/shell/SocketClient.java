@@ -41,7 +41,7 @@ public class SocketClient {
             send(command);
         } catch (Exception e) {
             e.printStackTrace();
-            logUtil.d(TAG, "与service进行socket通讯发生错误" + e);
+//            logUtil.d(TAG, "与service进行socket通讯发生错误" + e);
             mOnServiceSend.getSend("###ShellRunError:" + e.toString());
         }
     }

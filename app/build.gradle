@@ -7,8 +7,8 @@ android {
         minSdkVersion 19
         //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 28
-        versionCode 1020001
-        versionName "2.0.1"
+        versionCode 1020100
+        versionName "2.1.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
         externalNativeBuild {

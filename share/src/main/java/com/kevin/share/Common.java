@@ -2529,7 +2529,7 @@ public class Common {
     public static void syncTestcases(){
         JSONArray _tables = new JSONArray();
         try {
-            JSONObject resp = new JSONObject(HttpUtil.getResp(CONFIG().getString("SERVER_BASE_URL") + "test_cases?table=" + CONFIG().getString("TABLE") +"&domain_list=1"));
+            JSONObject resp = new JSONObject(HttpUtil.getResp(CONFIG().getString("SERVER_BASE_URL") + "cases?table=" + CONFIG().getString("TABLE") +"&domain_list=1"));
             _tables = new JSONArray(resp.getString("data"));
         } catch (JSONException e) {
             logUtil.e("syncTestcases", e);
@@ -2550,7 +2550,7 @@ public class Common {
      */
     public static void syncTestcase(String domain){
         try {
-            JSONObject resp1 = new JSONObject(HttpUtil.getResp(CONFIG().getString("SERVER_BASE_URL") + "test_cases?table=" + CONFIG().getString("TABLE") +"&domain=" + domain));
+            JSONObject resp1 = new JSONObject(HttpUtil.getResp(CONFIG().getString("SERVER_BASE_URL") + "cases?table=" + CONFIG().getString("TABLE") +"&domain=" + domain));
             JSONArray list_cases;
             list_cases = new JSONObject(resp1.getString("data")).getJSONArray(domain);
             FileUtils.writeCaseJsonFile(domain, list_cases);
@@ -2562,7 +2562,7 @@ public class Common {
 
     public static boolean updateTestCases(String testcase){
         try {
-            String url = CONFIG().getString("SERVER_BASE_URL") + "test_cases?table=" + CONFIG().getString("TABLE");
+            String url = CONFIG().getString("SERVER_BASE_URL") + "cases?table=" + CONFIG().getString("TABLE");
             return !TextUtils.isEmpty(HttpUtil.postResp(url, testcase));
         } catch (JSONException e) {
             logUtil.e("updateTestCases", e);
