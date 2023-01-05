@@ -154,6 +154,7 @@ public class MonitorService extends IntentService {
                     try {
                         int flag = 0; // 根据此flag切换访问的服务接口，0，监控，1，测试，
                         if (isTest) flag = 1;
+                        if (isDebug) taskId = -1; // 约定调试任务的任务id为 -1
                         JSONArray testcases = new JSONArray();
                         JSONObject task = getTask(flag, taskId, taskResult, taskDate);
 
