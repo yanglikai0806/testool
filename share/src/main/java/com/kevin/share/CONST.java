@@ -25,7 +25,6 @@ public final class CONST {
      public static final String DUMP_PATH = Environment.getExternalStorageDirectory().getPath() + File.separator + "window_dump.xml";
      public static final String DUMP_PNG_PATH = Environment.getExternalStorageDirectory().getPath() + File.separator + "window_dump.png";
      public static final String DUMP_JPG_PATH = Environment.getExternalStorageDirectory().getPath() + File.separator + "window_dump.jpg";
-     public static final String TO_SPEAK_FILE = Environment.getExternalStorageDirectory().getPath() + File.separator + "last_to_speak.txt";
      public static final String CONFIG_FILE = LOGPATH + "config.json";
      public static final String SHELL_SERVER_DEX = LOGPATH + "shellserver.dex";
      public static final String UICRAWLWER_CONFIG_FILE = LOGPATH + "uicrawler.json";

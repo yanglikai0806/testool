@@ -858,7 +858,6 @@ public class MyIntentService extends IntentService {
             }
         }
         LAST_WAIT_TIME = 0; // 初始化
-        FileUtils.deleteFile(CONST.TO_SPEAK_FILE);
         logUtil.i("测试结果", result.equals(true) ? "：Pass": "：Fail");
         return result;
     }
@@ -1070,7 +1069,7 @@ public class MyIntentService extends IntentService {
 
                 case ACTION_DEBUG:
                     //单case执行调试，多case执行测试逻辑
-                    String debug_case = intent.getStringExtra("DEBUG_CASE");
+                    String debug_case = intent.getStringExtra("DEBUG_CASE").trim();
                     Object debug_res = "";
                     boolean isDisplayLog = false;
                     try {

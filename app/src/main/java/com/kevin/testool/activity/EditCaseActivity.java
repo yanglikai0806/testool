@@ -39,6 +39,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.util.ArrayList;
 
+import static com.kevin.share.CONST.ACTION_DEBUG;
 import static com.kevin.share.CONST.EDIT_TESTCASE;
 import static com.kevin.share.CONST.TESTOOL_SETTING;
 
@@ -104,7 +105,7 @@ public class EditCaseActivity extends BasicActivity {
                         Common.press("home");
                     }
                     Intent intent_debug =  new Intent(EditCaseActivity.this, MyIntentService.class);
-                    intent_debug.setAction("com.kevin.testool.action.debug");
+                    intent_debug.setAction(ACTION_DEBUG);
                     intent_debug.putExtra("DEBUG_CASE", case_info.getText().toString());
                     tc.edit().putString(EDIT_TESTCASE, case_info.getText().toString()).apply();
                     startService(intent_debug);
