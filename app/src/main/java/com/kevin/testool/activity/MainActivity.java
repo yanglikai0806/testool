@@ -729,9 +729,9 @@ public class MainActivity extends FirstActivity
         if (id == R.id.action_start_accessibility){
             if (AccessibilityHelper.checkAccessibilityEnabled()){
                 ToastUtils.showShort(MainActivity.this, "辅助功能已开启");
-            } else {
-                goAccess();
             }
+            goAccess();
+
         }
 
         if (id == R.id.action_start_float) {
@@ -932,6 +932,7 @@ public class MainActivity extends FirstActivity
         // 获取当前config配置
         Rbgroup.clearCheck();
         Rbgroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @SuppressLint("NonConstantResourceId")
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 switch (checkedId){
