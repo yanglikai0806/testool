@@ -173,11 +173,19 @@ public class Common {
 
     // 设备相关信息获取↓
     public static String getActivity() {
-
-//        String res = AdbUtils.runShellCommand("dumpsys input | grep FocusedApplication\n", 0);
-//        String[] act = res.trim().split("name=")[1].split("u0")[1].trim().split(" ");
-        String res = ShellUtils.runShellCommand("dumpsys activity top | grep ACTIVITY | tail -n 1", 0);
-        String act = res.replace("ACTIVITY", "").trim().split(" ")[0];
+        String act = "";
+        String res = "";
+        try{
+           res = ShellUtils.runShellCommand("dumpsys activity  | grep topResumedActivity", 0);
+            int i = res.indexOf("{");
+            int j = res.indexOf("}");
+            act = res.substring(i, j).split(" ")[2];
+        } catch ( Exception ignored) {
+        }
+        if (TextUtils.isEmpty(act)) {
+            res = ShellUtils.runShellCommand("dumpsys activity top | grep ACTIVITY | tail -n 1", 0);
+            act = res.replace("ACTIVITY", "").trim().split(" ")[0];
+        }
         if (TextUtils.isEmpty(act)) {
             ActivityManager mActivityManager = (ActivityManager) AppContext.getContext().getSystemService(ACTIVITY_SERVICE);
             List<ActivityManager.RunningTaskInfo> rti = mActivityManager.getRunningTasks(1);
