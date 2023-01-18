@@ -37,6 +37,10 @@
             android:id="@+id/nav_uicrawler"
             android:icon="@android:drawable/ic_media_play"
             android:title="@string/uicrawlerTest" />
+        <item
+            android:id="@+id/nav_config"
+            android:icon="@android:drawable/ic_menu_set_as"
+            android:title="@string/config" />
     </group>
 
     <item android:title="@string/more">

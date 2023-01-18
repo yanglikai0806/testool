@@ -16,6 +16,7 @@
     <string name="logAndReport">日志报告</string>
     <string name="powerTest">耗电测试</string>
     <string name="uicrawlerTest">界面遍历</string>
+    <string name="config">配置管理</string>
     <string name="share">分享</string>
     <string name="title_activity_edit_case">editCaseActivity</string>
     <string name="selectAll">全选</string>

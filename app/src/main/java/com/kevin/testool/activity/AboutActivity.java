@@ -54,7 +54,7 @@ public class AboutActivity extends BasicActivity {
         deviceId = Common.getDeviceId();
         txv_version.setText(Common.getVersionName(this,"com.kevin.testool"));
         deviceInfo.setText(String.format("名称：%s\n代号：%s\nID: %s\nIP:%s", Common.getDeviceName(), Common.getDeviceAlias(), deviceId, new WifiUtils().getIPAddress()));
-        content_upgrade.setText("  1. 支持远程控制\n 2. 支持两个设备协同操作"); //更新内容
+        content_upgrade.setText("  1. 优化getActivity方法\n 2. 增加对配置管理页面"); //更新内容
 
 //        if (TextUtils.isEmpty(deviceId)){
             gen_device_id.setOnClickListener(new View.OnClickListener() {

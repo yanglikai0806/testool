@@ -838,6 +838,8 @@ public class MainActivity extends FirstActivity
             ToastUtils.showShort(MainActivity.this, "正在抓取...，稍后请在autotest文件夹下查看");
         } else if (id == R.id.nav_test_plateform){
             startActivity(new Intent(MainActivity.this, TestPlateformActivity.class));
+        } else if (id == R.id.nav_config){
+            startActivity(new Intent(MainActivity.this, ConfigActivity.class));
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

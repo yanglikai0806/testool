@@ -8,6 +8,7 @@
         android:id="@+id/caseEdit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:padding="10dp"
         android:ems="10"
         android:gravity="start|top"
         android:inputType="textMultiLine" />
