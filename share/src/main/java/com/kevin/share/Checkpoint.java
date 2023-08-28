@@ -306,19 +306,7 @@ public class Checkpoint extends Common {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        for (int i=0; i < popList.length(); i++) {
-            String pop = popList.getString(i);
-            if (pop.contains("id/") && Common.get_elements(refresh, "resource-id", pop, 0).size() > 0){
-                Common.click_element(false, "resource-id", pop, 0, 0);
-                refresh = true;
-            } else if (Common.get_elements(refresh, "text", pop, 0).size() > 0) {
-                Common.click_element(false, "text", pop, 0, 0);
-                refresh = true;
-//                logUtil.i("", "点击弹框文本：" + pop);
-            } else {
-                refresh = false;
-            }
-        }
+        click_pop_window(refresh, popList);
     }
 
     public static boolean checkFileCountDiff(JSONObject delta) throws JSONException {

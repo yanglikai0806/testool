@@ -201,7 +201,10 @@ public class MainActivity extends FirstActivity
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Common.click_element(true, "text", "立即开始", 0, 0);
+                JSONArray popList = new JSONArray();
+                popList.put("立即开始");
+                popList.put("允许");
+                Common.click_pop_window(true, popList);
             }
         }).start();
 

@@ -66,6 +66,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static android.app.DownloadManager.Request.VISIBILITY_VISIBLE;
 import static android.content.Context.ACTIVITY_SERVICE;
@@ -357,16 +359,22 @@ public class Common {
     }
 
     public static String getVersionName2(String pkg){
-        if (pkg.contains("/")){
-            pkg = pkg.split("/")[0];
-        }
-        if (TextUtils.isEmpty(pkg)){
+        try {
+            if (pkg.contains("/")){
+                pkg = pkg.split("/")[0];
+            }
+            if (TextUtils.isEmpty(pkg)){
+                return "";
+            }
+            String res = ShellUtils.runShellCommand("dumpsys package "+pkg+" |grep versionName", 0);
+            logUtil.d("获取应用版本号：", res);
+            String[] res_tmp = res.trim().split(" ")[0].split("=");
+            return res_tmp[1].trim();
+        } catch (Exception e){
+            logUtil.e("", e);
             return "";
         }
-        String res = ShellUtils.runShellCommand("dumpsys package "+pkg+" |grep versionName", 0);
-        logUtil.d("获取应用版本号：", res);
-        String[] res_tmp = res.trim().split(" ")[0].split("=");
-        return res_tmp[1];
+
     }
 
     public static int getSoundVal(int chanel){
@@ -802,37 +810,49 @@ public class Common {
                 if (key.equals("")) {
                     elem_list.add(e1);
                 } else {
-                    if (e1.attribute(key)!= null && e1.attributeValue(key).equals(value)) {
-                        if (nex == 0) {
-                            elem_list.add(e1);
+                    if (e1.attribute(key)!= null) {
+                        boolean Flag;
+                        //
+                        if (value.startsWith("re:")) {
+                            String regex = value.substring(3);
+                            Pattern p = Pattern.compile(regex);
+                            Matcher matcher = p.matcher(e1.attributeValue(key));
+                            Flag = matcher.matches();
+                        } else {
+                            Flag = e1.attributeValue(key).equals(value);
                         }
-                        if (nex > 0) {
-                            int i = 0;
-                            while (i < nex) {
-                                if (it.hasNext()) {
-                                    Node nd = it.next();
-                                    try {
-                                        Element nt = (Element) nd;
-                                        if (i + 1 == nex) {
-                                            e1 = nt;
-                                            elem_list.add(e1);
-                                            break;
-                                        } else {
-                                            i = i + 1;
+                        if (Flag){
+                            if (nex == 0) {
+                                elem_list.add(e1);
+                            }
+                            if (nex > 0) {
+                                int i = 0;
+                                while (i < nex) {
+                                    if (it.hasNext()) {
+                                        Node nd = it.next();
+                                        try {
+                                            Element nt = (Element) nd;
+                                            if (i + 1 == nex) {
+                                                e1 = nt;
+                                                elem_list.add(e1);
+                                                break;
+                                            } else {
+                                                i = i + 1;
+                                            }
+                                        } catch (Exception e) {
+    //                                        logUtil.i("getChildNodes", e.toString());
                                         }
-                                    } catch (Exception e){
-//                                        logUtil.i("getChildNodes", e.toString());
+                                    } else {
+                                        m = n;
+                                        break;
                                     }
-                                } else {
-                                    m = n;
-                                    break;
                                 }
                             }
-                        }
-                        if (nex < 0 && (nodeset.size() + nex) >= 1) {
-                            e1 = (Element) nodeset.get(nodeset.size() + nex - 1);
-                            elem_list.add(e1);
+                            if (nex < 0 && (nodeset.size() + nex) >= 1) {
+                                e1 = (Element) nodeset.get(nodeset.size() + nex - 1);
+                                elem_list.add(e1);
 
+                            }
                         }
                     }
 
@@ -1580,6 +1600,22 @@ public class Common {
         }
     }
 
+    public static void click_pop_window(boolean refresh, JSONArray popList) {
+        for (int i=0; i < popList.length(); i++) {
+            String pop = popList.optString(i);
+            if (pop.contains("id/") && Common.get_elements(refresh, "resource-id", pop, 0).size() > 0){
+                Common.click_element(false, "resource-id", pop, 0, 0);
+                refresh = true;
+            } else if (Common.get_elements(refresh, "text", pop, 0).size() > 0) {
+                Common.click_element(false, "text", pop, 0, 0);
+                refresh = true;
+//                logUtil.i("", "点击弹框文本：" + pop);
+            } else {
+                refresh = false;
+            }
+        }
+    }
+
 
     public static void inputText(String key, String value, String msg, String... mode) {
         JSONObject inputObj = new JSONObject();
@@ -1836,6 +1872,16 @@ public class Common {
         logUtil.d("", monkey_cmd);
         ShellUtils.runShellCommand(monkey_cmd, -10000);
         return logDir + "monkey_error.txt";
+    }
+
+    public static void runFastbot(String pkg, int count, String throttle){
+        if (pkg.contains("/.")){
+            pkg = pkg.split("/.")[0];
+        }
+        String monkey_cmd = String.format("CLASSPATH=/sdcard/monkeyq.jar:/sdcard/framework.jar:/sdcard/fastbot-thirdpart.jar exec app_process /system/bin com.android.commands.monkey.Monkey -p %s --agent reuseq --running-minutes %s --throttle %s -v -v 1>/dev/null 2>/sdcard/fastbot_error.log", pkg, count, throttle);
+        logUtil.d("", pkg);
+        logUtil.d("", monkey_cmd);
+        ShellUtils.runShellCommand(monkey_cmd, -10000);
     }
 
     public static String getMonkeyProcess(){
