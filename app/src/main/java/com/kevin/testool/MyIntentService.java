@@ -1517,7 +1517,7 @@ public class MyIntentService extends IntentService {
                                     } else {
                                         response = HttpUtil.postResp(url, data.toString());
                                     }
-                                    ToastUtils.showShortByHandler(AppContext.getContext(), response +"");
+//                                    ToastUtils.showShortByHandler(AppContext.getContext(), response +"");
                                     break;
                                 }
                                 if (!((JSONObject) value).isNull("video")){
