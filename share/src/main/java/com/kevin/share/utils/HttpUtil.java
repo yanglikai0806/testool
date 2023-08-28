@@ -6,6 +6,8 @@ import android.text.TextUtils;
 import com.kevin.share.AppContext;
 import com.kevin.share.Common;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -22,6 +24,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.Headers;
 
 public class HttpUtil {
 
@@ -71,7 +74,6 @@ public class HttpUtil {
             return "";
         }
         logUtil.d("postResp", url);
-        // 开启wifi
         final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
         RequestBody body = RequestBody.create(JSON, data);
         Request request = new Request.Builder()
@@ -81,13 +83,82 @@ public class HttpUtil {
         try {
             Response response = new OkHttpClient().newCall(request).execute();
             String msg = response.body().string();
-            logUtil.d("postResp-------", msg);
+            logUtil.d("postResp >>>", msg);
             return msg.trim();
         } catch (Exception e) {
-            logUtil.e("postResp", e);
+            logUtil.e("postResp >>>", e);
             return String.format("{\"error\": \"%s\"}", e.getMessage());
         }
     }
+
+    public static String postResp(String url, String data, String headers) throws JSONException {
+        if (!url.startsWith("http")) {
+            logUtil.d("postResp", "wrong url:" + url);
+            return "";
+        }
+        logUtil.d("postResp", url);
+        final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+        // 构建消息体
+        RequestBody body = RequestBody.create(JSON, data);
+        logUtil.d("", "data:" + data);
+        // 构建header
+        Headers.Builder headerBuilder = new Headers.Builder();
+        JSONObject mHeaders = new JSONObject(headers);
+        logUtil.d("", "headers:" + mHeaders);
+        Iterator<String> itr = mHeaders.keys();
+        while (itr.hasNext()) {
+            String name = itr.next();
+            headerBuilder.add(name, mHeaders.getString(name));
+        }
+        Headers mHeader = headerBuilder.build();
+        // 构建request
+        Request request = new Request.Builder()
+                .url(url)
+                .headers(mHeader)
+                .post(body)
+                .build();
+        try {
+            Response response = new OkHttpClient().newCall(request).execute();
+            String msg = response.body().string();
+            logUtil.d("postResp >>>", msg);
+            return msg.trim();
+        } catch (Exception e) {
+            logUtil.e("postResp >>>", e);
+            return String.format("{\"error\": \"%s\"}", e.getMessage());
+        }
+    }
+
+    public static String getResp(String url, String headers) throws JSONException {
+        if (!url.startsWith("http")) {
+            logUtil.d("getResp", "wrong url:" + url);
+            return "";
+        }
+        logUtil.d("getResp", url);
+        // 构建header
+        Headers.Builder headerBuilder = new Headers.Builder();
+        JSONObject mHeaders = new JSONObject(headers);
+        logUtil.d("", "headers:" + mHeaders);
+        Iterator<String> itr = mHeaders.keys();
+        while (itr.hasNext()) {
+            String name = itr.next();
+            headerBuilder.add(name, mHeaders.getString(name));
+        }
+        Headers mHeader = headerBuilder.build();
+        Request request = new Request.Builder()
+                .url(url)
+                .headers(mHeader)
+                .get()
+                .build();
+        try {
+            Response response = new OkHttpClient().newCall(request).execute();
+            String msg = response.body().string();
+            return msg.trim();
+        } catch (IOException e) {
+            logUtil.e("错误", e);
+            return "null";
+        }
+    }
+
 
     public static String getResp(String url) {
         if (!url.startsWith("http")) {

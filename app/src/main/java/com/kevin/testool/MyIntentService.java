@@ -869,6 +869,8 @@ public class MyIntentService extends IntentService {
         // 判断检查类型 0:只检查fc anr ，1: 只检查界面 ， 2: 全部检查
 
         try {
+            ShellUtils.runShellCommand("pidof atx-agent| xargs kill -9", 0); //kill atx-agent
+            Common.killApp("com.github.uiautomator"); //kill uiautomator process (atx app)
             checkType = CONFIG().getInt("CHECK_TYPE");
         } catch (Exception e){
             logUtil.e("", e);
@@ -892,7 +894,6 @@ public class MyIntentService extends IntentService {
                 case ACTION_RUN:
                     timeTag = FileUtils.creatLogDir();
                     FileUtils.createTempFile(CONST.TEMP_FILE, timeTag);
-                    Common.killApp("com.github.uiautomator"); //kill uiautomator process (atx app)
                     DEVICE = Common.getDeviceName();//.replace(" ", "");
                     ALIAS = Common.getDeviceAlias();
                     APP_VER = Common.getVersionName(getApplicationContext(), TARGET_APP);
@@ -1242,7 +1243,7 @@ public class MyIntentService extends IntentService {
                 }
 
                 String key = "";
-                if (keys.size() <= 1) {
+                if (keys.size() == 1) {
                     key = keys.get(0);
                     Object value = Step.getJSONObject(i).get(key);
                     //动态参数设置
@@ -1509,8 +1510,14 @@ public class MyIntentService extends IntentService {
                             if (value instanceof JSONObject){
                                 String url = ((JSONObject) value).optString("url");
                                 JSONObject data = ((JSONObject) value).optJSONObject("data");
+                                JSONObject headers = ((JSONObject) value).optJSONObject("headers");
                                 if (data != null && data.length() > 0){
-                                    response = HttpUtil.postResp(url, data.toString());
+                                    if (headers != null) {
+                                        response = HttpUtil.postResp(url, data.toString(), headers.toString());
+                                    } else {
+                                        response = HttpUtil.postResp(url, data.toString());
+                                    }
+                                    ToastUtils.showShortByHandler(AppContext.getContext(), response +"");
                                     break;
                                 }
                                 if (!((JSONObject) value).isNull("video")){
@@ -1528,7 +1535,12 @@ public class MyIntentService extends IntentService {
                             response = ""; // 先初始化化
                             if (value instanceof JSONObject){
                                 String url = ((JSONObject) value).optString("url");
-                                response = HttpUtil.getResp(url);
+                                JSONObject headers = ((JSONObject) value).optJSONObject("headers");
+                                if (headers != null) {
+                                    response = HttpUtil.getResp(url, headers.toString());
+                                } else {
+                                    response = HttpUtil.getResp(url);
+                                }
                             }
                             break;
 
@@ -1542,7 +1554,7 @@ public class MyIntentService extends IntentService {
                 if (i == waitTime.length()-1){
                     LAST_WAIT_TIME = waitTime.getInt(i) + 3;
                 } else {
-                    SystemClock.sleep(wait_time * 1000);
+                    SystemClock.sleep(wait_time * 1000L);
                 }
             } else {
                 String stepDesc = Step.getString(i);
