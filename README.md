@@ -264,8 +264,8 @@ image_id 为图像库中的图像id,image_tag 为图像库中图像tag名,bounds
 
 #### __网络请求__
 ```
-{"post":{"url":"xxxxxx", "data":{}}} 发送post请求，data字段为参数
-{"get":{"url":"xxxxx"}} 发送get请求
+{"post":{"url":"xxxxxx", "data":{}, "headers":{}}} 发送post请求，data字段为参数
+{"get":{"url":"xxxxx", "headers":{}}} 发送get请求
 ```
 
 #### __逻辑实现__
